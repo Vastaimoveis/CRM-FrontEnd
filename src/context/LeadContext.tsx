@@ -24,21 +24,21 @@ export function LeadProvider({ children }: { children: ReactNode }) {
             nome: "alo",
             email: "Email@email.com",
             status: LeadStatus.CADASTRADO,
-            telefone: "2784848544"
+            telefone: "1234567"
         },
         {
             id: "2",
-            nome: "alo",
-            email: "Email@email.com",
+            nome: "ola",
+            email: "oi@email.com",
             status: LeadStatus.CADASTRADO,
-            telefone: "2784848544"
+            telefone: "852134"
         },
         {
             id: "3",
-            nome: "alo",
+            nome: "bbbb",
             email: "Email@email.com",
             status: LeadStatus.ATENDIMENTO,
-            telefone: "2784848544"
+            telefone: "2121548"
         },]);
 
     function createLead(data: CreateLeadDTO) {
