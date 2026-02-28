@@ -9,60 +9,47 @@ export default function LeadsPage() {
     const { leads, updateLeadStatus } = useLeads();
     const [searchParams, setSearchParams] = useSearchParams();
 
-    // 📌 Ler parâmetros da URL
+    // 🔹 URL é a fonte de verdade
     const statusParam = searchParams.get("status") as LeadStatus | null;
     const searchParam = searchParams.get("search") || "";
-    const pageParam = Number(searchParams.get("page")) || 1;
+    const currentPage = Number(searchParams.get("page")) || 1;
+    const [debouncedSearch, setDebouncedSearch] = useState(searchParam)
 
-    // 📌 Estados iniciando com valores da URL
-    const [searchInput, setSearchInput] = useState(searchParam);
-    const [debouncedSearch, setDebouncedSearch] = useState(searchParam);
-    const [currentPage, setCurrentPage] = useState(pageParam);
+    // 🔹 Função utilitária para atualizar URL
+    function updateParams(newParams: Record<string, string | null>) {
+        const params = new URLSearchParams(searchParams);
 
-    // 🔥 Debounce manual
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setDebouncedSearch(searchInput);
-        }, 400);
-
-        return () => clearTimeout(timer);
-    }, [searchInput]);
-
-    // 🔥 Sincronizar URL automaticamente
-    useEffect(() => {
-        const params: Record<string, string> = {};
-
-        if (statusParam) params.status = statusParam;
-        if (debouncedSearch.trim()) params.search = debouncedSearch;
-        if (currentPage > 1) params.page = String(currentPage);
-
-        setSearchParams(params);
-    }, [statusParam, debouncedSearch, currentPage, setSearchParams]);
-
-    // 🔎 Filtro por status
-    function handleStatusChange(value: string) {
-        setCurrentPage(1);
-
-        const params: Record<string, string> = {};
-
-        if (value) params.status = value;
-        if (debouncedSearch.trim()) params.search = debouncedSearch;
+        Object.entries(newParams).forEach(([key, value]) => {
+            if (!value) {
+                params.delete(key);
+            } else {
+                params.set(key, value);
+            }
+        });
 
         setSearchParams(params);
     }
 
-    // 🎯 1️⃣ Filtrar por status
+    // 🔎 Filtro por status
     const statusFiltered = useMemo(() => {
         if (!statusParam) return leads;
         return leads.filter((lead) => lead.status === statusParam);
     }, [leads, statusParam]);
 
-    // 🎯 2️⃣ Filtrar por busca (nome/email/telefone)
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchParam);
+        }, 400);
+        return () => clearTimeout(timer);
+    }, [searchParam]);
+
+    // 🔎 Filtro por busca
     const searchFiltered = useMemo(() => {
         if (!debouncedSearch.trim()) return statusFiltered;
 
         const searchLower = debouncedSearch.toLowerCase();
         const searchNumbers = debouncedSearch.replace(/\D/g, "");
+
 
         return statusFiltered.filter((lead) => {
             const telefoneLimpo = lead.telefone.replace(/\D/g, "");
@@ -70,20 +57,13 @@ export default function LeadsPage() {
             return (
                 lead.nome.toLowerCase().includes(searchLower) ||
                 lead.email.toLowerCase().includes(searchLower) ||
-                telefoneLimpo.includes(searchNumbers)
+                (searchNumbers && telefoneLimpo.includes(searchNumbers))
             );
         });
     }, [statusFiltered, debouncedSearch]);
 
-    // 🎯 3️⃣ Paginação
+    // 🔎 Paginação
     const totalPages = Math.ceil(searchFiltered.length / ITEMS_PER_PAGE);
-
-    // Corrigir página inválida se filtro reduzir resultados
-    useEffect(() => {
-        if (currentPage > totalPages && totalPages > 0) {
-            setCurrentPage(totalPages);
-        }
-    }, [totalPages, currentPage]);
 
     const paginatedLeads = useMemo(() => {
         const start = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -94,13 +74,8 @@ export default function LeadsPage() {
         <div className="bg-white p-6 rounded-xl shadow-sm">
             {/* Header */}
             <div className="flex flex-col gap-4 mb-6">
-
-                {/* Linha superior */}
                 <div className="flex items-center justify-between">
-                    <h1 className="text-xl font-semibold">
-                        Leads
-                    </h1>
-
+                    <h1 className="text-xl font-semibold">Leads</h1>
                     <div className="text-sm text-gray-500">
                         {searchFiltered.length} resultado(s)
                     </div>
@@ -108,12 +83,16 @@ export default function LeadsPage() {
 
                 {/* Filtros */}
                 <div className="flex gap-4">
-
                     {/* Status */}
                     <select
                         value={statusParam || ""}
-                        onChange={(e) => handleStatusChange(e.target.value)}
-                        className="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black"
+                        onChange={(e) =>
+                            updateParams({
+                                status: e.target.value || null,
+                                page: null, // reset página
+                            })
+                        }
+                        className="border rounded-md px-3 py-2"
                     >
                         <option value="">Todos os status</option>
                         {Object.values(LeadStatus).map((status) => (
@@ -127,12 +106,14 @@ export default function LeadsPage() {
                     <input
                         type="text"
                         placeholder="Buscar por nome, email ou telefone..."
-                        value={searchInput}
-                        onChange={(e) => {
-                            setCurrentPage(1);
-                            setSearchInput(e.target.value);
-                        }}
-                        className="border rounded-md px-3 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-black"
+                        value={searchParam}
+                        onChange={(e) =>
+                            updateParams({
+                                search: e.target.value || null,
+                                page: null, // reset página
+                            })
+                        }
+                        className="border rounded-md px-3 py-2 w-64"
                     />
                 </div>
             </div>
@@ -154,7 +135,6 @@ export default function LeadsPage() {
                             <td className="py-3">{lead.nome}</td>
                             <td>{lead.email}</td>
                             <td>{lead.telefone}</td>
-
                             <td>
                                 <select
                                     value={lead.status}
@@ -164,7 +144,7 @@ export default function LeadsPage() {
                                             e.target.value as LeadStatus
                                         )
                                     }
-                                    className="border rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-black"
+                                    className="border rounded-md px-2 py-1"
                                 >
                                     {Object.values(LeadStatus).map((status) => (
                                         <option key={status} value={status}>
@@ -191,7 +171,11 @@ export default function LeadsPage() {
                 <div className="flex justify-end gap-2 mt-6">
                     <button
                         disabled={currentPage === 1}
-                        onClick={() => setCurrentPage((prev) => prev - 1)}
+                        onClick={() =>
+                            updateParams({
+                                page: String(currentPage - 1),
+                            })
+                        }
                         className="px-3 py-1 border rounded disabled:opacity-40"
                     >
                         Anterior
@@ -203,7 +187,11 @@ export default function LeadsPage() {
 
                     <button
                         disabled={currentPage === totalPages}
-                        onClick={() => setCurrentPage((prev) => prev + 1)}
+                        onClick={() =>
+                            updateParams({
+                                page: String(currentPage + 1),
+                            })
+                        }
                         className="px-3 py-1 border rounded disabled:opacity-40"
                     >
                         Próxima
