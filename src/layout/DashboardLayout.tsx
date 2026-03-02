@@ -11,6 +11,7 @@ export default function DashboardLayout({
 
       <main className="p-8">
         {children}
+        
       </main>
     </div>
   );

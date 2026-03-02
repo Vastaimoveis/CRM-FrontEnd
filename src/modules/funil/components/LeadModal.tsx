@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { LeadStatus } from "../../../types/LeadType";
 import { useLeads } from "../../../context/LeadContext";
+import { useToast } from "../../../context/ToastContext";
 
 export interface CreateLeadDTO {
   nome: string;
@@ -17,6 +18,7 @@ interface Props {
 
 export default function LeadModal({ open, onClose, onSubmit }: Props) {
   const { createLead } = useLeads();
+  const { showToast } = useToast();
   const [form, setForm] = useState<CreateLeadDTO>({
     nome: "",
     email: "",
@@ -43,7 +45,7 @@ export default function LeadModal({ open, onClose, onSubmit }: Props) {
 
     try {
       createLead(form);
-      
+
       // Reset
       setForm({
         nome: "",
@@ -51,7 +53,7 @@ export default function LeadModal({ open, onClose, onSubmit }: Props) {
         telefone: "",
         status: LeadStatus.CADASTRADO
       });
-
+      showToast("Lead criado com sucesso", "success")
       onClose();
     } finally {
       setLoading(false);

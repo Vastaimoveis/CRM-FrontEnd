@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Lead } from "../../../types/LeadType";
 import FileInput from "./FileInput";
+import { useToast } from "../../../context/ToastContext";
 
 interface Props {
   lead: Lead;
@@ -9,13 +10,14 @@ interface Props {
 
 export default function LeadDocumentsModal({ lead, onClose }: Props) {
   const [estadoCivil, setEstadoCivil] = useState<string>("");
+  const {showToast} = useToast();
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault(); // impede refresh
 
     // Aqui futuramente você vai montar FormData e enviar pro backend
     console.log("Formulário enviado para:", lead.nome);
     console.log("Estado Civil:", estadoCivil);
-
+    showToast("Lead enviado com sucesso", "success")
     onClose();
   };
   return (
@@ -79,6 +81,7 @@ export default function LeadDocumentsModal({ lead, onClose }: Props) {
 
             <button
               type="submit"
+              onClick={handleSubmit}
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
               Enviar Documentos

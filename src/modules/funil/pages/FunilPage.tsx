@@ -9,7 +9,7 @@ import { useLeads } from "../../../context/LeadContext";
 export default function FunilPage() {
   const [chartType, setChartType] = useState<"funnel" | "pie" | "bar">("funnel");
   const navigate = useNavigate();
-  const {leadsCountByStatus} = useLeads();
+  const { leadsCountByStatus } = useLeads();
 
   function handleStatusClick(status: LeadStatus) {
     navigate(`/leads?status=${status}`);
@@ -19,39 +19,41 @@ export default function FunilPage() {
 
   async function handleCreateLead(data: CreateLeadDTO) {
     // MOCK TEMPORÁRIO
-    console.log("Lead criado:", { ...data, status });
+    console.log("Lead criado:", { ...data });
+
 
     // Depois vira:
     // await api.post("/leads", data)
+ 
   }
 
 
-const chartData = [
-  {
-    status: LeadStatus.CADASTRADO,
-    total: leadsCountByStatus[LeadStatus.CADASTRADO],
-  },
-  {
-    status: LeadStatus.ATENDIMENTO,
-    total: leadsCountByStatus[LeadStatus.ATENDIMENTO],
-  },
-  {
-    status: LeadStatus.AGUARDANDO,
-    total: leadsCountByStatus[LeadStatus.AGUARDANDO],
-  },
-  {
-    status: LeadStatus.VISITA,
-    total: leadsCountByStatus[LeadStatus.VISITA],
-  },
-  {
-    status: LeadStatus.NEGOCIACAO,
-    total: leadsCountByStatus[LeadStatus.NEGOCIACAO],
-  },
-  {
-    status: LeadStatus.VENDA,
-    total: leadsCountByStatus[LeadStatus.VENDA],
-  },
-];
+  const chartData = [
+    {
+      status: LeadStatus.CADASTRADO,
+      total: leadsCountByStatus[LeadStatus.CADASTRADO],
+    },
+    {
+      status: LeadStatus.ATENDIMENTO,
+      total: leadsCountByStatus[LeadStatus.ATENDIMENTO],
+    },
+    {
+      status: LeadStatus.AGUARDANDO,
+      total: leadsCountByStatus[LeadStatus.AGUARDANDO],
+    },
+    {
+      status: LeadStatus.VISITA,
+      total: leadsCountByStatus[LeadStatus.VISITA],
+    },
+    {
+      status: LeadStatus.NEGOCIACAO,
+      total: leadsCountByStatus[LeadStatus.NEGOCIACAO],
+    },
+    {
+      status: LeadStatus.VENDA,
+      total: leadsCountByStatus[LeadStatus.VENDA],
+    },
+  ];
 
 
   return (
@@ -81,6 +83,8 @@ const chartData = [
         onClose={() => setModalOpen(false)}
         onSubmit={handleCreateLead}
       />
+
+
     </div>
   );
 }
