@@ -7,12 +7,9 @@ import { PrivateRoute } from './routes/PrivateRoute'
 import FunilPage from './modules/funil/pages/FunilPage'
 import { LeadProvider } from './context/LeadContext'
 import LeadsPage from './modules/Leads/LeadsPage'
+import OportunidadesPage from './modules/Oportunitys/pages/OportunidadesPage'
 
 function App() {
-
-  function Oportunidades() {
-    return <div>Oportunidades</div>;
-  }
 
   return (
     <AuthProvider>
@@ -48,7 +45,7 @@ function App() {
               element={
                 <PrivateRoute>
                   <DashboardLayout>
-                    <Oportunidades />
+                    <OportunidadesPage />
                   </DashboardLayout>
                 </PrivateRoute>
               }
