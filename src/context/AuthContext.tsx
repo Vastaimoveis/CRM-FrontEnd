@@ -1,9 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-
-interface User {
-  name: string;
-  email: string;
-}
+import { UserRoles, type User } from "../types/UserTypes";
 
 interface AuthContextType {
   user: User | null;
@@ -36,8 +32,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // MOCK TEMPORÁRIO
     if (email === "admin@crm.com" && password === "123456") {
       const fakeUser = {
-        name: "Administrador",
+        id: "1",
+        name: "Corretor Lorenzo",
         email,
+        role: UserRoles.Corretor
       };
 
       const fakeToken = "mock-jwt-token-123";
