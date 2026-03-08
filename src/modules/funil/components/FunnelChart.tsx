@@ -12,7 +12,7 @@ import {
   ResponsiveContainer,
   LabelList,
 } from "recharts";
-import { type LeadStatus, STATUS_COLORS } from "../../../types/LeadType";
+import { type LeadStatus, STATUS_COLORS } from "@/shared/types/LeadType";
 
 interface ChartData {
   status: LeadStatus;

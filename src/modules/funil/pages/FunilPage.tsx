@@ -1,10 +1,10 @@
 import { useState } from "react";
 import CustomChart from "../components/FunnelChart";
 import ChartSwitcher from "../components/ChartSwitcher";
-import { LeadStatus, type Lead } from "../../../types/LeadType";
+import { LeadStatus, type Lead } from "@/shared/types/LeadType";
 import { useNavigate } from "react-router-dom";
 import LeadModal, { type CreateLeadDTO } from "../components/LeadModal";
-import { useLeads } from "../../../context/LeadContext";
+import { useLeads } from "@/app/providers/LeadProvider";
 
 export default function FunilPage() {
   const [chartType, setChartType] = useState<"funnel" | "pie" | "bar">("funnel");

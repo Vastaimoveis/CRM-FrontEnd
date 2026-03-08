@@ -1,12 +1,12 @@
 import { useMemo, useState } from "react";
-import { useLeads } from "../../../context/LeadContext";
-import { LeadStatus, type Lead } from "../../../types/LeadType";
+import { useLeads } from "@/app/providers/LeadProvider";
+import { LeadStatus, type Lead } from "@/shared/types/LeadType";
 import PipelineColumn from "../components/PipelineColumn";
 import LeadDocumentsModal from "../components/LeadDocumentsModal";
 
 
 const PIPELINE_STATUS: LeadStatus[] = [
-  LeadStatus.CADASTRADO,
+
   LeadStatus.ATENDIMENTO,
   LeadStatus.AGUARDANDO,
   LeadStatus.VISITA,

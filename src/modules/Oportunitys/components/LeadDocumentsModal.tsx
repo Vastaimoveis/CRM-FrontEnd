@@ -1,7 +1,7 @@
 import { useState } from "react";
-import type { Lead } from "../../../types/LeadType";
+import type { Lead } from "@/shared/types/LeadType";
 import FileInput from "./FileInput";
-import { useToast } from "../../../context/ToastContext";
+import { useToast } from "@/app/providers/ToastProvider";
 
 interface Props {
   lead: Lead;

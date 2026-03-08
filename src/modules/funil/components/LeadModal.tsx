@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { LeadStatus } from "../../../types/LeadType";
-import { useLeads } from "../../../context/LeadContext";
-import { useToast } from "../../../context/ToastContext";
+import { LeadStatus } from "@/shared/types/LeadType";
+import { useLeads } from "@/app/providers/LeadProvider";
+import { useToast } from "@/app/providers/ToastProvider";
 
 export interface CreateLeadDTO {
   nome: string;

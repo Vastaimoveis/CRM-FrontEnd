@@ -1,4 +1,4 @@
-import { type Lead, LeadStatus } from "../../../types/LeadType";
+import { type Lead, LeadStatus } from "@/shared/types/LeadType";
 import LeadCard from "./LeadCard";
 
 interface Props {

@@ -1,4 +1,4 @@
-import type { LoginRequest, LoginResponse } from "../types/authTypes";
+import type { LoginRequest, LoginResponse } from "../shared/types/authTypes";
 
 const API_URL = "http://localhost:8080/api/auth";
 

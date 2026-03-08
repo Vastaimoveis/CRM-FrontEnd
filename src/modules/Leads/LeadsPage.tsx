@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useLeads } from "../../context/LeadContext";
-import { LeadStatus } from "../../types/LeadType";
+import { useLeads } from "@/app/providers/LeadProvider";
+import { LeadStatus } from "@/shared/types/LeadType";
+import Permission from "@/shared/permissions/Permission";
+import { UserRoles } from "@/shared/types/UserTypes";
 
 const ITEMS_PER_PAGE = 5;
 
@@ -152,6 +154,13 @@ export default function LeadsPage() {
                                         </option>
                                     ))}
                                 </select>
+                            </td>
+                            <td className="">
+                                <Permission allowed={[UserRoles.GERENTE]}>
+                                    <button className="bg-red-500 text-white font-bold rounded-2xl p-2 ">
+                                        Excluir Lead
+                                    </button>
+                                </Permission>
                             </td>
                         </tr>
                     ))}

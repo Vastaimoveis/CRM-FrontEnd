@@ -5,8 +5,8 @@ import {
     useState,
     type ReactNode,
 } from "react";
-import type { Lead, CreateLeadDTO } from "../types/LeadType";
-import { LeadStatus } from "../types/LeadType";
+import type { Lead, CreateLeadDTO } from "@/shared/types/LeadType";
+import { LeadStatus } from "@/shared/types/LeadType";
 
 interface LeadContextType {
     leads: Lead[];

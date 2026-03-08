@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { UserRoles, type User } from "../types/UserTypes";
+import { UserRoles, type User } from "@/shared/types/UserTypes";
 
 interface AuthContextType {
   user: User | null;
@@ -28,16 +28,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(false);
   }, []);
 
+  const users = [{
+    id: "1",
+    name: "Gerente Lorenzo",
+    email: "gerente@crm.com",
+    role: UserRoles.GERENTE
+  },
+  {
+    id: "2",
+    name: "Corretor Lorenzo",
+    email: "corretor@crm.com",
+    role: UserRoles.CORRETOR
+  }
+  ]
+
   async function login(email: string, password: string) {
     // MOCK TEMPORÁRIO
-    if (email === "admin@crm.com" && password === "123456") {
-      const fakeUser = {
-        id: "1",
-        name: "Corretor Lorenzo",
-        email,
-        role: UserRoles.Corretor
-      };
 
+    if ((email === "gerente@crm.com" && password === "123456") || (email === "corretor@crm.com" && password === "654321")) {
+      const fakeUser = users[users.findIndex((user) => user.email === email)];
       const fakeToken = "mock-jwt-token-123";
 
       setUser(fakeUser);
