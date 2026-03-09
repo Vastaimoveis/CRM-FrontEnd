@@ -36,6 +36,10 @@ export default function Header() {
         <NavLink to="/oportunidades" className={navItemClass}>
           Oportunidades
         </NavLink>
+
+        <NavLink to="/requisicoes" className={navItemClass}>
+          Requisições
+        </NavLink>
       </div>
     </header>
   );

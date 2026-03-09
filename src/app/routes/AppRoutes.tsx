@@ -7,6 +7,9 @@ import FunilPage from '@/modules/funil/pages/FunilPage'
 import LeadsPage from '@/modules/Leads/LeadsPage'
 import OportunidadesPage from '@/modules/Oportunitys/pages/OportunidadesPage'
 import AppProviders from '../providers/AppProviders'
+import { RoleGuard } from '@/services/RoleGuard'
+import RequisitosPage from '@/modules/Requisitos/pages/RequisitosPage'
+import { UserRoles } from '@/shared/types/UserTypes'
 
 function App() {
 
@@ -45,6 +48,15 @@ function App() {
                   <OportunidadesPage />
                 </DashboardLayout>
               </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/requisicoes"
+            element={
+              <RoleGuard allowed={[UserRoles.GERENTE]}>
+                <RequisitosPage />
+              </RoleGuard>
             }
           />
         </Routes>
