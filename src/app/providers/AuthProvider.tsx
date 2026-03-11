@@ -28,28 +28,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(false);
   }, []);
 
-  const users = [{
+const users = [
+  {
     id: "1",
     name: "Gerente Lorenzo",
     email: "gerente@crm.com",
+    password: "123456",
     role: UserRoles.GERENTE
   },
   {
     id: "2",
     name: "Corretor Lorenzo",
     email: "corretor@crm.com",
+    password: "654321",
     role: UserRoles.CORRETOR
   }
-  ]
+];
 
   async function login(email: string, password: string) {
     // MOCK TEMPORÁRIO
 
     if ((email === "gerente@crm.com" && password === "123456") || (email === "corretor@crm.com" && password === "654321")) {
-      const fakeUser = users[users.findIndex((user) => user.email === email)];
+      const fakeUser = users.find(user => user.email === email);
+
+      if (!fakeUser) {
+        throw new Error("Usuário não encontrado");
+      }
       const fakeToken = "mock-jwt-token-123";
 
       setUser(fakeUser);
+      console.log(user)
       setToken(fakeToken);
 
       localStorage.setItem("user", JSON.stringify(fakeUser));

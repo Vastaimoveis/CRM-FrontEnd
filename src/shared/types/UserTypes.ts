@@ -6,6 +6,6 @@ export interface User {
 }
 
 export enum UserRoles{
-    CORRETOR = "Corretor",
-    GERENTE = "Gerente"
+    CORRETOR = "CORRETOR",
+    GERENTE = "GERENTE"
 }

@@ -8,9 +8,15 @@ interface RoleGuardProps {
 }
 
 export function RoleGuard({ allowed, children }: RoleGuardProps) {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  console.log("ROLE CHECK", {
+    userRole: user?.role,
+    allowed,
+    match: allowed.includes(user?.role as any),
+  });
+  if (loading) return null;
 
-  if (!user || !allowed.includes(user.role)) {
+  if (!user || !allowed.includes(user.role as UserRoles)) {
     return <Navigate to="/funil" replace />;
   }
 

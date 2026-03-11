@@ -1,6 +1,6 @@
 import './styles/App.css'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import Login from '@/modules/login/login'
+import Login from '@/modules/login/pages/login'
 import DashboardLayout from '@/layout/DashboardLayout'
 import { PrivateRoute } from './PrivateRoute'
 import FunilPage from '@/modules/funil/pages/FunilPage'
@@ -54,9 +54,13 @@ function App() {
           <Route
             path="/requisicoes"
             element={
-              <RoleGuard allowed={[UserRoles.GERENTE]}>
-                <RequisitosPage />
-              </RoleGuard>
+              <PrivateRoute>
+                <DashboardLayout>
+                  <RoleGuard allowed={[UserRoles.GERENTE]}>
+                    <RequisitosPage />
+                  </RoleGuard>
+                </DashboardLayout>
+              </PrivateRoute>
             }
           />
         </Routes>
