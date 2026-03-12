@@ -1,7 +1,7 @@
 import { useState } from "react";
 import CustomChart from "../components/FunnelChart";
 import ChartSwitcher from "../components/ChartSwitcher";
-import { LeadStatus, type Lead } from "@/shared/types/LeadType";
+import { LeadStatus } from "@/shared/types/LeadType";
 import { useNavigate } from "react-router-dom";
 import LeadModal from "../components/LeadModal";
 import { useLeads } from "@/app/providers/LeadProvider";
