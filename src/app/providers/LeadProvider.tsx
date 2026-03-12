@@ -24,21 +24,27 @@ export function LeadProvider({ children }: { children: ReactNode }) {
             nome: "alo",
             email: "Email@email.com",
             status: LeadStatus.CADASTRADO,
-            telefone: "1234567"
+            telefone: "1234567",
+            creationDate: new Date(),
+            updateDate: new Date()
         },
         {
             id: "2",
             nome: "ola",
             email: "oi@email.com",
             status: LeadStatus.CADASTRADO,
-            telefone: "852134"
+            telefone: "852134",
+            creationDate: new Date(),
+            updateDate: new Date()
         },
         {
             id: "3",
             nome: "bbbb",
             email: "Email@email.com",
             status: LeadStatus.ATENDIMENTO,
-            telefone: "2121548"
+            telefone: "2121548",
+            creationDate: new Date(),
+            updateDate: new Date()
         },]);
 
     function createLead(data: CreateLeadDTO) {
@@ -46,6 +52,8 @@ export function LeadProvider({ children }: { children: ReactNode }) {
             id: crypto.randomUUID(),
             ...data,
             status: LeadStatus.CADASTRADO,
+            creationDate: new Date(),
+            updateDate: new Date()
         };
 
         setLeads((prev) => [...prev, newLead]);

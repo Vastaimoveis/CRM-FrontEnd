@@ -27,6 +27,7 @@ export default function LeadsTable({
                     <th>Email</th>
                     <th>Telefone</th>
                     <th>Status</th>
+                    <th>Data de Criação</th>
                 </tr>
             </thead>
 
@@ -55,7 +56,9 @@ export default function LeadsTable({
                                 ))}
                             </select>
                         </td>
-
+                        <td>
+                            {lead.creationDate.toLocaleDateString()}
+                        </td>
                         <td>
                             <Permission allowed={[UserRoles.GERENTE]}>
                                 <button className="bg-red-500 text-white font-bold rounded-2xl p-2">

@@ -12,6 +12,8 @@ export interface Lead {
   email: string;
   telefone: string;
   status: LeadStatus;
+  creationDate: Date;
+  updateDate: Date;
 }
 
 export interface CreateLeadDTO {
