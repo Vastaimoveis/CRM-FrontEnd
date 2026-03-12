@@ -145,5 +145,5 @@ export default function CustomChart({
         ))}
       </div>
     </div>
-  );
+  )
 }

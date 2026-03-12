@@ -3,8 +3,9 @@ import CustomChart from "../components/FunnelChart";
 import ChartSwitcher from "../components/ChartSwitcher";
 import { LeadStatus, type Lead } from "@/shared/types/LeadType";
 import { useNavigate } from "react-router-dom";
-import LeadModal, { type CreateLeadDTO } from "../components/LeadModal";
+import LeadModal from "../components/LeadModal";
 import { useLeads } from "@/app/providers/LeadProvider";
+import type { CreateLeadDTO } from "@/types/LeadType";
 
 export default function FunilPage() {
   const [chartType, setChartType] = useState<"funnel" | "pie" | "bar">("funnel");
@@ -24,7 +25,7 @@ export default function FunilPage() {
 
     // Depois vira:
     // await api.post("/leads", data)
- 
+
   }
 
 

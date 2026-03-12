@@ -7,9 +7,10 @@ import type { CreateLeadDTO } from "@/types/LeadType";
 interface Props {
   open: boolean;
   onClose: () => void;
+  onSubmit: (arg0: CreateLeadDTO) => Promise<void>
 }
 
-export default function LeadModal({ open, onClose }: Props) {
+export default function LeadModal({ open, onClose, onSubmit }: Props) {
   const { createLead } = useLeads();
   const { showToast } = useToast();
 

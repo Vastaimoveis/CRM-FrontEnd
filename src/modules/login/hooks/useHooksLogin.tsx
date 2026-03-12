@@ -47,11 +47,10 @@ export function useLoginForm() {
           password,
         });
 
-        showToast("Solicitação enviada para aprovação do gerente!", "success");
+        showToast("Solicitação enviada para aprovação do gerente!");
       }
 
     } catch (err: any) {
-      showToast("Erro na criação da Lead", "error");
       setError(err.message);
     } finally {
       setLoading(false);
