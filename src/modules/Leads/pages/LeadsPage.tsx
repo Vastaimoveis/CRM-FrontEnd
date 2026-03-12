@@ -9,6 +9,7 @@ import LeadsTable from "../components/LeadsTable";
 
 import { useLeadsFilter } from "../hooks/useLeadsFilter";
 import { useLeadsPagination } from "../hooks/useLeadsPagination";
+import { exportLeadsToExcel } from "../utils/exportLeadsToExcel";
 
 const ITEMS_PER_PAGE = 5;
 
@@ -53,23 +54,33 @@ export default function Leads() {
                         {filteredLeads.length} resultado(s)
                     </div>
                 </div>
+                <div className="flex justify-between">
+                    <LeadsFilter
+                        status={statusParam}
+                        search={searchParam}
+                        onStatusChange={(value) =>
+                            updateParams({
+                                status: value || null,
+                                page: null,
+                            })
+                        }
+                        onSearchChange={(value) =>
+                            updateParams({
+                                search: value || null,
+                                page: null,
+                            })
+                        }
+                    />
 
-                <LeadsFilter
-                    status={statusParam}
-                    search={searchParam}
-                    onStatusChange={(value) =>
-                        updateParams({
-                            status: value || null,
-                            page: null,
-                        })
-                    }
-                    onSearchChange={(value) =>
-                        updateParams({
-                            search: value || null,
-                            page: null,
-                        })
-                    }
-                />
+                    <button
+                        onClick={() => exportLeadsToExcel(filteredLeads)}
+                        className="bg-green-600 text-white px-4 py-2 rounded w-fit"
+                    >
+                        Exportar Excel
+                    </button>
+
+                </div>
+
             </div>
 
             <LeadsTable
