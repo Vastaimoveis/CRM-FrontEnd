@@ -6,7 +6,7 @@ import { AuthProvider } from './context/AuthContext'
 import { PrivateRoute } from './routes/PrivateRoute'
 import FunilPage from './modules/funil/pages/FunilPage'
 import { LeadProvider } from './context/LeadContext'
-import LeadsPage from './modules/Leads/LeadsPage'
+import LeadsPage from './modules/Leads/pages/LeadsPage'
 import OportunidadesPage from './modules/Oportunitys/pages/OportunidadesPage'
 import { ToastProvider } from './context/ToastContext'
 
