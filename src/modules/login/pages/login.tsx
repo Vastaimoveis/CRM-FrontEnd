@@ -1,70 +1,25 @@
-import { useState } from "react";
-import { useAuth } from "@/app/providers/AuthProvider";
-import { useNavigate } from "react-router-dom";
 import logo from "/logo.png"
-import { useToast } from "@/app/providers/ToastProvider";
+import { formatPhone } from "../utils/formatPhone";
+import { useLoginForm } from "../hooks/useHooksLogin";
 
 export default function Login() {
-  const [mode, setMode] = useState<"login" | "register">("login");
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const { login } = useAuth();
-  const navigate = useNavigate();
-  const { showToast } = useToast();
 
+  const {
+    mode,
+    setMode,
+    name,
+    setName,
+    phone,
+    setPhone,
+    email,
+    setEmail,
+    password,
+    setPassword,
+    loading,
+    error,
+    handleSubmit
+  } = useLoginForm();
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-    if (mode === "login") {
-
-      try {
-        await login(email, password);
-        navigate("/funil");
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      const phoneNumbers = phone.replace(/\D/g, "");
-
-      if (phoneNumbers.length < 10) {
-        setError("Telefone inválido");
-        return;
-      }
-      // futura requisição para gerente
-      console.log({
-        name,
-        phone,
-        email,
-        password,
-        status: "pendente_aprovacao"
-      });
-
-      showToast("Solicitação enviada para aprovação do gerente!");
-      setLoading(false)
-    }
-  }
-
-  function formatPhone(value: string) {
-    const numbers = value.replace(/\D/g, "").slice(0, 11);
-
-    if (numbers.length <= 10) {
-      return numbers
-        .replace(/(\d{2})(\d)/, "($1) $2")
-        .replace(/(\d{4})(\d)/, "$1-$2");
-    }
-
-    return numbers
-      .replace(/(\d{2})(\d)/, "($1) $2")
-      .replace(/(\d{5})(\d)/, "$1-$2");
-  }
 
   return (
     <div className="min-h-screen flex">
