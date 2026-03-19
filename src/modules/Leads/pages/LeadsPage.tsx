@@ -10,11 +10,12 @@ import LeadsTable from "../components/LeadsTable";
 import { useLeadsFilter } from "../hooks/useLeadsFilter";
 import { useLeadsPagination } from "../hooks/useLeadsPagination";
 import { exportLeadsToExcel } from "../utils/exportLeadsToExcel";
+import ImportLeadsButton from "../components/ImportLeadsButton";
 
 const ITEMS_PER_PAGE = 5;
 
 export default function Leads() {
-    const { leads, updateLeadStatus } = useLeads();
+    const { leads, updateLeadStatus, importLeads } = useLeads();
     const [searchParams, setSearchParams] = useSearchParams();
 
     const statusParam = searchParams.get("status") as LeadStatus | null;
@@ -74,10 +75,11 @@ export default function Leads() {
 
                     <button
                         onClick={() => exportLeadsToExcel(filteredLeads)}
-                        className="bg-green-600 text-white px-4 py-2 rounded w-fit"
+                        className="bg-green-600 text-white px-4 py-2 rounded w-fit hover:bg-green-800"
                     >
                         Exportar Excel
                     </button>
+                    <ImportLeadsButton />
 
                 </div>
 

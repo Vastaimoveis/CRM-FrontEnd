@@ -57,7 +57,7 @@ export default function LeadsTable({
                             </select>
                         </td>
                         <td>
-                            {lead.creationDate.toLocaleDateString()}
+                            {new Date(lead.creationDate).toLocaleDateString()}
                         </td>
                         <td>
                             <Permission allowed={[UserRoles.GERENTE]}>

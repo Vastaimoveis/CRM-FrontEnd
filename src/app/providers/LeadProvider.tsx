@@ -11,6 +11,7 @@ import { LeadStatus } from "@/shared/types/LeadType";
 interface LeadContextType {
     leads: Lead[];
     createLead: (data: CreateLeadDTO) => void;
+    importLeads: (leads: Lead[]) => void;
     updateLeadStatus: (id: string, status: LeadStatus) => void;
     leadsCountByStatus: Record<LeadStatus, number>;
 }
@@ -67,6 +68,31 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         );
     }
 
+    function importLeads(newLeads: Lead[]) {
+        const existingEmails = new Set(leads.map((l) => l.email));
+        console.log(newLeads)
+
+        const leadsFormatted = newLeads
+            .filter((lead) => !existingEmails.has(lead.email))
+            .map((lead) => ({
+                ...lead,
+                id: crypto.randomUUID(),
+                creationDate: lead.creationDate
+                    ? new Date(lead.creationDate)
+                    : new Date(),
+                updateDate: lead.updateDate
+                    ? new Date(lead.updateDate)
+                    : new Date(),
+            }));
+        leadsFormatted.forEach((lead) => {
+            createLead(lead);
+        })
+
+
+
+
+    }
+
     const leadsCountByStatus = useMemo(() => {
         const counts: Record<LeadStatus, number> = {
             [LeadStatus.CADASTRADO]: 0,
@@ -89,6 +115,7 @@ export function LeadProvider({ children }: { children: ReactNode }) {
             value={{
                 leads,
                 createLead,
+                importLeads,
                 updateLeadStatus,
                 leadsCountByStatus,
             }}
