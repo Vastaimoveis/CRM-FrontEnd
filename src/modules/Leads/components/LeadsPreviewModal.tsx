@@ -1,42 +1,47 @@
-import type { Lead } from "@/shared/types/LeadType";
+import type { Lead } from "@/types/LeadType";
 import LeadsPreviewTable from "./LeadsPreviewTable";
 
 interface Props {
-    leads: Lead[];
-    onConfirm: () => void;
-    onCancel: () => void;
+  leads: Lead[];
+  title?: string;
+  confirmLabel?: string;
+  onConfirm: () => void;
+  onCancel: () => void;
 }
 
 export default function LeadsPreviewModal({
-    leads,
-    onConfirm,
-    onCancel,
+  leads,
+  title = "Preview de Leads",
+  confirmLabel = "Confirmar",
+  onConfirm,
+  onCancel,
 }: Props) {
-    return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-            <div className="bg-white rounded-xl p-6 w-200 max-h-[90vh] flex flex-col">
-                <h2 className="text-xl font-bold mb-4">
-                    Preview de Leads ({leads.length})
-                </h2>
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl p-6 w-200 max-h-[90vh] flex flex-col">
 
-                <LeadsPreviewTable leads={leads} />
+        <h2 className="text-xl font-bold mb-4">
+          {title} ({leads.length})
+        </h2>
 
-                <div className="flex justify-end gap-4 mt-4">
-                    <button
-                        onClick={onCancel}
-                        className="px-4 py-2 rounded bg-gray-200"
-                    >
-                        Cancelar
-                    </button>
+        <LeadsPreviewTable leads={leads} />
 
-                    <button
-                        onClick={onConfirm}
-                        className="px-4 py-2 rounded bg-blue-600 text-white"
-                    >
-                        Confirmar Importação
-                    </button>
-                </div>
-            </div>
+        <div className="flex justify-end gap-4 mt-4">
+          <button
+            onClick={onCancel}
+            className="px-4 py-2 rounded bg-gray-200"
+          >
+            Cancelar
+          </button>
+
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 rounded bg-blue-600 text-white"
+          >
+            {confirmLabel}
+          </button>
         </div>
-    );
+      </div>
+    </div>
+  );
 }

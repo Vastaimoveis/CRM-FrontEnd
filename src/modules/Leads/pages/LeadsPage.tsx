@@ -10,14 +10,20 @@ import LeadsTable from "../components/LeadsTable";
 import { useLeadsFilter } from "../hooks/useLeadsFilter";
 import { useLeadsPagination } from "../hooks/useLeadsPagination";
 import { exportLeadsToExcel } from "../utils/exportLeadsToExcel";
-import ImportLeadsButton from "../components/ImportLeadsButton";
+import LeadsPreviewModal from "../components/LeadsPreviewModal";
+import { useState } from "react";
+import { parseExcel } from "../utils/importLeadsFromExcel";
+import type { Lead } from "@/types/LeadType";
+
 
 const ITEMS_PER_PAGE = 5;
 
 export default function Leads() {
     const { leads, updateLeadStatus, importLeads } = useLeads();
     const [searchParams, setSearchParams] = useSearchParams();
-
+    const [previewOpen, setPreviewOpen] = useState(false);
+    const [previewType, setPreviewType] = useState<"export" | "import" | null>(null);
+    const [importedLeads, setImportedLeads] = useState<Lead[]>([]);
     const statusParam = searchParams.get("status") as LeadStatus | null;
     const searchParam = searchParams.get("search") || "";
     const currentPage = Number(searchParams.get("page")) || 1;
@@ -31,6 +37,16 @@ export default function Leads() {
         });
 
         setSearchParams(params);
+    }
+
+    async function handleFileImport(e: React.ChangeEvent<HTMLInputElement>) {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const parsedLeads = await parseExcel(file);
+
+        setImportedLeads(parsedLeads);
+        setPreviewType("import");
     }
 
     const filteredLeads = useLeadsFilter({
@@ -73,13 +89,56 @@ export default function Leads() {
                         }
                     />
 
-                    <button
-                        onClick={() => exportLeadsToExcel(filteredLeads)}
-                        className="bg-green-600 text-white px-4 py-2 rounded w-fit hover:bg-green-800"
-                    >
-                        Exportar Excel
-                    </button>
-                    <ImportLeadsButton />
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => setPreviewType("export")}
+                            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-800"
+                        >
+                            Exportar Excel
+                        </button>
+
+                            <input
+                                type="file"
+                                accept=".xlsx,.xls,.csv"
+                                className="hidden"
+                                id="import-input"
+                                onChange={handleFileImport}
+                                onClick={() => setPreviewType("import")}
+                            />
+
+                            <label
+                                htmlFor="import-input"
+                                className="bg-blue-600 text-white px-4 py-2 rounded cursor-pointer hover:bg-blue-800"
+                            >
+                                Importar Excel
+                            </label>
+                    </div>
+
+                    {previewType && (
+                        <LeadsPreviewModal
+                            leads={previewType === "import" ? importedLeads : filteredLeads}
+                            title={
+                                previewType === "export"
+                                    ? "Pré-visualização do Export"
+                                    : "Pré-visualização do Import"
+                            }
+                            confirmLabel={
+                                previewType === "export"
+                                    ? "Exportar Excel"
+                                    : "Importar Leads"
+                            }
+                            onConfirm={() => {
+                                if (previewType === "export") {
+                                    exportLeadsToExcel(filteredLeads);
+                                } else {
+                                    importLeads(importedLeads);
+                                }
+
+                                setPreviewType(null);
+                            }}
+                            onCancel={() => setPreviewType(null)}
+                        />
+                    )}
 
                 </div>
 
