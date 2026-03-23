@@ -16,7 +16,7 @@ import { parseExcel } from "../utils/importLeadsFromExcel";
 import type { Lead } from "@/types/LeadType";
 
 
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 20;
 
 export default function Leads() {
     const { leads, updateLeadStatus, importLeads } = useLeads();
@@ -54,6 +54,11 @@ export default function Leads() {
         status: statusParam,
         search: searchParam,
     });
+
+    function handleDelete() {
+        //todo: open modal and delete Lead
+        
+    }
 
     const { paginatedLeads, totalPages } = useLeadsPagination({
         leads: filteredLeads,
@@ -97,21 +102,21 @@ export default function Leads() {
                             Exportar Excel
                         </button>
 
-                            <input
-                                type="file"
-                                accept=".xlsx,.xls,.csv"
-                                className="hidden"
-                                id="import-input"
-                                onChange={handleFileImport}
-                                onClick={() => setPreviewType("import")}
-                            />
+                        <input
+                            type="file"
+                            accept=".xlsx,.xls,.csv"
+                            className="hidden"
+                            id="import-input"
+                            onChange={handleFileImport}
+                            onClick={() => setPreviewType("import")}
+                        />
 
-                            <label
-                                htmlFor="import-input"
-                                className="bg-blue-600 text-white px-4 py-2 rounded cursor-pointer hover:bg-blue-800"
-                            >
-                                Importar Excel
-                            </label>
+                        <label
+                            htmlFor="import-input"
+                            className="bg-blue-600 text-white px-4 py-2 rounded cursor-pointer hover:bg-blue-800"
+                        >
+                            Importar Excel
+                        </label>
                     </div>
 
                     {previewType && (
@@ -147,6 +152,7 @@ export default function Leads() {
             <LeadsTable
                 leads={paginatedLeads}
                 updateLeadStatus={updateLeadStatus}
+                onDelete={handleDelete}
             />
 
             <LeadsPagination

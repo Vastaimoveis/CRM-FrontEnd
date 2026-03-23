@@ -23,7 +23,19 @@ const mockData: Requisito[] = [
     corretor: "Maria Souza",
   },
 ];
+async function handleMarkAsRead(id: string) {
+  console.log("Marcar como lido:", id);
 
+  // futuro:
+  // await api.patch(`/requisitos/${id}/read`)
+}
+
+async function handleRespond(id: string, resposta: string) {
+  console.log("Resposta enviada:", { id, resposta });
+
+  // futuro:
+  // await api.post(`/requisitos/${id}/resposta`, { resposta })
+}
 export default function RequisitosPage() {
   const [selected, setSelected] = useState<Requisito | null>(null);
 
@@ -50,6 +62,8 @@ export default function RequisitosPage() {
         <RequisitoModal
           requisito={selected}
           onClose={() => setSelected(null)}
+          onMarkAsRead={handleMarkAsRead}
+          onRespond={handleRespond}
         />
       )}
     </div>

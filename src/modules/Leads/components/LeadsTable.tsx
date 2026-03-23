@@ -5,11 +5,13 @@ import { UserRoles } from "@/shared/types/UserTypes";
 interface LeadsTableProps {
     leads: Lead[];
     updateLeadStatus: (id: string, status: LeadStatus) => void;
+    onDelete: () => void;
 }
 
 export default function LeadsTable({
     leads,
     updateLeadStatus,
+    onDelete
 }: LeadsTableProps) {
     if (!leads.length) {
         return (
@@ -18,6 +20,7 @@ export default function LeadsTable({
             </div>
         );
     }
+
 
     return (
         <table className="w-full border-collapse">
@@ -61,7 +64,8 @@ export default function LeadsTable({
                         </td>
                         <td>
                             <Permission allowed={[UserRoles.GERENTE]}>
-                                <button className="bg-red-500 text-white font-bold rounded-2xl p-2">
+                                <button className="bg-red-500 text-white font-bold rounded-2xl p-2"
+                                onClick={onDelete}>
                                     Excluir Lead
                                 </button>
                             </Permission>
