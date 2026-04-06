@@ -1,7 +1,9 @@
 import { useState } from "react";
-import type { Requisito } from "../types/RequisitoTypes";
+import { RequisitoStatus, type Requisito } from "../types/RequisitoTypes";
 import RequisitoRow from "../components/RequisitoRow";
 import RequisitoModal from "../components/RequisitoModal";
+import { usePagination } from "../hooks/usePagination";
+import RequisitosPagination from "../components/RequisitosPagination";
 
 const mockData: Requisito[] = [
   {
@@ -10,7 +12,7 @@ const mockData: Requisito[] = [
     mensagem:
       "Cliente enviou RG vencido, gostaria de saber se posso seguir com o processo.",
     dataEnvio: "07/03/2026",
-    status: "pendente",
+    status: RequisitoStatus.PENDENTE,
     corretor: "João Silva",
   },
   {
@@ -19,11 +21,12 @@ const mockData: Requisito[] = [
     mensagem:
       "O cliente trabalha como autônomo e não possui holerite, qual documento substitui?",
     dataEnvio: "06/03/2026",
-    status: "lido",
+    status: RequisitoStatus.RESPONDIDO,
     corretor: "Maria Souza",
   },
 ];
 async function handleMarkAsRead(id: string) {
+
   console.log("Marcar como lido:", id);
 
   // futuro:
@@ -38,7 +41,12 @@ async function handleRespond(id: string, resposta: string) {
 }
 export default function RequisitosPage() {
   const [selected, setSelected] = useState<Requisito | null>(null);
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const { paginatedData, totalPages } = usePagination({
+    data: mockData,
+    currentPage,
+    itemsPerPage: 5,
+  });
   return (
     <div className="p-6 bg-white rounded-xl shadow-sm">
 
@@ -66,6 +74,12 @@ export default function RequisitosPage() {
           onRespond={handleRespond}
         />
       )}
+      <RequisitosPagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPrev={() => setCurrentPage((prev) => prev - 1)}
+        onNext={() => setCurrentPage((prev) => prev + 1)}
+      />
     </div>
   );
 }

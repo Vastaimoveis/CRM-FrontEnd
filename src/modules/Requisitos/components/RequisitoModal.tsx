@@ -52,7 +52,7 @@ export default function RequisitoModal({
             </p>
           </div>
 
-          <button onClick={onClose} className="text-gray-500">
+          <button onClick={onClose} className="text-gray-500 rounded-2xl">
             ✕
           </button>
         </div>

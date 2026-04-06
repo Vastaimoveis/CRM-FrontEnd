@@ -1,7 +1,8 @@
-export type RequisitoStatus =
-  | "pendente"
-  | "lido"
-  | "respondido";
+export enum RequisitoStatus {
+  PENDENTE = "pendente",
+  LIDO = "lido",
+  RESPONDIDO = "respondido"
+}
 
 export interface Requisito {
   id: string;
