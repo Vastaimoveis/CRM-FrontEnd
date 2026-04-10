@@ -1,6 +1,7 @@
 import { type Lead, LeadStatus } from "@/shared/types/LeadType";
 import Permission from "@/shared/permissions/Permission";
 import { UserRoles } from "@/shared/types/UserTypes";
+import LeadsNotesModal from "./LeadsNotesModal";
 
 interface LeadsTableProps {
     leads: Lead[];
@@ -61,9 +62,7 @@ export default function LeadsTable({
                                 ))}
                             </select>
                         </td>
-                        <td>
-                            <p className="bg-black text-white w-fit font-semibold p-2 rounded-full">abre anotações</p>
-                        </td>
+                        <LeadsNotesModal leadId={lead.id} />
                         <td>
                             {new Date(lead.creationDate).toLocaleDateString()}
                         </td>
