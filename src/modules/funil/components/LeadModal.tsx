@@ -49,7 +49,10 @@ export default function LeadModal({ open, onClose, onSubmit }: Props) {
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-        onClick={onClose}
+        onClick={() => {
+          onClose()
+          resetForm()
+        }}
       />
 
       <div className="relative bg-white w-full max-w-md rounded-2xl shadow-xl p-8 animate-fadeIn">
@@ -77,7 +80,7 @@ export default function LeadModal({ open, onClose, onSubmit }: Props) {
             placeholder="Email"
             value={form.email}
             onChange={handleChange}
-            required
+
             className="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black"
           />
 
@@ -94,7 +97,10 @@ export default function LeadModal({ open, onClose, onSubmit }: Props) {
           <div className="flex justify-end gap-3 mt-4">
             <button
               type="button"
-              onClick={onClose}
+              onClick={() => {
+                onClose()
+                resetForm()
+              }}
               className="px-4 py-2 rounded-lg border hover:bg-gray-100 transition"
             >
               Cancelar

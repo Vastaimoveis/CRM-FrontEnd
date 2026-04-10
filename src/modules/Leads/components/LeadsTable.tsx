@@ -20,6 +20,7 @@ export default function LeadsTable({
             </div>
         );
     }
+    
 
 
     return (
@@ -30,6 +31,7 @@ export default function LeadsTable({
                     <th>Email</th>
                     <th>Telefone</th>
                     <th>Status</th>
+                    <th>Anotação</th>
                     <th>Data de Criação</th>
                 </tr>
             </thead>
@@ -58,6 +60,9 @@ export default function LeadsTable({
                                     </option>
                                 ))}
                             </select>
+                        </td>
+                        <td>
+                            <p className="bg-black text-white w-fit font-semibold p-2 rounded-full">abre anotações</p>
                         </td>
                         <td>
                             {new Date(lead.creationDate).toLocaleDateString()}
