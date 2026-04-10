@@ -21,7 +21,7 @@
       "@/types/*": [
         "src/shared/types/*"
       ],
-      "@/context/*" : [
+      "@/context/*": [
         "src/app/providers/context/*"
       ],
       "@/modules/*": [
