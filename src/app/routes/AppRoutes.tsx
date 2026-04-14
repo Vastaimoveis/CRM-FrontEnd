@@ -7,9 +7,10 @@ import FunilPage from '@/modules/funil/pages/FunilPage'
 import LeadsPage from '@/modules/Leads/pages/LeadsPage'
 import OportunidadesPage from '@/modules/Oportunitys/pages/OportunidadesPage'
 import AppProviders from '../providers/AppProviders'
-import { RoleGuard } from '@/services/RoleGuard'
 import RequisitosPage from '@/modules/Requisitos/pages/RequisitosPage'
+import { RoleGuard } from '@/services/RoleGuard'
 import { UserRoles } from '@/shared/types/UserTypes'
+import CorretoresPage from '@/modules/Corretores/pages/CorretoresPage'
 
 function App() {
 
@@ -56,13 +57,25 @@ function App() {
             element={
               <PrivateRoute>
                 <DashboardLayout>
+                  <RequisitosPage />
+                </DashboardLayout>
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/corretores"
+            element={
+              <PrivateRoute>
+                <DashboardLayout>
                   <RoleGuard allowed={[UserRoles.GERENTE]}>
-                    <RequisitosPage />
+                    <CorretoresPage />
                   </RoleGuard>
                 </DashboardLayout>
               </PrivateRoute>
             }
           />
+
         </Routes>
       </AppProviders>
     </BrowserRouter>

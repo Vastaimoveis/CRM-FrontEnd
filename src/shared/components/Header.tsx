@@ -37,9 +37,12 @@ export default function Header() {
         <NavLink to="/oportunidades" className={navItemClass}>
           Oportunidades
         </NavLink>
+        <NavLink to="/requisicoes" className={navItemClass}>
+          Requisições
+        </NavLink>
         <Permission allowed={[UserRoles.GERENTE]}>
-          <NavLink to="/requisicoes" className={navItemClass}>
-            Requisições
+          <NavLink className={navItemClass} to="/corretores">
+            Corretores
           </NavLink>
         </Permission>
       </div>
