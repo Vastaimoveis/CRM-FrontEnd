@@ -1,10 +1,12 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { UserRoles, type User } from "@/shared/types/UserTypes";
+import { createContext, useContext, useEffect, useState, type Dispatch } from "react";
+import { RegioesEnum, UserRoles, type User } from "@/shared/types/UserTypes";
 
 interface AuthContextType {
   user: User | null;
   token: string | null;
   login: (email: string, password: string) => Promise<void>;
+  selectedUser: User | null;
+  setSelectedUser: Dispatch<React.SetStateAction<User | null>>;
   logout: () => void;
   loading: boolean;
 }
@@ -13,6 +15,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -28,22 +31,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(false);
   }, []);
 
-const users = [
-  {
-    id: "1",
-    name: "Gerente Lorenzo",
-    email: "gerente@crm.com",
-    password: "123456",
-    role: UserRoles.GERENTE
-  },
-  {
-    id: "2",
-    name: "Corretor Lorenzo",
-    email: "corretor@crm.com",
-    password: "654321",
-    role: UserRoles.CORRETOR
-  }
-];
+  const users = [
+    {
+      id: "1",
+      name: "Gerente Lorenzo",
+      email: "gerente@crm.com",
+      password: "123456",
+      telefone: "4199998888",
+      regiao: RegioesEnum.CURITIBA,
+      role: UserRoles.GERENTE,
+    },
+    {
+      id: "2",
+      name: "Corretor Lorenzo",
+      email: "corretor@crm.com",
+      password: "654321",
+      telefone: "41988871273",
+      regiao: RegioesEnum.CURITIBA,
+      role: UserRoles.CORRETOR,
+    }
+  ];
 
   async function login(email: string, password: string) {
     // MOCK TEMPORÁRIO
@@ -56,8 +63,7 @@ const users = [
       }
       const fakeToken = "mock-jwt-token-123";
 
-      setUser(fakeUser);
-      console.log(user)
+      setUser(({ id: fakeUser.id, name: fakeUser.name, email: fakeUser.email, regiao: fakeUser.regiao, role: fakeUser.role, telefone: fakeUser.telefone }));
       setToken(fakeToken);
 
       localStorage.setItem("user", JSON.stringify(fakeUser));
@@ -75,7 +81,7 @@ const users = [
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, token, login, logout, selectedUser, setSelectedUser, loading }}>
       {children}
     </AuthContext.Provider>
   );
