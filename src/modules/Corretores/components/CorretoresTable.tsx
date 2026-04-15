@@ -51,8 +51,8 @@ export function UserTable({ users }: Props) {
 
       {selectedUser && (
         <CorretorModal
-          selectedUser={selectedUser}
-          setSelectedUser={setSelectedUser}
+          viewUser={selectedUser}
+          setViewUser={setSelectedUser}
           modalView={modalView}
           setModalView={setModalView}
         />

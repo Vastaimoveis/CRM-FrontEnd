@@ -30,7 +30,7 @@ export default function CorretorModal({
             <div
                 className="absolute inset-0 bg-black/30"
                 onClick={() => {
-                    setSelectedUser(null)
+                    setViewUser(null)
                     setModalView("menu")
                 }}
             />
@@ -112,7 +112,7 @@ export default function CorretorModal({
                 )}
 
                 <button
-                    onClick={() => setSelectedUser(null)}
+                    onClick={() => setViewUser(null)}
                     className="absolute top-2 right-2"
                 >
                     ✕

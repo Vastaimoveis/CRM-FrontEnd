@@ -5,7 +5,7 @@ import { UserRoles } from "@/types/UserTypes";
 import Permission from "@/shared/permissions/Permission";
 
 export default function Header() {
-  const { user } = useAuth();
+  const { user, selectedUser, setSelectedUser } = useAuth();
 
   const navItemClass = ({ isActive }: { isActive: boolean }) =>
     `px-4 py-2 text-sm font-medium transition ${isActive
@@ -25,27 +25,34 @@ export default function Header() {
       </div>
 
       {/* Linha 2 */}
-      <div className="flex gap-6 px-8 border-t border-gray-100 h-12 items-center">
-        <NavLink to="/funil" className={navItemClass}>
-          Funil
-        </NavLink>
-
-        <NavLink to="/leads" className={navItemClass}>
-          Leads
-        </NavLink>
-
-        <NavLink to="/oportunidades" className={navItemClass}>
-          Oportunidades
-        </NavLink>
-        <NavLink to="/requisicoes" className={navItemClass}>
-          Requisições
-        </NavLink>
-        <Permission allowed={[UserRoles.GERENTE]}>
-          <NavLink className={navItemClass} to="/corretores">
-            Corretores
+      <section className="flex items-center justify-between px-8 border-t border-gray-100 h-12">
+        <div className="flex gap-6 h-12 items-center">
+          <NavLink to="/funil" className={navItemClass}>
+            Funil
           </NavLink>
-        </Permission>
-      </div>
+
+          <NavLink to="/leads" className={navItemClass}>
+            Leads
+          </NavLink>
+
+          <NavLink to="/oportunidades" className={navItemClass}>
+            Oportunidades
+          </NavLink>
+          <NavLink to="/requisicoes" className={navItemClass}>
+            Requisições
+          </NavLink>
+          <Permission allowed={[UserRoles.GERENTE]}>
+            <NavLink className={navItemClass} to="/corretores">
+              Corretores
+            </NavLink>
+          </Permission>
+        </div>
+        {selectedUser &&
+          <div className="border rounded-lg p-1">
+            <p>Visualizando: {selectedUser?.name}</p>
+          </div>
+        }
+      </section>
     </header>
   );
 }
