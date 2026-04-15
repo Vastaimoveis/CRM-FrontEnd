@@ -47,12 +47,16 @@ export default function RequisitosPage() {
     currentPage,
     itemsPerPage: 5,
   });
+  const [novaRequisicao, setNovaRequisicao] = useState<boolean>(false);
+
   return (
     <div className="p-6 bg-white rounded-xl shadow-sm">
-
-      <h1 className="text-xl font-semibold mb-6">
-        Caixa de Entrada de Requisitos
-      </h1>
+      <div className="flex justify-between pb-3">
+        <h1 className="text-xl font-semibold mb-6">
+          Caixa de Entrada de Requisitos
+        </h1>
+        <button onClick={() => setNovaRequisicao(true)} className="p-2 border rounded-lg hover:invert bg-white duration-200 text-lg">Nova requisição</button>
+      </div>
 
       <div className="border rounded-lg overflow-hidden">
 
