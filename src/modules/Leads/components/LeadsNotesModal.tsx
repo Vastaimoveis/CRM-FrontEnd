@@ -49,15 +49,15 @@ export default function LeadsNotesModal({ leadId }: LeadsNotesModalProps) {
   return (
     <td ref={containerRef} className="relative">
       <button
-        className="bg-black text-white font-semibold px-3 py-1 rounded-full"
+        className={`${notes.length > 1 ? "bg-green-700" : "bg-black"}  text-white font-semibold px-3 py-1 rounded-full`}
         onClick={handleToggle}
       >
-        Adicionar anotação
+        {notes.length > 1 ? "Visualizar notas" : "adicionar nota"}
       </button>
 
       {isOpen && (
         <div className="absolute bottom-full mb-2 left-0 w-72 bg-white border shadow-lg rounded-lg p-3 z-50">
-          
+
           <div className="mb-3">
             <textarea
               value={newNote}
@@ -87,9 +87,15 @@ export default function LeadsNotesModal({ leadId }: LeadsNotesModalProps) {
                     {new Date(note.creationDate).toLocaleDateString()}
                   </span>
                 </div>
+
               ))
             ) : (
-              <p className="text-sm text-gray-400">Sem anotações</p>
+              <div className="text-sm border-b pb-1">
+                <p>Mensagem Teste oi</p>
+                <span className="text-xs text-gray-400">
+                  {new Date().toLocaleDateString()}
+                </span>
+              </div>
             )}
           </div>
         </div>

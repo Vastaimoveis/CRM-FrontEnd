@@ -5,6 +5,7 @@ export enum LeadStatus {
   VISITA = "Visita",
   NEGOCIACAO = "Negociacao",
   VENDA = "Venda",
+  ENCERRADO = "Encerrado"
 }
 export interface Lead {
   id: string;
@@ -30,4 +31,5 @@ export const STATUS_COLORS: Record<LeadStatus, string> = {
   Visita: "#8B5CF6",         // roxo
   Negociacao: "#EF4444",     // vermelho
   Venda: "#10B981",          // verde
+  Encerrado: "#ff1f1f"
 };
