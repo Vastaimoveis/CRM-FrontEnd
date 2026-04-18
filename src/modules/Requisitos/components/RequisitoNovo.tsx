@@ -1,18 +1,36 @@
+import Permission from "@/shared/permissions/Permission";
+import { RegioesEnum, UserRoles, type User } from "@/shared/types/UserTypes";
 import { useState } from "react";
+import RequisitosSearchDropdown from "./RequisitoSearchDropdown";
 
+interface props {
+    onSend: (corretor: User, assunto: string, message: string) => Promise<void>;
+    onClose: () => void;
 
-export default function RequisitoNovo() {
+}
+
+const corretores: User[] = [
+    { id: "2103", name: "João da Silva", email: "joao@email.com", telefone: "41 999929392", regiao: RegioesEnum.CURITIBA, role: UserRoles.CORRETOR },
+    { id: "2104", name: "Maria Souza", email: "Maria@email.com", telefone: "41 988829392", regiao: RegioesEnum.CURITIBA, role: UserRoles.CORRETOR },
+    { id: "2105", name: "Carlos Junior", email: "Carlos@email.com", telefone: "41 977729392", regiao: RegioesEnum.CURITIBA, role: UserRoles.CORRETOR },
+];
+
+export default function RequisitoNovo({ onSend, onClose }: props) {
+    const [assunto, setAssunto] = useState<string>("");
     const [mensagem, setMensagem] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(false);
+    const [corretor, setCorretor] = useState<User | null>(null);
 
-
-    async function handleRespond() {
+    async function handleSend() {
         if (!mensagem.trim()) return;
+        if (!assunto.trim()) return;
+        if (!corretor) return;
+
 
         setLoading(true);
-        await onRespond(requisito.id, mensagem);
+        await onSend(corretor, assunto, mensagem);
         setLoading(false);
-        setResposta("");
+        setMensagem("");
         onClose();
     }
 
@@ -24,10 +42,10 @@ export default function RequisitoNovo() {
                 {/* HEADER */}
                 <div className="p-6 border-b flex justify-between items-start">
                     <div>
-                        header
+                        Nova Mensagem
                     </div>
 
-                    <button onClick={ } className="text-gray-500 rounded-2xl">
+                    <button onClick={onClose} className="text-gray-500 rounded-2xl">
                         ✕
                     </button>
                 </div>
@@ -36,22 +54,44 @@ export default function RequisitoNovo() {
                 <div className="p-6 flex-1 overflow-y-auto space-y-4">
 
                     <div>
-                        <h3 className="text-sm font-semibold mb-1">Mensagem</h3>
-                        <p className="text-gray-700 bg-gray-50 p-3 rounded">
-                            Escreva a mensagem
-                        </p>
+                        <Permission allowed={[UserRoles.GERENTE]}>
+                            <h3 className="text-sm font-semibold mb-1"> Escolha para qual corretor enviar:</h3>
+                            <RequisitosSearchDropdown
+                                items={corretores}
+                                placeholder="Selecione um corretor"
+                                onSelect={(item) => {
+                                    console.log("Selecionado:", item)
+                                    setCorretor(item);
+                                }}
+                            />
+                        </Permission>
+
                     </div>
+
+                    {/* ASSUNTO */}
+                    <div>
+                        <h3 className="text-sm font-semibold mb-1">
+                            Assunto
+                        </h3>
+                        <input
+                            type="text"
+                            onChange={(e) => setAssunto(e.target.value)}
+                            className="w-full border rounded p-2 "
+                            placeholder="Digite o assunto"
+                        />
+                    </div>
+
 
                     {/* RESPOSTA */}
                     <div>
                         <h3 className="text-sm font-semibold mb-1">
-                            Responder
+                            Mensagem
                         </h3>
                         <textarea
                             value={mensagem}
                             onChange={(e) => setMensagem(e.target.value)}
                             className="w-full border rounded p-2 min-h-25"
-                            placeholder="Digite sua resposta..."
+                            placeholder="Digite a mensagem"
                         />
                     </div>
                 </div>
@@ -60,25 +100,15 @@ export default function RequisitoNovo() {
                 <div className="p-4 border-t flex justify-between">
 
                     <button
-                        onClick={handleMarkAsRead}
-                        disabled={loading}
-                        className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
-                    >
-                        Marcar como lido
-                    </button>
-
-                    <button
-                        onClick={handleRespond}
+                        onClick={handleSend}
                         disabled={loading}
                         className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
                     >
-                        {loading ? "Enviando..." : "Responder"}
+                        {loading ? "Enviando..." : "Enviar"}
                     </button>
 
                 </div>
             </div>
         </div>
     );
-}
-    )
 }
