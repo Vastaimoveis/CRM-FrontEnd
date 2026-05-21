@@ -31,7 +31,7 @@ export default function RequisitoRow({ requisito, onClick }: Props) {
       </span>
 
       <span
-        className={`text-xs px-2 py-1 rounded w-fit ${statusColor[requisito.status]}`}
+        className={`text-xs px-2 py-1 rounded w-fit h-fit ${statusColor[requisito.status]}`}
       >
         {requisito.status}
       </span>

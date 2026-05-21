@@ -6,7 +6,7 @@ import LeadsNotesModal from "./LeadsNotesModal";
 interface LeadsTableProps {
     leads: Lead[];
     updateLeadStatus: (id: string, status: LeadStatus) => void;
-    onDelete: () => void;
+    onDelete: (id: string) => Promise<void>;
 }
 
 export default function LeadsTable({
@@ -69,7 +69,7 @@ export default function LeadsTable({
                         <td>
                             <Permission allowed={[UserRoles.GERENTE]}>
                                 <button className="bg-red-500 text-white font-bold rounded-2xl p-2"
-                                onClick={onDelete}>
+                                onClick={() => onDelete}>
                                     Excluir Lead
                                 </button>
                             </Permission>

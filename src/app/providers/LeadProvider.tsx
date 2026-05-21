@@ -1,99 +1,136 @@
 import {
     createContext,
     useContext,
+    useEffect,
     useMemo,
     useState,
     type ReactNode,
 } from "react";
 import type { Lead, CreateLeadDTO } from "@/shared/types/LeadType";
 import { LeadStatus } from "@/shared/types/LeadType";
+import { createLeadRequest, deleteLeadRequest, getLeadById, getLeads, updateLeadRequest } from "@/services/leads/leadsService";
+
 
 interface LeadContextType {
     leads: Lead[];
-    createLead: (data: CreateLeadDTO) => void;
-    importLeads: (leads: Lead[]) => void;
-    updateLeadStatus: (id: string, status: LeadStatus) => void;
+    loading: boolean;
+
+    page: number;
+    totalPages: number;
+
+    setPage: React.Dispatch<React.SetStateAction<number>>;
+
+    fetchLeads: () => Promise<void>;
+
+    createLead: (
+        data: CreateLeadDTO
+    ) => Promise<void>;
+
+    updateLeadStatus: (
+        id: string,
+        status: LeadStatus
+    ) => Promise<Lead>;
+
+    deleteLead: (id: string) => Promise<void>;
+
+    importLeads: (leads: Lead[]) => Promise<void>;
+
     leadsCountByStatus: Record<LeadStatus, number>;
 }
 
-const LeadContext = createContext<LeadContextType | null>(null);
+const LeadContext =
+    createContext<LeadContextType | null>(null);
 
 export function LeadProvider({ children }: { children: ReactNode }) {
-    const [leads, setLeads] = useState<Lead[]>([
-        {
-            id: "1",
-            nome: "alo",
-            email: "Email@email.com",
-            status: LeadStatus.CADASTRADO,
-            telefone: "1234567",
-            creationDate: new Date(),
-            updateDate: new Date()
-        },
-        {
-            id: "2",
-            nome: "ola",
-            email: "oi@email.com",
-            status: LeadStatus.CADASTRADO,
-            telefone: "852134",
-            creationDate: new Date(),
-            updateDate: new Date()
-        },
-        {
-            id: "3",
-            nome: "bbbb",
-            email: "Email@email.com",
-            status: LeadStatus.ATENDIMENTO,
-            telefone: "2121548",
-            creationDate: new Date(),
-            updateDate: new Date()
-        },]);
+    const [leads, setLeads] = useState<Lead[]>([]);
+    const [page, setPage] = useState(0)
+    const [totalPages, setTotalPages] = useState(0)
+    const [loading, setLoading] = useState(false);
 
-    function createLead(data: CreateLeadDTO) {
-        const newLead: Lead = {
-            id: crypto.randomUUID(),
-            ...data,
-            status: LeadStatus.CADASTRADO,
-            creationDate: new Date(),
-            updateDate: new Date()
-        };
 
-        setLeads((prev) => [...prev, newLead]);
+    async function fetchLeads() {
+        setLoading(true);
+
+        try {
+
+            const response = await getLeads(page);
+
+            setLeads(response.content);
+
+            setTotalPages(response.totalPages);
+
+        } finally {
+            setLoading(false);
+        }
     }
 
-    function updateLeadStatus(id: string, status: LeadStatus) {
+    async function createLead(
+        data: CreateLeadDTO
+    ) {
+        const created =
+            await createLeadRequest(data);
+
+        setLeads((prev) => [
+            created,
+            ...prev
+        ]);
+    }
+
+    async function updateLeadStatus(
+        id: string,
+        status: LeadStatus
+    ) {
+        const createLeadDto = getLeadById(id);
+
+        const updated =
+            await updateLeadRequest(
+                id,
+                await createLeadDto
+            );
         setLeads((prev) =>
             prev.map((lead) =>
-                lead.id === id ? { ...lead, status } : lead
+                lead.id === id
+                    ? updated
+                    : lead
             )
+        );
+        return updated
+    }
+
+    async function deleteLead(id: string) {
+        await deleteLeadRequest(id);
+
+        setLeads((prev) =>
+            prev.filter((lead) => lead.id !== id)
         );
     }
 
-    function importLeads(newLeads: Lead[]) {
-        const existingEmails = new Set(leads.map((l) => l.email));
-        console.log(newLeads)
+    async function importLeads(newLeads: Lead[]) {
 
-        const leadsFormatted = newLeads
-            .filter((lead) => !existingEmails.has(lead.email))
-            .map((lead) => ({
-                ...lead,
-                id: crypto.randomUUID(),
-                creationDate: lead.creationDate
-                    ? new Date(lead.creationDate)
-                    : new Date(),
-                updateDate: lead.updateDate
-                    ? new Date(lead.updateDate)
-                    : new Date(),
-            }));
-        leadsFormatted.forEach((lead) => {
-            createLead(lead);
-        })
+        setLoading(true);
 
+        try {
+            for (const lead of newLeads) {
+                await createLeadRequest({
+                    nome: lead.nome,
+                    email: lead.email,
+                    telefone: lead.telefone,
+                });
+            }
+            await fetchLeads();
 
-
-
+        } finally {
+            setLoading(false);
+        }
     }
 
+    useEffect(() => {
+        fetchLeads();
+    }, []);
+
+
     const leadsCountByStatus = useMemo(() => {
+
         const counts: Record<LeadStatus, number> = {
             [LeadStatus.CADASTRADO]: 0,
             [LeadStatus.ATENDIMENTO]: 0,
@@ -101,6 +138,7 @@ export function LeadProvider({ children }: { children: ReactNode }) {
             [LeadStatus.VISITA]: 0,
             [LeadStatus.NEGOCIACAO]: 0,
             [LeadStatus.VENDA]: 0,
+            [LeadStatus.ENCERRADO]: 0
         };
 
         for (const lead of leads) {
@@ -108,15 +146,22 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         }
 
         return counts;
+
     }, [leads]);
 
     return (
         <LeadContext.Provider
             value={{
                 leads,
+                loading,
+                page,
+                totalPages,
+                setPage,
                 createLead,
-                importLeads,
+                fetchLeads,
                 updateLeadStatus,
+                deleteLead,
+                importLeads,
                 leadsCountByStatus,
             }}
         >
@@ -132,3 +177,4 @@ export function useLeads() {
     }
     return context;
 }
+

@@ -8,20 +8,24 @@ import LeadsPagination from "../components/LeadsPagination";
 import LeadsTable from "../components/LeadsTable";
 
 import { useLeadsFilter } from "../hooks/useLeadsFilter";
-import { useLeadsPagination } from "../hooks/useLeadsPagination";
 import { exportLeadsToExcel } from "../utils/exportLeadsToExcel";
 import LeadsPreviewModal from "../components/LeadsPreviewModal";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { parseExcel } from "../utils/importLeadsFromExcel";
 import type { Lead } from "@/types/LeadType";
 
 
-const ITEMS_PER_PAGE = 20;
-
 export default function Leads() {
-    const { leads, updateLeadStatus, importLeads } = useLeads();
+    const {
+        leads,
+        loading,
+        fetchLeads,
+        updateLeadStatus,
+        deleteLead,
+        importLeads,
+        setPage,
+        totalPages, } = useLeads();
     const [searchParams, setSearchParams] = useSearchParams();
-    const [previewOpen, setPreviewOpen] = useState(false);
     const [previewType, setPreviewType] = useState<"export" | "import" | null>(null);
     const [importedLeads, setImportedLeads] = useState<Lead[]>([]);
     const statusParam = searchParams.get("status") as LeadStatus | null;
@@ -39,6 +43,15 @@ export default function Leads() {
         setSearchParams(params);
     }
 
+    useEffect(() => {
+        async function load() {
+            setPage(currentPage - 1);
+            await fetchLeads();
+        }
+
+        load();
+    }, [currentPage]);
+
     async function handleFileImport(e: React.ChangeEvent<HTMLInputElement>) {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -49,23 +62,35 @@ export default function Leads() {
         setPreviewType("import");
     }
 
+
+
     const filteredLeads = useLeadsFilter({
         leads,
         status: statusParam,
         search: searchParam,
     });
 
-    function handleDelete() {
-        //todo: open modal and delete Lead
-        
+    async function handleDelete(id: string) {
+
+        const confirmed = window.confirm(
+            "Deseja realmente deletar este lead?"
+        );
+
+        if (!confirmed) return;
+
+        await deleteLead(id);
     }
 
-    const { paginatedLeads, totalPages } = useLeadsPagination({
-        leads: filteredLeads,
-        currentPage,
-        itemsPerPage: ITEMS_PER_PAGE,
-    });
-
+    if (loading) {
+        return (
+            <div className="p-6">
+                <p className="text-gray-500">
+                    Carregando leads...
+                </p>
+            </div>
+        );
+    }
+    
     return (
         <div className="bg-white p-6 rounded-xl shadow-sm">
             <div className="flex flex-col gap-4 mb-6">
@@ -108,7 +133,6 @@ export default function Leads() {
                             className="hidden"
                             id="import-input"
                             onChange={handleFileImport}
-                            onClick={() => setPreviewType("import")}
                         />
 
                         <label
@@ -150,7 +174,7 @@ export default function Leads() {
             </div>
 
             <LeadsTable
-                leads={paginatedLeads}
+                leads={filteredLeads}
                 updateLeadStatus={updateLeadStatus}
                 onDelete={handleDelete}
             />
@@ -159,10 +183,14 @@ export default function Leads() {
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPrev={() =>
-                    updateParams({ page: String(currentPage - 1) })
+                    updateParams({
+                        page: String(Math.max(currentPage - 1, 1))
+                    })
                 }
                 onNext={() =>
-                    updateParams({ page: String(currentPage + 1) })
+                    updateParams({
+                        page: String(currentPage + 1)
+                    })
                 }
             />
         </div>

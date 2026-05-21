@@ -2,8 +2,9 @@
 "use client";
 
 import { useState } from "react";
-import type { LeadNotes } from "@/shared/types/LeadNotes";
+import type { LeadNoteRequest, LeadNotes } from "@/shared/types/LeadNotesType";
 import { useToast } from "@/app/providers/ToastProvider";
+import { api } from "@/services/api/api";
 
 export function useLeadNotes(leadId: string) {
   const [notes, setNotes] = useState<LeadNotes[]>([]);
@@ -16,14 +17,16 @@ export function useLeadNotes(leadId: string) {
     try {
       setLoading(true);
 
-      const response = await fetch(`/api/leads/${leadId}/notes`);
+      const response = await fetch(`/leadsNotes/${leadId}`);
       const data = await response.json();
 
       setNotes(data);
+
     } catch (error) {
       console.error(error);
       setNotes([]);
       showToast("Erro ao carregar anotações", "error");
+
     } finally {
       setLoading(false);
     }
@@ -32,39 +35,20 @@ export function useLeadNotes(leadId: string) {
   async function addNote(message: string) {
     if (!message.trim()) return;
 
-    const tempId = `temp-${Date.now()}`;
-
-    const optimisticNote: LeadNotes = {
-      id: tempId,
-      LeadId: leadId,
-      message,
-      creationDate: new Date(),
+    const data: LeadNoteRequest = {
+      leadId: leadId,
+      note: message,
     };
 
-    setNotes((prev) => [optimisticNote, ...prev]);
     setSaving(true);
 
     try {
-      const response = await fetch(`/api/leads/${leadId}/notes`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ message }),
-      });
-
-      const savedNote = await response.json();
-
-      setNotes((prev) =>
-        prev.map((n) => (n.id === tempId ? savedNote : n))
-      );
+      await api.post(`/leadsNotes/${leadId}`, data)
+        .then(async () => fetchNotes());
 
       showToast("Anotação adicionada!", "success");
     } catch (error) {
       console.error(error);
-
-      // rollback
-      setNotes((prev) => prev.filter((n) => n.id !== tempId));
 
       showToast("Erro ao salvar anotação", "error");
     } finally {

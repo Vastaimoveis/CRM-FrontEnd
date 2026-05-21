@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useState, type Dispatch } from "react";
-import { RegioesEnum, UserRoles, type User } from "@/shared/types/UserTypes";
+import { type User } from "@/shared/types/UserTypes";
+import { loginRequest } from "@/services/auth/authService";
+import { mapLoginResponseToUser } from "@/services/auth/authMapper"
 
 interface AuthContextType {
   user: User | null;
@@ -31,66 +33,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(false);
   }, []);
 
-  const users = [
-    {
-      id: "1",
-      name: "Gerente Lorenzo",
-      email: "gerente@crm.com",
-      password: "123456",
-      telefone: "4199998888",
-      regiao: RegioesEnum.CURITIBA,
-      role: UserRoles.GERENTE,
-    },
-    {
-      id: "2",
-      name: "Corretor Lorenzo",
-      email: "corretor@crm.com",
-      password: "654321",
-      telefone: "41988871273",
-      regiao: RegioesEnum.CURITIBA,
-      role: UserRoles.CORRETOR,
-    }
-  ];
-
   async function login(email: string, password: string) {
-    // MOCK TEMPORÁRIO
+    try {
+      setLoading(true);
 
-    if ((email === "gerente@crm.com" && password === "123456") || (email === "corretor@crm.com" && password === "654321")) {
-      const fakeUser = users.find(user => user.email === email);
+      const response = await loginRequest({
+        email,
+        password,
+      });
 
-      if (!fakeUser) {
-        throw new Error("Usuário não encontrado");
+      const user = mapLoginResponseToUser(response);
+
+      const token = response.data.token;
+
+      setUser(user);
+      setToken(token);
+
+      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("token", token);
+     } catch (error: any) {
+        throw new Error(
+          error?.response?.data?.text ||
+          error?.message ||
+          "Erro ao realizar login"
+        );
+      } finally {
+        setLoading(false);
       }
-      const fakeToken = "mock-jwt-token-123";
-
-      setUser(({ id: fakeUser.id, name: fakeUser.name, email: fakeUser.email, regiao: fakeUser.regiao, role: fakeUser.role, telefone: fakeUser.telefone }));
-      setToken(fakeToken);
-
-      localStorage.setItem("user", JSON.stringify(fakeUser));
-      localStorage.setItem("token", fakeToken);
-    } else {
-      throw new Error("Credenciais inválidas");
     }
-  }
 
   function logout() {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
+      setUser(null);
+      setToken(null);
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
+    }
+
+    return (
+      <AuthContext.Provider value={{ user, token, login, logout, selectedUser: visualUser, setSelectedUser: setVisualUser, loading }}>
+        {children}
+      </AuthContext.Provider>
+    );
   }
 
-  return (
-    <AuthContext.Provider value={{ user, token, login, logout, selectedUser: visualUser, setSelectedUser: setVisualUser, loading }}>
-      {children}
-    </AuthContext.Provider>
-  );
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth deve ser usado dentro de AuthProvider");
+  export function useAuth() {
+    const context = useContext(AuthContext);
+    if (!context) {
+      throw new Error("useAuth deve ser usado dentro de AuthProvider");
+    }
+    return context;
   }
-  return context;
-}
