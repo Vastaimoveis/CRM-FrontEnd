@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { LeadStatus } from "@/shared/types/LeadType";
 import { formatPhone } from "@/shared/utils/formatPhone";
 import { capitalizeFirstLetter } from "@/shared/utils/capitalizeFirstLetter";
 import type { CreateLeadDTO } from "@/types/LeadType";
@@ -9,7 +8,6 @@ export function useHooksFunnel() {
     nome: "",
     email: "",
     telefone: "",
-    status: LeadStatus.CADASTRADO,
   });
 
   const [loading, setLoading] = useState(false);
@@ -44,7 +42,6 @@ export function useHooksFunnel() {
       nome: "",
       email: "",
       telefone: "",
-      status: LeadStatus.CADASTRADO,
     });
   }
 

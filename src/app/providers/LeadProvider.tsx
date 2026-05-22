@@ -8,7 +8,8 @@ import {
 } from "react";
 import type { Lead, CreateLeadDTO } from "@/shared/types/LeadType";
 import { LeadStatus } from "@/shared/types/LeadType";
-import { createLeadRequest, deleteLeadRequest, getLeadById, getLeads, updateLeadRequest } from "@/services/leads/leadsService";
+import { createLeadRequest, deleteLeadRequest, getLeadById, getLeads, getLeadsByUserId, updateLeadRequest } from "@/services/leads/leadsService";
+import { useAuth } from "./AuthProvider";
 
 
 interface LeadContextType {
@@ -43,10 +44,11 @@ const LeadContext =
 
 export function LeadProvider({ children }: { children: ReactNode }) {
     const [leads, setLeads] = useState<Lead[]>([]);
-    const [page, setPage] = useState(0)
-    const [totalPages, setTotalPages] = useState(0)
+    const [allLeads, setAllLeads] = useState<Lead[]>([]);
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
     const [loading, setLoading] = useState(false);
-
+    const { user } = useAuth();
 
     async function fetchLeads() {
         setLoading(true);
@@ -64,45 +66,46 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         }
     }
 
+    async function fetchAllleads(userId: string) {
+        setLoading(true)
+        try {
+            const response = await getLeadsByUserId(userId);
+
+            setAllLeads(response)
+        } finally {
+            setLoading(false)
+        }
+    }
+
     async function createLead(
         data: CreateLeadDTO
     ) {
-        const created =
-            await createLeadRequest(data);
+        await createLeadRequest(data);
 
-        setLeads((prev) => [
-            created,
-            ...prev
-        ]);
+        await fetchLeads();
     }
 
     async function updateLeadStatus(
         id: string,
         status: LeadStatus
     ) {
-        const createLeadDto = getLeadById(id);
+        const createLeadDto = await getLeadById(id);
+
+        const updatedLeadDto = { ...createLeadDto, status: status }
 
         const updated =
             await updateLeadRequest(
                 id,
-                await createLeadDto
+                await updatedLeadDto
             );
-        setLeads((prev) =>
-            prev.map((lead) =>
-                lead.id === id
-                    ? updated
-                    : lead
-            )
-        );
+        await fetchLeads();
         return updated
     }
 
     async function deleteLead(id: string) {
         await deleteLeadRequest(id);
 
-        setLeads((prev) =>
-            prev.filter((lead) => lead.id !== id)
-        );
+        await fetchLeads();
     }
 
     async function importLeads(newLeads: Lead[]) {
@@ -126,8 +129,19 @@ export function LeadProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         fetchLeads();
-    }, []);
+    }, [page]);
 
+    useEffect(() => {
+        const userId = user?.id;
+        if (userId === undefined) {
+            return;
+        }
+        fetchAllleads(userId);
+    }, [])
+
+    async function countLeadStatus() {
+        
+    }
 
     const leadsCountByStatus = useMemo(() => {
 
@@ -141,8 +155,10 @@ export function LeadProvider({ children }: { children: ReactNode }) {
             [LeadStatus.ENCERRADO]: 0
         };
 
-        for (const lead of leads) {
-            counts[lead.status]++;
+        for (const lead of allLeads) {
+            if (counts[lead.status] !== undefined) {
+                counts[lead.status] += 1;
+            }
         }
 
         return counts;

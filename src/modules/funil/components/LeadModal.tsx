@@ -1,17 +1,14 @@
 import { useLeads } from "@/app/providers/LeadProvider";
 import { useToast } from "@/app/providers/ToastProvider";
 import { useHooksFunnel } from "../hooks/useHooksFunnel";
-import { createLeadService } from "../service/funnelService";
-import type { CreateLeadDTO } from "@/types/LeadType";
 
 interface Props {
   open: boolean;
   onClose: () => void;
-  onSubmit: (arg0: CreateLeadDTO) => Promise<void>
 }
 
-export default function LeadModal({ open, onClose, onSubmit }: Props) {
-  const { createLead } = useLeads();
+export default function LeadModal({ open, onClose }: Props) {
+  const { createLead, fetchLeads } = useLeads();
   const { showToast } = useToast();
 
   const {
@@ -29,14 +26,10 @@ export default function LeadModal({ open, onClose, onSubmit }: Props) {
     setLoading(true);
 
     try {
-      await createLeadService(form);
-
-      createLead(form);
-
+      await createLead(form);
       resetForm();
-
       showToast("Lead criado com sucesso", "success");
-
+      await fetchLeads();
       onClose();
     } catch {
       showToast("Erro ao criar lead", "error");

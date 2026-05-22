@@ -3,14 +3,12 @@ import { api } from "../api/api";
 import type {
     CreateLeadDTO,
     Lead,
+    LeadStatus,
 } from "@/shared/types/LeadType";
 
-interface LeadsResponse {
-    success: boolean;
-    data: {
-        content: Lead[];
-    };
-    message: string;
+interface countStatusResponse {
+    "total": number,
+    "porStatus": Record<LeadStatus, number>[];
 }
 
 export async function getLeads(
@@ -19,6 +17,16 @@ export async function getLeads(
     const response = await api.get<ApiResponse<PageResponse<Lead>>>(`/leads?page=${page}`);
 
     return response.data.data;
+}
+
+export async function getLeadsByUserId(userId: string) {
+    const response = await api.get<ApiResponse<Lead[]>>(`/leads/all/${userId}`)
+    return response.data.data
+}
+
+export async function getLeadsStatus() {
+    const response = await api.get<ApiResponse<countStatusResponse[]>>(`leads/dashboard`);
+    return response.data;
 }
 
 export async function getLeadById(

@@ -17,16 +17,7 @@ export default function FunilPage() {
   }
 
   const [modalOpen, setModalOpen] = useState(false);
-
-  async function handleCreateLead(data: CreateLeadDTO) {
-    // MOCK TEMPORÁRIO
-    console.log("Lead criado:", { ...data });
-
-
-    // Depois vira:
-    // await api.post("/leads", data)
-
-  }
+  const {createLead} = useLeads();
 
 
   const chartData = [
@@ -82,7 +73,6 @@ export default function FunilPage() {
       <LeadModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        onSubmit={handleCreateLead}
       />
 
 
