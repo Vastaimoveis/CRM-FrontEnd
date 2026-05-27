@@ -8,8 +8,9 @@ import {
 } from "react";
 import type { Lead, CreateLeadDTO } from "@/shared/types/LeadType";
 import { LeadStatus } from "@/shared/types/LeadType";
-import { createLeadRequest, deleteLeadRequest, getLeadById, getLeads, getLeadsByUserId, updateLeadRequest } from "@/services/leads/leadsService";
+import { createLeadRequest, deleteLeadRequest, EMPTY_LEADS_COUNT, getLeadById, getLeads, getLeadsByUserId, getLeadsStatus, updateLeadRequest, type countStatusResponse } from "@/services/leads/leadsService";
 import { useAuth } from "./AuthProvider";
+import { normalizeLeadStatusResponse } from "@/services/leads/helper";
 
 
 interface LeadContextType {
@@ -19,10 +20,12 @@ interface LeadContextType {
     page: number;
     totalPages: number;
 
+    countLeads: countStatusResponse;
+
     setPage: React.Dispatch<React.SetStateAction<number>>;
 
     fetchLeads: () => Promise<void>;
-
+    fetchCountLeads: () => Promise<void>;
     createLead: (
         data: CreateLeadDTO
     ) => Promise<void>;
@@ -35,8 +38,6 @@ interface LeadContextType {
     deleteLead: (id: string) => Promise<void>;
 
     importLeads: (leads: Lead[]) => Promise<void>;
-
-    leadsCountByStatus: Record<LeadStatus, number>;
 }
 
 const LeadContext =
@@ -45,6 +46,7 @@ const LeadContext =
 export function LeadProvider({ children }: { children: ReactNode }) {
     const [leads, setLeads] = useState<Lead[]>([]);
     const [allLeads, setAllLeads] = useState<Lead[]>([]);
+    const [countLeads, setCountLeads] = useState<countStatusResponse>(EMPTY_LEADS_COUNT);
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [loading, setLoading] = useState(false);
@@ -60,7 +62,6 @@ export function LeadProvider({ children }: { children: ReactNode }) {
             setLeads(response.content);
 
             setTotalPages(response.totalPages);
-
         } finally {
             setLoading(false);
         }
@@ -72,6 +73,7 @@ export function LeadProvider({ children }: { children: ReactNode }) {
             const response = await getLeadsByUserId(userId);
 
             setAllLeads(response)
+            await fetchCountLeads();
         } finally {
             setLoading(false)
         }
@@ -83,6 +85,7 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         await createLeadRequest(data);
 
         await fetchLeads();
+        await fetchCountLeads();
     }
 
     async function updateLeadStatus(
@@ -99,19 +102,17 @@ export function LeadProvider({ children }: { children: ReactNode }) {
                 await updatedLeadDto
             );
         await fetchLeads();
+        await fetchCountLeads();
         return updated
     }
 
     async function deleteLead(id: string) {
         await deleteLeadRequest(id);
-
         await fetchLeads();
     }
 
     async function importLeads(newLeads: Lead[]) {
-
         setLoading(true);
-
         try {
             for (const lead of newLeads) {
                 await createLeadRequest({
@@ -121,49 +122,44 @@ export function LeadProvider({ children }: { children: ReactNode }) {
                 });
             }
             await fetchLeads();
-
+            await fetchCountLeads();
         } finally {
             setLoading(false);
         }
     }
 
     useEffect(() => {
-        fetchLeads();
+        async function load() {
+
+            await fetchLeads();
+            await fetchCountLeads();
+
+        }
+        load();
     }, [page]);
 
     useEffect(() => {
-        const userId = user?.id;
-        if (userId === undefined) {
+        if (!user?.id) {
             return;
         }
-        fetchAllleads(userId);
-    }, [])
+        fetchAllleads(user.id);
+    }, [user])
 
-    async function countLeadStatus() {
-        
-    }
+    async function fetchCountLeads() {
+        try {
 
-    const leadsCountByStatus = useMemo(() => {
+            const data = await getLeadsStatus();
 
-        const counts: Record<LeadStatus, number> = {
-            [LeadStatus.CADASTRADO]: 0,
-            [LeadStatus.ATENDIMENTO]: 0,
-            [LeadStatus.AGUARDANDO]: 0,
-            [LeadStatus.VISITA]: 0,
-            [LeadStatus.NEGOCIACAO]: 0,
-            [LeadStatus.VENDA]: 0,
-            [LeadStatus.ENCERRADO]: 0
-        };
+            setCountLeads(normalizeLeadStatusResponse(data));
 
-        for (const lead of allLeads) {
-            if (counts[lead.status] !== undefined) {
-                counts[lead.status] += 1;
-            }
+        } catch (error) {
+
+            console.error(
+                "Erro ao buscar contagem de leads",
+                error
+            );
         }
-
-        return counts;
-
-    }, [leads]);
+    }
 
     return (
         <LeadContext.Provider
@@ -171,14 +167,15 @@ export function LeadProvider({ children }: { children: ReactNode }) {
                 leads,
                 loading,
                 page,
+                countLeads,
                 totalPages,
                 setPage,
                 createLead,
                 fetchLeads,
+                fetchCountLeads,
                 updateLeadStatus,
                 deleteLead,
                 importLeads,
-                leadsCountByStatus,
             }}
         >
             {children}

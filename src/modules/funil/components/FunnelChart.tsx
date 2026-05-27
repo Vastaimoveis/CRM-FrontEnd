@@ -13,17 +13,15 @@ import {
   LabelList,
 } from "recharts";
 import { type LeadStatus, STATUS_COLORS } from "@/shared/types/LeadType";
-
-interface ChartData {
-  status: LeadStatus;
-  total: number;
-}
+import type { countStatusResponse, LeadStatusChartData } from "@/services/leads/leadsService";
 
 interface Props {
-  data: ChartData[];
+  data: countStatusResponse;
   type: "funnel" | "pie" | "bar";
   onStatusClick?: (status: LeadStatus) => void;
 }
+
+
 
 export default function CustomChart({
   data,
@@ -36,13 +34,19 @@ export default function CustomChart({
     onStatusClick?.(entry.payload.status);
   };
 
+  const chartData: LeadStatusChartData[] = Object.entries(data.porStatus).map(
+    ([status, total]) => ({
+      status: status as LeadStatus,
+      total,
+    })
+  );
   // 🔵 PIE
   if (type === "pie") {
     return (
       <ResponsiveContainer width="100%" height={400}>
         <PieChart>
           <Pie
-            data={data}
+            data={chartData}
             dataKey="total"
             nameKey="status"
             labelLine={false}
@@ -53,7 +57,7 @@ export default function CustomChart({
             }
             onClick={handleClick}
           >
-            {data.map((entry) => (
+            {chartData.map((entry) => (
               <Cell
                 key={entry.status}
                 fill={STATUS_COLORS[entry.status]}
@@ -71,7 +75,7 @@ export default function CustomChart({
   if (type === "bar") {
     return (
       <ResponsiveContainer width="100%" height={400}>
-        <BarChart data={data}>
+        <BarChart data={chartData}>
           <XAxis dataKey="status" />
           <YAxis />
           <Tooltip />
@@ -81,7 +85,7 @@ export default function CustomChart({
               position="top"
 
             />
-            {data.map((entry) => (
+            {chartData.map((entry) => (
               <Cell
                 key={entry.status}
                 fill={STATUS_COLORS[entry.status]}
@@ -104,10 +108,10 @@ export default function CustomChart({
             <Tooltip />
             <Funnel
               dataKey="total"
-              data={data}
+              data={chartData}
               isAnimationActive
             >
-              {data.map((entry) => (
+              {chartData.map((entry) => (
                 <Cell
                   key={entry.status}
                   fill={STATUS_COLORS[entry.status]}
@@ -122,7 +126,7 @@ export default function CustomChart({
 
       {/* Legenda lateral */}
       <div className="w-64 pl-6 flex flex-col justify-center gap-3">
-        {data.map((entry) => (
+        {chartData.map((entry) => (
           <button
             key={entry.status}
             onClick={() => onStatusClick?.(entry.status)}

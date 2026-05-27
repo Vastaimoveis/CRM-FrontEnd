@@ -1,11 +1,11 @@
 export enum LeadStatus {
-  CADASTRADO = "Cadastrado",
-  ATENDIMENTO = "Atendimento",
-  AGUARDANDO = "Aguardando",
-  VISITA = "Visita",
-  NEGOCIACAO = "Negociacao",
-  VENDA = "Venda",
-  ENCERRADO = "Encerrado"
+  CADASTRADO = "CADASTRADO",
+  ATENDIMENTO = "ATENDIMENTO",
+  AGUARDANDO = "AGUARDANDO",
+  VISITA = "VISITA",
+  NEGOCIACAO = "NEGOCIACAO",
+  VENDA = "VENDA",
+  ENCERRADO = "ENCERRADO"
 }
 export interface Lead {
   id: string;

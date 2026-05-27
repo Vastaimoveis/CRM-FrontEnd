@@ -1,15 +1,33 @@
 import type { ApiResponse, PageResponse } from "@/shared/types/api";
 import { api } from "../api/api";
-import type {
-    CreateLeadDTO,
-    Lead,
+import {
     LeadStatus,
+    type CreateLeadDTO,
+    type Lead,
 } from "@/shared/types/LeadType";
 
-interface countStatusResponse {
-    "total": number,
-    "porStatus": Record<LeadStatus, number>[];
+export interface countStatusResponse {
+    total: number,
+    porStatus: Record<LeadStatus, number>;
 }
+
+export interface LeadStatusChartData {
+    status: LeadStatus;
+    total: number;
+}
+
+export const EMPTY_LEADS_COUNT: countStatusResponse = {
+    total: 0,
+    porStatus: {
+        [LeadStatus.CADASTRADO]: 0,
+        [LeadStatus.ATENDIMENTO]: 0,
+        [LeadStatus.AGUARDANDO]: 0,
+        [LeadStatus.VISITA]: 0,
+        [LeadStatus.NEGOCIACAO]: 0,
+        [LeadStatus.VENDA]: 0,
+        [LeadStatus.ENCERRADO]: 0,
+    },
+};
 
 export async function getLeads(
     page = 0
@@ -25,8 +43,8 @@ export async function getLeadsByUserId(userId: string) {
 }
 
 export async function getLeadsStatus() {
-    const response = await api.get<ApiResponse<countStatusResponse[]>>(`leads/dashboard`);
-    return response.data;
+    const response = await api.get<ApiResponse<countStatusResponse>>(`leads/dashboard`);
+    return response.data.data;
 }
 
 export async function getLeadById(

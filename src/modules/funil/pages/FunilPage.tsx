@@ -5,55 +5,23 @@ import { LeadStatus } from "@/shared/types/LeadType";
 import { useNavigate } from "react-router-dom";
 import LeadModal from "../components/LeadModal";
 import { useLeads } from "@/app/providers/LeadProvider";
-import type { CreateLeadDTO } from "@/types/LeadType";
 
 export default function FunilPage() {
   const [chartType, setChartType] = useState<"funnel" | "pie" | "bar">("funnel");
   const navigate = useNavigate();
-  const { leadsCountByStatus } = useLeads();
-
   function handleStatusClick(status: LeadStatus) {
     navigate(`/leads?status=${status}`);
   }
 
   const [modalOpen, setModalOpen] = useState(false);
-  const {createLead} = useLeads();
-
-
-  const chartData = [
-    {
-      status: LeadStatus.CADASTRADO,
-      total: leadsCountByStatus[LeadStatus.CADASTRADO],
-    },
-    {
-      status: LeadStatus.ATENDIMENTO,
-      total: leadsCountByStatus[LeadStatus.ATENDIMENTO],
-    },
-    {
-      status: LeadStatus.AGUARDANDO,
-      total: leadsCountByStatus[LeadStatus.AGUARDANDO],
-    },
-    {
-      status: LeadStatus.VISITA,
-      total: leadsCountByStatus[LeadStatus.VISITA],
-    },
-    {
-      status: LeadStatus.NEGOCIACAO,
-      total: leadsCountByStatus[LeadStatus.NEGOCIACAO],
-    },
-    {
-      status: LeadStatus.VENDA,
-      total: leadsCountByStatus[LeadStatus.VENDA],
-    },
-  ];
-
+  const {createLead, countLeads} = useLeads();
 
   return (
     <div className="flex gap-8">
       {/* Gráfico */}
       <div className="flex w-3/6  bg-white p-6 rounded-xl shadow-sm">
         <CustomChart
-          data={chartData}
+          data={countLeads!}
           type={chartType}
           onStatusClick={handleStatusClick}
         />
