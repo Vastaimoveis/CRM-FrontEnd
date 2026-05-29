@@ -7,8 +7,8 @@ export function exportLeadsToExcel(leads: Lead[]) {
         Email: lead.email,
         Telefone: lead.telefone,
         Status: lead.status,
-        creationDate: lead.creationDate,
-        updateDate: lead.updateDate
+        creationDate: lead.createdAt,
+        updateDate: lead.updatedAt
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(data);

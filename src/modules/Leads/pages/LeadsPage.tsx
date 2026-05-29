@@ -13,6 +13,7 @@ import LeadsPreviewModal from "../components/LeadsPreviewModal";
 import { useEffect, useState } from "react";
 import { parseExcel } from "../utils/importLeadsFromExcel";
 import type { Lead } from "@/types/LeadType";
+import { patchStatus } from "@/services/leads/leadsService";
 
 
 export default function Leads() {
@@ -20,7 +21,7 @@ export default function Leads() {
         leads,
         loading,
         fetchLeads,
-        updateLeadStatus,
+        patchLeadStatus,
         deleteLead,
         importLeads,
         setPage,
@@ -62,8 +63,6 @@ export default function Leads() {
         setPreviewType("import");
     }
 
-
-
     const filteredLeads = useLeadsFilter({
         leads,
         status: statusParam,
@@ -71,12 +70,6 @@ export default function Leads() {
     });
 
     async function handleDelete(id: string) {
-
-        const confirmed = window.confirm(
-            "Deseja realmente deletar este lead?"
-        );
-
-        if (!confirmed) return;
 
         await deleteLead(id);
     }
@@ -175,7 +168,7 @@ export default function Leads() {
 
             <LeadsTable
                 leads={filteredLeads}
-                updateLeadStatus={updateLeadStatus}
+                patchLeadStatus={patchLeadStatus}
                 onDelete={handleDelete}
             />
 

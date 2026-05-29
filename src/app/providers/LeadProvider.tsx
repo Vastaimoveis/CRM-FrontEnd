@@ -8,9 +8,10 @@ import {
 } from "react";
 import type { Lead, CreateLeadDTO } from "@/shared/types/LeadType";
 import { LeadStatus } from "@/shared/types/LeadType";
-import { createLeadRequest, deleteLeadRequest, EMPTY_LEADS_COUNT, getLeadById, getLeads, getLeadsByUserId, getLeadsStatus, updateLeadRequest, type countStatusResponse } from "@/services/leads/leadsService";
+import { createLeadRequest, deleteLeadRequest, EMPTY_LEADS_COUNT, getLeadById, getLeads, getLeadsByUserId, getLeadsStatus, patchStatus, updateLeadRequest } from "@/services/leads/leadsService";
 import { useAuth } from "./AuthProvider";
 import { normalizeLeadStatusResponse } from "@/services/leads/helper";
+import type { countStatusResponse, UpdateLeadStatusDTO } from "@/services/leads/types/leads";
 
 
 interface LeadContextType {
@@ -34,6 +35,11 @@ interface LeadContextType {
         id: string,
         status: LeadStatus
     ) => Promise<Lead>;
+
+    patchLeadStatus: (
+        id: string,
+        status: LeadStatus
+    ) => Promise<Lead>
 
     deleteLead: (id: string) => Promise<void>;
 
@@ -92,18 +98,32 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         id: string,
         status: LeadStatus
     ) {
-        const createLeadDto = await getLeadById(id);
-
-        const updatedLeadDto = { ...createLeadDto, status: status }
+        const lead = await getLeadById(id);
+        const updatedDto = {
+            nome: lead.nome,
+            email: lead.email,
+            telefone: lead.telefone,
+            status,
+        }
 
         const updated =
             await updateLeadRequest(
                 id,
-                await updatedLeadDto
+                updatedDto
             );
         await fetchLeads();
         await fetchCountLeads();
         return updated
+    }
+
+    async function patchLeadStatus(id: string, status: LeadStatus) {
+        const statusDTO: UpdateLeadStatusDTO = { statusLead: status }
+
+        const patched = await patchStatus(id, statusDTO)
+
+        await fetchLeads();
+
+        return patched;
     }
 
     async function deleteLead(id: string) {
@@ -174,6 +194,7 @@ export function LeadProvider({ children }: { children: ReactNode }) {
                 fetchLeads,
                 fetchCountLeads,
                 updateLeadStatus,
+                patchLeadStatus,
                 deleteLead,
                 importLeads,
             }}

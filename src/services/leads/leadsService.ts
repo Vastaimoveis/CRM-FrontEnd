@@ -5,16 +5,7 @@ import {
     type CreateLeadDTO,
     type Lead,
 } from "@/shared/types/LeadType";
-
-export interface countStatusResponse {
-    total: number,
-    porStatus: Record<LeadStatus, number>;
-}
-
-export interface LeadStatusChartData {
-    status: LeadStatus;
-    total: number;
-}
+import type { countStatusResponse, UpdateLeadStatusDTO } from "./types/leads";
 
 export const EMPTY_LEADS_COUNT: countStatusResponse = {
     total: 0,
@@ -65,7 +56,7 @@ export async function createLeadRequest(
     const response = await api.post<
         ApiResponse<Lead>
     >("/leads", data);
-
+    console.log(response);
     return response.data.data;
 }
 
@@ -77,6 +68,13 @@ export async function updateLeadRequest(
     const response = await api.put<
         ApiResponse<Lead>
     >(`/leads/${id}`, data);
+    return response.data.data;
+}
+
+export async function patchStatus(id: string, data: UpdateLeadStatusDTO): Promise<Lead> {
+    const response = await api.patch<
+        ApiResponse<Lead>
+    >(`/leads/${id}/status`, data);
 
     return response.data.data;
 }

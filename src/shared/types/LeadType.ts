@@ -15,8 +15,8 @@ export interface Lead {
 
   status: LeadStatus;
   
-  creationDate: Date;
-  updateDate: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface CreateLeadDTO {
@@ -26,11 +26,11 @@ export interface CreateLeadDTO {
 }
 
 export const STATUS_COLORS: Record<LeadStatus, string> = {
-  Cadastrado: "#6B7280",     // cinza
-  Atendimento: "#3B82F6",    // azul
-  Aguardando: "#F59E0B",     // amarelo
-  Visita: "#8B5CF6",         // roxo
-  Negociacao: "#EF4444",     // vermelho
-  Venda: "#10B981",          // verde
-  Encerrado: "#ff1f1f"
+  CADASTRADO: "#6B7280",     // cinza
+  ATENDIMENTO: "#3B82F6",    // azul
+  AGUARDANDO: "#F59E0B",     // amarelo
+  VISITA: "#8B5CF6",         // roxo
+  NEGOCIACAO: "#EF4444",     // vermelho
+  VENDA: "#10B981",          // verde
+  ENCERRADO: "#ff1f1f"
 };

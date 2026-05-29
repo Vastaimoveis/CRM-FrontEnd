@@ -5,13 +5,13 @@ import LeadsNotesModal from "./LeadsNotesModal";
 
 interface LeadsTableProps {
     leads: Lead[];
-    updateLeadStatus: (id: string, status: LeadStatus) => void;
+    patchLeadStatus: (id: string, status: LeadStatus) => Promise<Lead>;
     onDelete: (id: string) => Promise<void>;
 }
 
 export default function LeadsTable({
     leads,
-    updateLeadStatus,
+    patchLeadStatus,
     onDelete
 }: LeadsTableProps) {
     if (!leads.length) {
@@ -21,8 +21,6 @@ export default function LeadsTable({
             </div>
         );
     }
-    
-
 
     return (
         <table className="w-full border-collapse">
@@ -48,7 +46,7 @@ export default function LeadsTable({
                             <select
                                 value={lead.status}
                                 onChange={(e) =>
-                                    updateLeadStatus(
+                                    patchLeadStatus(
                                         lead.id,
                                         e.target.value as LeadStatus
                                     )
@@ -64,12 +62,12 @@ export default function LeadsTable({
                         </td>
                         <LeadsNotesModal leadId={lead.id} />
                         <td>
-                            {new Date(lead.creationDate).toLocaleDateString()}
+                            {lead.updatedAt == null ? new Date(lead.createdAt).toLocaleDateString() : new Date(lead.updatedAt).toLocaleDateString()}
                         </td>
                         <td>
                             <Permission allowed={[UserRoles.GERENTE]}>
-                                <button className="bg-red-500 text-white font-bold rounded-2xl p-2"
-                                onClick={() => onDelete}>
+                                <button className="bg-red-500 hover:bg-red-800 text-white font-bold rounded-2xl p-2"
+                                    onClick={() => onDelete}>
                                     Excluir Lead
                                 </button>
                             </Permission>

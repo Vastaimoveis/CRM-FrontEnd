@@ -30,7 +30,7 @@ export default function LeadsPreviewTable({ leads }: Props) {
                             <td className="p-2">{lead.telefone}</td>
                             <td className="p-2">{lead.status}</td>
                             <td className="p-2">
-                                {new Date(lead.creationDate).toLocaleDateString()}
+                                {new Date(lead.createdAt).toLocaleDateString()}
                             </td>
                         </tr>
                     ))}
