@@ -26,6 +26,8 @@ export default function Leads() {
     const [status, setStatus] = useState<LeadStatus | null>(null);
     const [search, setSearch] = useState("");
     const [page, setPage] = useState<number>(0);
+    const [isOpen, setIsOpen] = useState<boolean>(false);
+    const [confirm, setConfirm] = useState<boolean>(false);
 
     useEffect(() => {
         async function load() {
@@ -80,6 +82,10 @@ export default function Leads() {
         );
     }
 
+    function handleIsOpen(){
+        setIsOpen(!isOpen);
+    }
+
     return (
         <div className="bg-white p-6 rounded-xl shadow-sm">
             <div className="flex flex-col gap-4 mb-6">
@@ -95,7 +101,7 @@ export default function Leads() {
                         status={status ? status : ""}
                         search={search}
                         onStatusChange={(value) => handleStatusChanges(value)}
-                        onSearchChange={(value) =>  handleSearchChanges(value) }
+                        onSearchChange={(value) => handleSearchChanges(value)}
                     />
 
                     <div className="flex gap-2">
@@ -154,6 +160,7 @@ export default function Leads() {
 
             <LeadsTable
                 leads={filteredLeads}
+                isOpen={handleIsOpen}
                 patchLeadStatus={patchLeadStatus}
                 onDelete={handleDelete}
             />
@@ -168,6 +175,22 @@ export default function Leads() {
                     setPage((p) => p + 1)
                 }
             />
+
+            {
+                isOpen &&
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+                    onClick={() => {
+                        setIsOpen(false)
+                    }}>
+                    <div className="bg-white rounded-xl p-6 w-200 max-h-[90vh] flex flex-col">
+                        <h1 className="text-2xl">tem certeza que quer <strong>Encerrar</strong> esse lead?</h1>
+                        <div>
+                            <button className="bg-green-800">Confirmar</button>
+                            <button className="bg-red-800">Cancelar</button>
+                        </div>
+                    </div>
+                </div>
+            }
         </div>
     );
 }

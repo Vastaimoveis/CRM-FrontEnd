@@ -1,5 +1,4 @@
 import { LeadStatus } from "@/shared/types/LeadType";
-import { useState } from "react";
 
 interface LeadsFilterProps {
     status: LeadStatus | "",
@@ -14,7 +13,6 @@ export default function LeadsFilter({
     onStatusChange,
     onSearchChange,
 }: LeadsFilterProps) {
-    const [isOpen, setIsOpen] = useState<boolean>(false);
 
     return (
         <div className="flex gap-4">
@@ -46,21 +44,7 @@ export default function LeadsFilter({
                 onChange={(e) => onSearchChange(e.target.value)}
                 className="border rounded-md px-3 py-2 w-64"
             />
-            {
-                isOpen &&
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-                    onClick={() => {
-                        setIsOpen(false)
-                    }}>
-                    <div className="bg-white rounded-xl p-6 w-200 max-h-[90vh] flex flex-col">
-                        <h1 className="text-2xl">tem certeza que quer <strong>Encerrar</strong> esse lead?</h1>
-                        <div>
-                            <button className="bg-green-800">Confirmar</button>
-                            <button className="bg-red-800">Cancelar</button>
-                        </div>
-                    </div>
-                </div>
-            }
+       
         </div >
     );
 }

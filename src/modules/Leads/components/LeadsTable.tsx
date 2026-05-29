@@ -5,12 +5,14 @@ import LeadsNotesModal from "./LeadsNotesModal";
 
 interface LeadsTableProps {
     leads: Lead[];
+    isOpen: () => void;
     patchLeadStatus: (id: string, status: LeadStatus) => Promise<Lead>;
     onDelete: (id: string) => Promise<void>;
 }
 
 export default function LeadsTable({
     leads,
+    isOpen,
     patchLeadStatus,
     onDelete
 }: LeadsTableProps) {
@@ -45,11 +47,18 @@ export default function LeadsTable({
                         <td>
                             <select
                                 value={lead.status}
-                                onChange={(e) =>
+                                onChange={(e) => {
+                                    const value = e.target.value as LeadStatus;
+
+                                    if (value === LeadStatus.ENCERRADO) {
+                                        isOpen();
+                                    }
+
                                     patchLeadStatus(
                                         lead.id,
-                                        e.target.value as LeadStatus
+                                        value
                                     )
+                                }
                                 }
                                 className="border rounded-md px-2 py-1"
                             >

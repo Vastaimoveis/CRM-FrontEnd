@@ -85,9 +85,8 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         try {
             const response = await getLeadsFilterByStatus({ statusLead: status },)
             setTotalPages(response.totalPages)
-            if (response.totalPages <= page) {
+            if (response.totalPages >= page) {
                 setLeads(response.content);
-                await fetchCountLeads();
             } else {
                 showToast("Página máxima atingida", "warning")
             }
