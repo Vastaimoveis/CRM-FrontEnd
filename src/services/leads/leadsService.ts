@@ -5,7 +5,7 @@ import {
     type CreateLeadDTO,
     type Lead,
 } from "@/shared/types/LeadType";
-import type { countStatusResponse, UpdateLeadStatusDTO } from "./types/leads";
+import type { countStatusResponse, LeadStatusDTO } from "./types/leads";
 
 export const EMPTY_LEADS_COUNT: countStatusResponse = {
     total: 0,
@@ -38,6 +38,18 @@ export async function getLeadsStatus() {
     return response.data.data;
 }
 
+export async function getLeadsFilterByStatus(status: LeadStatusDTO, page = 0) {
+    const response = await api.get<ApiResponse<PageResponse<Lead>>>(
+        `/leads/status/${status.statusLead}?page=${page}`);
+
+    return response.data.data;
+}
+
+export async function getAllLeadsNotEncerrado(page = 0) {
+    const response = await api.get<ApiResponse<PageResponse<Lead>>>(`/leads/status?page=${page}`);
+    return response.data.data;
+}
+
 export async function getLeadById(
     id: string
 ): Promise<Lead> {
@@ -56,7 +68,6 @@ export async function createLeadRequest(
     const response = await api.post<
         ApiResponse<Lead>
     >("/leads", data);
-    console.log(response);
     return response.data.data;
 }
 
@@ -71,7 +82,7 @@ export async function updateLeadRequest(
     return response.data.data;
 }
 
-export async function patchStatus(id: string, data: UpdateLeadStatusDTO): Promise<Lead> {
+export async function patchStatus(id: string, data: LeadStatusDTO): Promise<Lead> {
     const response = await api.patch<
         ApiResponse<Lead>
     >(`/leads/${id}/status`, data);

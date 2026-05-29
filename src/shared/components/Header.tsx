@@ -5,7 +5,7 @@ import { UserRoles } from "@/types/UserTypes";
 import Permission from "@/shared/permissions/Permission";
 
 export default function Header() {
-  const { user, selectedUser, setSelectedUser } = useAuth();
+  const { user, selectedUser } = useAuth();
 
   const navItemClass = ({ isActive }: { isActive: boolean }) =>
     `px-4 py-2 text-sm font-medium transition ${isActive
@@ -20,7 +20,7 @@ export default function Header() {
         <img className="max-h-15" src={logo} alt="Logo da Vasta Imoveis" />
 
         <button className="px-4 py-2 border border-black rounded-md text-sm font-medium hover:bg-black hover:text-white transition">
-          {user?.name}
+          {user?.nome}
         </button>
       </div>
 
@@ -49,7 +49,7 @@ export default function Header() {
         </div>
         {selectedUser &&
           <div className="border rounded-lg p-1">
-            <p>Visualizando: {selectedUser?.name}</p>
+            <p>Visualizando: {selectedUser?.nome}</p>
           </div>
         }
       </section>

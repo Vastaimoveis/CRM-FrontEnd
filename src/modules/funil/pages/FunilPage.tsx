@@ -4,17 +4,22 @@ import ChartSwitcher from "../components/ChartSwitcher";
 import { LeadStatus } from "@/shared/types/LeadType";
 import { useNavigate } from "react-router-dom";
 import LeadModal from "../components/LeadModal";
+import { useFunnel } from "@/app/providers/FunnelProvider";
 import { useLeads } from "@/app/providers/LeadProvider";
 
 export default function FunilPage() {
   const [chartType, setChartType] = useState<"funnel" | "pie" | "bar">("funnel");
   const navigate = useNavigate();
-  function handleStatusClick(status: LeadStatus) {
-    navigate(`/leads?status=${status}`);
-  }
 
   const [modalOpen, setModalOpen] = useState(false);
-  const {createLead, countLeads} = useLeads();
+  const { createLead, countLeads } = useFunnel();
+  const { fetchLeads, fetchByStatus } = useLeads();
+
+  async function handleStatusClick(status: LeadStatus) {
+    navigate(`/leads`);
+    await fetchByStatus(status, 0);
+    await fetchLeads();
+  }
 
   return (
     <div className="flex gap-8">
@@ -40,6 +45,8 @@ export default function FunilPage() {
       </div>
       <LeadModal
         open={modalOpen}
+        createLead={createLead}
+        fetchLeads={fetchLeads}
         onClose={() => setModalOpen(false)}
       />
 

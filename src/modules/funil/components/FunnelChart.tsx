@@ -13,7 +13,7 @@ import {
   LabelList,
 } from "recharts";
 import { type LeadStatus, STATUS_COLORS } from "@/shared/types/LeadType";
-import type { countStatusResponse, LeadStatusChartData } from "@/services/leads/leadsService";
+import type { countStatusResponse, LeadStatusChartData } from "@/services/leads/types/leads";
 
 interface Props {
   data: countStatusResponse;

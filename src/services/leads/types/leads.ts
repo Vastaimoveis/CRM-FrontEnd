@@ -17,6 +17,6 @@ export interface UpdateLeadDto {
     status: LeadStatus;
 }
 
-export interface UpdateLeadStatusDTO{
+export interface LeadStatusDTO{
     statusLead: LeadStatus;
 }

@@ -1,6 +1,6 @@
 export interface User {
   id: string;
-  name: string;
+  nome: string;
   telefone: string;
   email: string;
   regiao: RegioesEnum;

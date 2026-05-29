@@ -1,5 +1,3 @@
-import { useSearchParams } from "react-router-dom";
-
 import { useLeads } from "@/app/providers/LeadProvider";
 import { LeadStatus } from "@/shared/types/LeadType";
 
@@ -7,51 +5,54 @@ import LeadsFilter from "../components/LeadsFilter";
 import LeadsPagination from "../components/LeadsPagination";
 import LeadsTable from "../components/LeadsTable";
 
-import { useLeadsFilter } from "../hooks/useLeadsFilter";
 import { exportLeadsToExcel } from "../utils/exportLeadsToExcel";
 import LeadsPreviewModal from "../components/LeadsPreviewModal";
 import { useEffect, useState } from "react";
 import { parseExcel } from "../utils/importLeadsFromExcel";
 import type { Lead } from "@/types/LeadType";
-import { patchStatus } from "@/services/leads/leadsService";
-
 
 export default function Leads() {
     const {
         leads,
         loading,
         fetchLeads,
+        fetchByStatus,
         patchLeadStatus,
         deleteLead,
         importLeads,
-        setPage,
         totalPages, } = useLeads();
-    const [searchParams, setSearchParams] = useSearchParams();
     const [previewType, setPreviewType] = useState<"export" | "import" | null>(null);
     const [importedLeads, setImportedLeads] = useState<Lead[]>([]);
-    const statusParam = searchParams.get("status") as LeadStatus | null;
-    const searchParam = searchParams.get("search") || "";
-    const currentPage = Number(searchParams.get("page")) || 1;
-
-    function updateParams(newParams: Record<string, string | null>) {
-        const params = new URLSearchParams(searchParams);
-
-        Object.entries(newParams).forEach(([key, value]) => {
-            if (!value) params.delete(key);
-            else params.set(key, value);
-        });
-
-        setSearchParams(params);
-    }
+    const [status, setStatus] = useState<LeadStatus | null>(null);
+    const [search, setSearch] = useState("");
+    const [page, setPage] = useState<number>(0);
 
     useEffect(() => {
         async function load() {
-            setPage(currentPage - 1);
-            await fetchLeads();
+            if (status) {
+                await fetchByStatus(
+                    status,
+                    page
+                );
+            } else {
+                await fetchLeads(
+                    page
+                )
+            }
         }
 
         load();
-    }, [currentPage]);
+    }, [status, page]);
+
+    function handleStatusChanges(newStatus: LeadStatus | null) {
+        setStatus(newStatus);
+        setPage(0);
+    }
+
+    function handleSearchChanges(value: string | "") {
+        setSearch(value);
+        setPage(0);
+    }
 
     async function handleFileImport(e: React.ChangeEvent<HTMLInputElement>) {
         const file = e.target.files?.[0];
@@ -63,14 +64,9 @@ export default function Leads() {
         setPreviewType("import");
     }
 
-    const filteredLeads = useLeadsFilter({
-        leads,
-        status: statusParam,
-        search: searchParam,
-    });
+    const filteredLeads = leads;
 
     async function handleDelete(id: string) {
-
         await deleteLead(id);
     }
 
@@ -83,7 +79,7 @@ export default function Leads() {
             </div>
         );
     }
-    
+
     return (
         <div className="bg-white p-6 rounded-xl shadow-sm">
             <div className="flex flex-col gap-4 mb-6">
@@ -96,20 +92,10 @@ export default function Leads() {
                 </div>
                 <div className="flex justify-between">
                     <LeadsFilter
-                        status={statusParam}
-                        search={searchParam}
-                        onStatusChange={(value) =>
-                            updateParams({
-                                status: value || null,
-                                page: null,
-                            })
-                        }
-                        onSearchChange={(value) =>
-                            updateParams({
-                                search: value || null,
-                                page: null,
-                            })
-                        }
+                        status={status ? status : ""}
+                        search={search}
+                        onStatusChange={(value) => handleStatusChanges(value)}
+                        onSearchChange={(value) =>  handleSearchChanges(value) }
                     />
 
                     <div className="flex gap-2">
@@ -173,17 +159,13 @@ export default function Leads() {
             />
 
             <LeadsPagination
-                currentPage={currentPage}
+                currentPage={page + 1}
                 totalPages={totalPages}
                 onPrev={() =>
-                    updateParams({
-                        page: String(Math.max(currentPage - 1, 1))
-                    })
-                }
+                    setPage((p) => Math.max(0, p - 1))}
+
                 onNext={() =>
-                    updateParams({
-                        page: String(currentPage + 1)
-                    })
+                    setPage((p) => p + 1)
                 }
             />
         </div>

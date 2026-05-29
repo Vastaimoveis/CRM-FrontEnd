@@ -1,5 +1,6 @@
 import { AuthProvider } from "./AuthProvider";
-import { LeadProvider } from "./LeadProvider";
+import { FunnelProvider } from "./FunnelProvider";
+import { LeadProvider} from "./LeadProvider";
 import { ToastProvider } from "./ToastProvider";
 
 export default function AppProviders({
@@ -7,9 +8,13 @@ export default function AppProviders({
 }: { children: React.ReactNode }) {
     return (
         <AuthProvider>
-            <LeadProvider>
-                <ToastProvider>{children}</ToastProvider>
-            </LeadProvider>
+            <ToastProvider>
+                <FunnelProvider>
+                    <LeadProvider>
+                        {children}
+                    </LeadProvider>
+                </FunnelProvider>
+            </ToastProvider>
         </AuthProvider>
     )
 }

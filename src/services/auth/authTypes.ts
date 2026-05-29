@@ -10,10 +10,9 @@ export interface LoginResponseDTO {
     data: {
         token: string;
 
-
         user: {
             id: string;
-            name: string;
+            nome: string;
             email: string;
             telefone: string;
             role: UserRoles;

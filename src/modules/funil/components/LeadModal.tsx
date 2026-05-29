@@ -1,14 +1,17 @@
-import { useLeads } from "@/app/providers/LeadProvider";
 import { useToast } from "@/app/providers/ToastProvider";
 import { useHooksFunnel } from "../hooks/useHooksFunnel";
+import type { CreateLeadDTO } from "@/shared/types/LeadType";
 
 interface Props {
   open: boolean;
   onClose: () => void;
+
+  createLead: (data: CreateLeadDTO) => Promise<void>;
+
+  fetchLeads: () => Promise<void>;
 }
 
-export default function LeadModal({ open, onClose }: Props) {
-  const { createLead, fetchLeads } = useLeads();
+export default function LeadModal({ open, onClose, createLead, fetchLeads }: Props) {
   const { showToast } = useToast();
 
   const {

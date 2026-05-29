@@ -2,9 +2,9 @@ import { LeadStatus } from "@/shared/types/LeadType";
 import { useState } from "react";
 
 interface LeadsFilterProps {
-    status: LeadStatus | null;
-    search: string;
-    onStatusChange: (status: string) => void;
+    status: LeadStatus | "",
+    search: string,
+    onStatusChange: (status: LeadStatus | null) => void;
     onSearchChange: (search: string) => void;
 }
 
@@ -16,15 +16,17 @@ export default function LeadsFilter({
 }: LeadsFilterProps) {
     const [isOpen, setIsOpen] = useState<boolean>(false);
 
-    function handleOpen() {
-        setIsOpen(!isOpen.valueOf)
-    }
-
     return (
         <div className="flex gap-4">
             <select
                 value={status || ""}
-                onChange={(e) => onStatusChange(e.target.value)}
+                onChange={(e) => {
+                    const selectedStatus = e.target.value as LeadStatus;
+                    if (e.target.value === "") {
+                        onStatusChange(null)
+                    }
+                    onStatusChange(selectedStatus);
+                }}
 
                 className="border rounded-md px-3 py-2"
             >
@@ -41,11 +43,7 @@ export default function LeadsFilter({
                 type="text"
                 placeholder="Buscar por nome, email ou telefone..."
                 value={search}
-                onChange={(e) => {
-                    console.log(e)
-                    onSearchChange(e.target.value)
-                    if (e.target.value === "Encerrado") { handleOpen() }
-                }}
+                onChange={(e) => onSearchChange(e.target.value)}
                 className="border rounded-md px-3 py-2 w-64"
             />
             {

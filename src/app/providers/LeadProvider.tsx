@@ -2,34 +2,33 @@ import {
     createContext,
     useContext,
     useEffect,
-    useMemo,
     useState,
     type ReactNode,
 } from "react";
-import type { Lead, CreateLeadDTO } from "@/shared/types/LeadType";
+import type { Lead } from "@/shared/types/LeadType";
 import { LeadStatus } from "@/shared/types/LeadType";
-import { createLeadRequest, deleteLeadRequest, EMPTY_LEADS_COUNT, getLeadById, getLeads, getLeadsByUserId, getLeadsStatus, patchStatus, updateLeadRequest } from "@/services/leads/leadsService";
+import { createLeadRequest, deleteLeadRequest, getAllLeadsNotEncerrado, getLeadById, getLeadsByUserId, getLeadsFilterByStatus, patchStatus, updateLeadRequest } from "@/services/leads/leadsService";
 import { useAuth } from "./AuthProvider";
-import { normalizeLeadStatusResponse } from "@/services/leads/helper";
-import type { countStatusResponse, UpdateLeadStatusDTO } from "@/services/leads/types/leads";
+import type { LeadStatusDTO } from "@/services/leads/types/leads";
+import { useToast } from "./ToastProvider";
+import { useFunnel } from "./FunnelProvider";
 
 
-interface LeadContextType {
+export interface LeadContextType {
     leads: Lead[];
+    allLeads: Lead[];
+
     loading: boolean;
 
     page: number;
     totalPages: number;
 
-    countLeads: countStatusResponse;
 
     setPage: React.Dispatch<React.SetStateAction<number>>;
 
-    fetchLeads: () => Promise<void>;
-    fetchCountLeads: () => Promise<void>;
-    createLead: (
-        data: CreateLeadDTO
-    ) => Promise<void>;
+    fetchLeads: (page: number) => Promise<void>;
+
+    fetchByStatus: (status: LeadStatus, actualPage: number) => Promise<void>;
 
     updateLeadStatus: (
         id: string,
@@ -52,47 +51,65 @@ const LeadContext =
 export function LeadProvider({ children }: { children: ReactNode }) {
     const [leads, setLeads] = useState<Lead[]>([]);
     const [allLeads, setAllLeads] = useState<Lead[]>([]);
-    const [countLeads, setCountLeads] = useState<countStatusResponse>(EMPTY_LEADS_COUNT);
     const [page, setPage] = useState(0);
-    const [totalPages, setTotalPages] = useState(0);
+    const [totalPages, setTotalPages] = useState<number>(0);
     const [loading, setLoading] = useState(false);
     const { user } = useAuth();
+    const { showToast } = useToast();
+    const { fetchCountLeads } = useFunnel();
 
-    async function fetchLeads() {
+    async function fetchLeads(actualPage = 0) {
         setLoading(true);
-
+        setPage(actualPage)
         try {
 
-            const response = await getLeads(page);
+            const response = await getAllLeadsNotEncerrado(page);
+            setTotalPages(response.totalPages)
+            if (response.totalPages >= page) {
+                setLeads(response.content);
+                await fetchCountLeads();
+            } else {
+                showToast("Página máxima atingida", "warning");
+            }
 
-            setLeads(response.content);
-
-            setTotalPages(response.totalPages);
         } finally {
             setLoading(false);
+            setPage(0)
         }
     }
 
-    async function fetchAllleads(userId: string) {
+    async function fetchByStatus(status: LeadStatus, actualPage = 0) {
+        setLoading(true)
+        setPage(actualPage);
+
+        try {
+            const response = await getLeadsFilterByStatus({ statusLead: status },)
+            setTotalPages(response.totalPages)
+            if (response.totalPages <= page) {
+                setLeads(response.content);
+                await fetchCountLeads();
+            } else {
+                showToast("Página máxima atingida", "warning")
+            }
+
+        } finally {
+            setLoading(false);
+            setPage(0)
+        }
+    }
+
+    async function fetchAllLeads(userId: string) {
         setLoading(true)
         try {
             const response = await getLeadsByUserId(userId);
 
             setAllLeads(response)
-            await fetchCountLeads();
         } finally {
             setLoading(false)
         }
     }
 
-    async function createLead(
-        data: CreateLeadDTO
-    ) {
-        await createLeadRequest(data);
 
-        await fetchLeads();
-        await fetchCountLeads();
-    }
 
     async function updateLeadStatus(
         id: string,
@@ -117,11 +134,12 @@ export function LeadProvider({ children }: { children: ReactNode }) {
     }
 
     async function patchLeadStatus(id: string, status: LeadStatus) {
-        const statusDTO: UpdateLeadStatusDTO = { statusLead: status }
+        const statusDTO: LeadStatusDTO = { statusLead: status }
 
         const patched = await patchStatus(id, statusDTO)
 
         await fetchLeads();
+        await fetchCountLeads();
 
         return patched;
     }
@@ -129,6 +147,8 @@ export function LeadProvider({ children }: { children: ReactNode }) {
     async function deleteLead(id: string) {
         await deleteLeadRequest(id);
         await fetchLeads();
+        await fetchCountLeads();
+
     }
 
     async function importLeads(newLeads: Lead[]) {
@@ -162,37 +182,22 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         if (!user?.id) {
             return;
         }
-        fetchAllleads(user.id);
+        fetchAllLeads(user.id);
     }, [user])
 
-    async function fetchCountLeads() {
-        try {
 
-            const data = await getLeadsStatus();
-
-            setCountLeads(normalizeLeadStatusResponse(data));
-
-        } catch (error) {
-
-            console.error(
-                "Erro ao buscar contagem de leads",
-                error
-            );
-        }
-    }
 
     return (
         <LeadContext.Provider
             value={{
                 leads,
+                allLeads,
                 loading,
+                fetchByStatus,
                 page,
-                countLeads,
                 totalPages,
                 setPage,
-                createLead,
                 fetchLeads,
-                fetchCountLeads,
                 updateLeadStatus,
                 patchLeadStatus,
                 deleteLead,
@@ -207,7 +212,7 @@ export function LeadProvider({ children }: { children: ReactNode }) {
 export function useLeads() {
     const context = useContext(LeadContext);
     if (!context) {
-        throw new Error("useLeads must be used inside LeadProvider");
+        throw new Error("useLeads deve ser usado dentro de LeadProvider");
     }
     return context;
 }

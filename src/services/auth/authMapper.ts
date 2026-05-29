@@ -6,7 +6,7 @@ export function mapLoginResponseToUser(
 ): User {
     return {
         id: response.data.user.id,
-        name: response.data.user.name,
+        nome: response.data.user.nome,
         email: response.data.user.email,
         telefone: response.data.user.telefone,
         role: response.data.user.role,
