@@ -28,6 +28,12 @@ export async function getLeads(
     return response.data.data;
 }
 
+export async function getLeadsBySearch(search: string){
+    const response = await api.get<ApiResponse<Lead[]>>(`/leads/search/${search}`);
+
+    return response.data.data;
+}
+
 export async function getLeadsByUserId(userId: string) {
     const response = await api.get<ApiResponse<Lead[]>>(`/leads/all/${userId}`)
     return response.data.data
