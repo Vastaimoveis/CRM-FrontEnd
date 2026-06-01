@@ -10,6 +10,7 @@ import { useToast } from "@/app/providers/ToastProvider";
 interface LeadsNotesModalProps {
   leadId: string;
   hasNotes: boolean;
+  
 }
 
 export default function LeadsNotesModal({ leadId, hasNotes }: LeadsNotesModalProps) {
@@ -26,9 +27,9 @@ export default function LeadsNotesModal({ leadId, hasNotes }: LeadsNotesModalPro
   const { leadNotes, createNewLeadNote: createLeadNote, fetchLeadNotesByLead, noteLoading } = useLeadNotes();
 
   function resetModal() {
-    setIsOpen(false);
     setNewNote(null);
     resetNotes();
+    setIsOpen(false);
   }
 
   async function handleToggle(id: string, page: number) {
@@ -54,6 +55,7 @@ export default function LeadsNotesModal({ leadId, hasNotes }: LeadsNotesModalPro
         await createLeadNote(notaDto);
         setNewNote(null);
         await fetchLeadNotesByLead(notaDto.leadId, 0);
+        resetModal();
       } else {
         showToast("Erro ao salvar lead", "warning");
       }
