@@ -14,7 +14,7 @@ export interface Lead {
   telefone: string;
 
   status: LeadStatus;
-  
+  hasNotes: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

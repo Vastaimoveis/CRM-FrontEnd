@@ -5,14 +5,14 @@ import LeadsNotesModal from "./LeadsNotesModal";
 
 interface LeadsTableProps {
     leads: Lead[];
-    isOpen: () => void;
-    patchLeadStatus: (id: string, status: LeadStatus) => Promise<Lead>;
+
+    patchLeadStatus: (id: string, status: LeadStatus) => void;
     onDelete: (id: string) => Promise<void>;
 }
 
 export default function LeadsTable({
     leads,
-    isOpen,
+
     patchLeadStatus,
     onDelete
 }: LeadsTableProps) {
@@ -33,7 +33,7 @@ export default function LeadsTable({
                     <th>Telefone</th>
                     <th>Status</th>
                     <th>Anotação</th>
-                    <th>Data de Criação</th>
+                    <th>Última alteração</th>
                 </tr>
             </thead>
 
@@ -41,7 +41,7 @@ export default function LeadsTable({
                 {leads.map((lead) => (
                     <tr key={lead.id} className="border-b hover:bg-gray-50">
                         <td className="py-3">{lead.nome}</td>
-                        <td>{lead.email}</td>
+                        <td>{lead.email ? lead.email : "Sem email"}</td>
                         <td>{lead.telefone}</td>
 
                         <td>
@@ -49,11 +49,6 @@ export default function LeadsTable({
                                 value={lead.status}
                                 onChange={(e) => {
                                     const value = e.target.value as LeadStatus;
-
-                                    if (value === LeadStatus.ENCERRADO) {
-                                        isOpen();
-                                    }
-
                                     patchLeadStatus(
                                         lead.id,
                                         value
@@ -69,7 +64,7 @@ export default function LeadsTable({
                                 ))}
                             </select>
                         </td>
-                        <LeadsNotesModal leadId={lead.id} />
+                        <LeadsNotesModal leadId={lead.id} hasNotes={lead.hasNotes} />
                         <td>
                             {lead.updatedAt == null ? new Date(lead.createdAt).toLocaleDateString() : new Date(lead.updatedAt).toLocaleDateString()}
                         </td>

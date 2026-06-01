@@ -1,6 +1,7 @@
 import { useToast } from "@/app/providers/ToastProvider";
 import { useHooksFunnel } from "../hooks/useHooksFunnel";
 import type { CreateLeadDTO } from "@/shared/types/LeadType";
+import { validatePhone } from "@/shared/utils/validatePhone";
 
 interface Props {
   open: boolean;
@@ -8,7 +9,7 @@ interface Props {
 
   createLead: (data: CreateLeadDTO) => Promise<void>;
 
-  fetchLeads: () => Promise<void>;
+  fetchLeads: (page: number) => Promise<void>;
 }
 
 export default function LeadModal({ open, onClose, createLead, fetchLeads }: Props) {
@@ -29,10 +30,15 @@ export default function LeadModal({ open, onClose, createLead, fetchLeads }: Pro
     setLoading(true);
 
     try {
+      if (!validatePhone(form.telefone)) {
+        showToast("Telefone inválido", "error");
+        return;
+      }
+
       await createLead(form);
       resetForm();
       showToast("Lead criado com sucesso", "success");
-      await fetchLeads();
+      await fetchLeads(0);
       onClose();
     } catch {
       showToast("Erro ao criar lead", "error");

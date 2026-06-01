@@ -6,7 +6,7 @@ import type { LeadNoteRequest, LeadNotes } from "@/shared/types/LeadNotesType";
 import { useToast } from "@/app/providers/ToastProvider";
 import { api } from "@/services/api/api";
 
-export function useLeadNotes(leadId: string) {
+export function useNotesHook(leadId: string) {
   const [notes, setNotes] = useState<LeadNotes[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);

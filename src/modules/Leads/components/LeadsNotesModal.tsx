@@ -1,58 +1,74 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { useLeadNotes } from "../hooks/useLeadsNotes";
 import { useOutsideClick } from "../hooks/useOutsideClick";
+import { useLeadNotes } from "@/app/providers/LeadNoteProvider";
+import { useNotesHook } from "../hooks/useLeadsNotes";
+import type { LeadNoteRequest } from "@/shared/types/LeadNotesType";
+import { useToast } from "@/app/providers/ToastProvider";
 
 interface LeadsNotesModalProps {
   leadId: string;
+  hasNotes: boolean;
 }
 
-export default function LeadsNotesModal({ leadId }: LeadsNotesModalProps) {
+export default function LeadsNotesModal({ leadId, hasNotes }: LeadsNotesModalProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [newNote, setNewNote] = useState("");
-
+  const [newNote, setNewNote] = useState<LeadNoteRequest | null>(null);
+  const [saving, setSaving] = useState<boolean>(false);
+  const { showToast } = useToast();
   const containerRef = useRef<HTMLTableCellElement>(null);
 
   const {
-    notes,
-    loading,
-    saving,
-    fetchNotes,
-    addNote,
     resetNotes,
-  } = useLeadNotes(leadId);
+  } = useNotesHook(leadId);
+
+  const { leadNotes, createNewLeadNote: createLeadNote, fetchLeadNotesByLead, noteLoading } = useLeadNotes();
 
   function resetModal() {
     setIsOpen(false);
-    setNewNote("");
+    setNewNote(null);
     resetNotes();
   }
 
-  function handleToggle() {
+  async function handleToggle(id: string, page: number) {
     if (isOpen) {
       resetModal();
       return;
     }
 
+    await fetchLeadNotesByLead(id, page);
     setIsOpen(true);
-    fetchNotes();
   }
 
   useOutsideClick(containerRef, resetModal);
 
-  function handleAddNote() {
-    addNote(newNote);
-    setNewNote("");
+  async function handleAddNote() {
+    setSaving(true);
+    try {
+      if (newNote) {
+        const notaDto: LeadNoteRequest = {
+          leadId: newNote.leadId,
+          note: newNote.note
+        }
+        await createLeadNote(notaDto);
+        setNewNote(null);
+        await fetchLeadNotesByLead(notaDto.leadId, 0);
+      } else {
+        showToast("Erro ao salvar lead", "warning");
+      }
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
     <td ref={containerRef} className="relative">
       <button
-        className={`${notes.length > 1 ? "bg-green-700" : "bg-black"}  text-white font-semibold px-3 py-1 rounded-full`}
-        onClick={handleToggle}
+        className={`${hasNotes ? "bg-green-700" : "bg-black"}  text-white font-semibold px-3 py-1 rounded-full`}
+        onClick={() => handleToggle(leadId, 0)}
       >
-        {notes.length > 1 ? "Visualizar notas" : "adicionar nota"}
+        {hasNotes ? "Visualizar notas" : "adicionar nota"}
       </button>
 
       {isOpen && (
@@ -60,8 +76,8 @@ export default function LeadsNotesModal({ leadId }: LeadsNotesModalProps) {
 
           <div className="mb-3">
             <textarea
-              value={newNote}
-              onChange={(e) => setNewNote(e.target.value)}
+              value={newNote?.note}
+              onChange={(e) => setNewNote({ note: e.target.value, leadId: leadId })}
               placeholder="Digite uma anotação..."
               className="w-full border rounded-md p-2 text-sm resize-none"
               rows={3}
@@ -77,24 +93,23 @@ export default function LeadsNotesModal({ leadId }: LeadsNotesModalProps) {
           </div>
 
           <div className="max-h-40 overflow-y-auto space-y-2">
-            {loading ? (
+            {noteLoading ? (
               <p className="text-sm text-gray-400">Carregando...</p>
-            ) : notes.length ? (
-              notes.map((note) => (
-                <div key={note.id} className="text-sm border-b pb-1">
-                  <p>{note.message}</p>
-                  <span className="text-xs text-gray-400">
-                    {new Date(note.creationDate).toLocaleDateString()}
-                  </span>
-                </div>
+            ) : leadNotes.length ? (
+              leadNotes.map((note) => {
+                return (
+                  <div key={note.id} className="text-sm border-b pb-1">
+                    <p>{note.note}</p>
+                    <span className="text-xs text-gray-400">
+                      {new Date(note.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
 
-              ))
+                )
+              })
             ) : (
               <div className="text-sm border-b pb-1">
-                <p>Mensagem Teste oi</p>
-                <span className="text-xs text-gray-400">
-                  {new Date().toLocaleDateString()}
-                </span>
+                Nenhuma nota para esse lead ainda
               </div>
             )}
           </div>

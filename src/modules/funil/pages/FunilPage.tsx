@@ -18,7 +18,7 @@ export default function FunilPage() {
   async function handleStatusClick(status: LeadStatus) {
     navigate(`/leads`);
     await fetchByStatus(status, 0);
-    await fetchLeads();
+    await fetchLeads(0);
   }
 
   return (

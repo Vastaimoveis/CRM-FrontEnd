@@ -7,7 +7,7 @@ import {
 } from "react";
 import type { Lead } from "@/shared/types/LeadType";
 import { LeadStatus } from "@/shared/types/LeadType";
-import { createLeadRequest, deleteLeadRequest, getAllLeadsNotEncerrado, getLeadById, getLeadsByUserId, getLeadsFilterByStatus, patchStatus, updateLeadRequest } from "@/services/leads/leadsService";
+import { createLeadRequest, deleteLeadRequest, getAllLeadsNotEncerrado, getLeadById, getLeadsBySearch, getLeadsByUserId, getLeadsFilterByStatus, patchStatus, updateLeadRequest } from "@/services/leads/leadsService";
 import { useAuth } from "./AuthProvider";
 import type { LeadStatusDTO } from "@/services/leads/types/leads";
 import { useToast } from "./ToastProvider";
@@ -29,6 +29,8 @@ export interface LeadContextType {
     fetchLeads: (page: number) => Promise<void>;
 
     fetchByStatus: (status: LeadStatus, actualPage: number) => Promise<void>;
+
+    fetchBySearch: (search: string, actualPage: number) => Promise<void>;
 
     updateLeadStatus: (
         id: string,
@@ -65,6 +67,7 @@ export function LeadProvider({ children }: { children: ReactNode }) {
 
             const response = await getAllLeadsNotEncerrado(page);
             setTotalPages(response.totalPages)
+            
             if (response.totalPages >= page) {
                 setLeads(response.content);
                 await fetchCountLeads();
@@ -108,7 +111,20 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         }
     }
 
-
+    async function fetchBySearch(search: string, page: number) {
+        setLoading(true)
+        try {
+            const response = await getLeadsBySearch(search, page)
+            setTotalPages(response.totalPages)
+            if (response.totalPages >= page) {
+                setLeads(response.content);
+            } else {
+                showToast("Página máxima atingida", "warning")
+            }
+        } finally {
+            setLoading(false)
+        }
+    }
 
     async function updateLeadStatus(
         id: string,
@@ -193,6 +209,7 @@ export function LeadProvider({ children }: { children: ReactNode }) {
                 allLeads,
                 loading,
                 fetchByStatus,
+                fetchBySearch,
                 page,
                 totalPages,
                 setPage,

@@ -3,7 +3,7 @@ export interface LeadNotes {
     id: string,
     LeadId: string,
     note: string,
-    creationDate: Date
+    createdAt: Date
 }
 
 export interface LeadNoteRequest {

@@ -17,6 +17,7 @@ export default function Leads() {
         loading,
         fetchLeads,
         fetchByStatus,
+        fetchBySearch,
         patchLeadStatus,
         deleteLead,
         importLeads,
@@ -27,24 +28,47 @@ export default function Leads() {
     const [search, setSearch] = useState("");
     const [page, setPage] = useState<number>(0);
     const [isOpen, setIsOpen] = useState<boolean>(false);
-    const [confirm, setConfirm] = useState<boolean>(false);
+    const [pendingStatusChange, setPendingStatusChange] = useState<{
+        id: string;
+        status: LeadStatus;
+    } | null>(null);
+    const [debouncedSearch, setDebouncedSearch] = useState("");
+
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            setDebouncedSearch(search);
+        }, 2000);
+
+        return () => clearTimeout(timeout);
+    }, [search]);
 
     useEffect(() => {
         async function load() {
-            if (status) {
-                await fetchByStatus(
-                    status,
-                    page
-                );
-            } else {
-                await fetchLeads(
-                    page
-                )
+            if (debouncedSearch.trim()) {
+                await fetchBySearch(debouncedSearch, 0);
+                return;
             }
+
+            if (status) {
+                await fetchByStatus(status, page);
+                return;
+            }
+
+            await fetchLeads(page);
         }
 
         load();
-    }, [status, page]);
+    }, [debouncedSearch, status, page]);
+
+    function handlePatchStatus(id: string, status: LeadStatus) {
+        if (status === LeadStatus.ENCERRADO) {
+            setPendingStatusChange({ id, status });
+            setIsOpen(true);
+            return;
+        }
+
+        patchLeadStatus(id, status);
+    }
 
     function handleStatusChanges(newStatus: LeadStatus | null) {
         setStatus(newStatus);
@@ -72,6 +96,10 @@ export default function Leads() {
         await deleteLead(id);
     }
 
+    async function handleCreateLeadNote(id:string, note: string) {
+        
+    }
+
     if (loading) {
         return (
             <div className="p-6">
@@ -80,10 +108,6 @@ export default function Leads() {
                 </p>
             </div>
         );
-    }
-
-    function handleIsOpen(){
-        setIsOpen(!isOpen);
     }
 
     return (
@@ -160,8 +184,7 @@ export default function Leads() {
 
             <LeadsTable
                 leads={filteredLeads}
-                isOpen={handleIsOpen}
-                patchLeadStatus={patchLeadStatus}
+                patchLeadStatus={handlePatchStatus}
                 onDelete={handleDelete}
             />
 
@@ -179,14 +202,35 @@ export default function Leads() {
             {
                 isOpen &&
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-                    onClick={() => {
-                        setIsOpen(false)
-                    }}>
-                    <div className="bg-white rounded-xl p-6 w-200 max-h-[90vh] flex flex-col">
+                >
+                    <div className="bg-white rounded-xl p-6 w-100 max-h-[90vh] flex flex-col gap-10">
                         <h1 className="text-2xl">tem certeza que quer <strong>Encerrar</strong> esse lead?</h1>
-                        <div>
-                            <button className="bg-green-800">Confirmar</button>
-                            <button className="bg-red-800">Cancelar</button>
+                        <div className="flex gap-10 place-self-center">
+                            <button
+                                className="bg-green-500 rounded-2xl p-2 hover:bg-green-800"
+                                onClick={async () => {
+                                    if (pendingStatusChange) {
+                                        await patchLeadStatus(
+                                            pendingStatusChange.id,
+                                            pendingStatusChange.status
+                                        );
+                                    }
+
+                                    setPendingStatusChange(null);
+                                    setIsOpen(false);
+                                }}
+                            >
+                                Confirmar
+                            </button>
+                            <button
+                                className="bg-red-600 rounded-2xl p-2 hover:bg-red-800"
+                                onClick={() => {
+                                    setPendingStatusChange(null);
+                                    setIsOpen(false);
+                                }}
+                            >
+                                Cancelar
+                            </button>
                         </div>
                     </div>
                 </div>
