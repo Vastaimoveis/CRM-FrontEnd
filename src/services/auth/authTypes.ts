@@ -8,8 +8,8 @@ export interface LoginRequestDTO {
 export interface LoginResponseDTO {
     success: boolean;
     data: {
-        token: string;
-
+        accessToken: string;
+        refreshToken: string;
         user: {
             id: string;
             nome: string;

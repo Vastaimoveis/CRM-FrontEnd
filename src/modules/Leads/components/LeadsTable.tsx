@@ -71,7 +71,7 @@ export default function LeadsTable({
                         <td>
                             <Permission allowed={[UserRoles.GERENTE]}>
                                 <button className="bg-red-500 hover:bg-red-800 text-white font-bold rounded-2xl p-2"
-                                    onClick={() => onDelete}>
+                                    onClick={() => onDelete(lead.id)}>
                                     Excluir Lead
                                 </button>
                             </Permission>

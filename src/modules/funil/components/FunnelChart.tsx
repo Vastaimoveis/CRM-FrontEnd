@@ -21,8 +21,6 @@ interface Props {
   onStatusClick?: (status: LeadStatus) => void;
 }
 
-
-
 export default function CustomChart({
   data,
   type,
@@ -102,7 +100,7 @@ export default function CustomChart({
   return (
     <div className="flex w-full h-100">
       {/* Gráfico */}
-      <div className="flex-1">
+      <div className="flex-1 h-100">
         <ResponsiveContainer width={"100%"} height={"100%"}>
           <FunnelChart>
             <Tooltip />
