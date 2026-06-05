@@ -70,6 +70,10 @@ export default function Leads() {
         patchLeadStatus(id, status);
     }
 
+    async function handleDelete(id: string) {
+        setIsOpen(true);
+    }
+
     function handleStatusChanges(newStatus: LeadStatus | null) {
         setStatus(newStatus);
         setPage(0);
@@ -92,12 +96,9 @@ export default function Leads() {
 
     const filteredLeads = leads;
 
-    async function handleDelete(id: string) {
-        await deleteLead(id);
-    }
 
-    async function handleCreateLeadNote(id:string, note: string) {
-        
+    async function handleCreateLeadNote(id: string, note: string) {
+
     }
 
     if (loading) {
