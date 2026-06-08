@@ -151,13 +151,6 @@ export default function Leads() {
                         >
                             Exportar Excel
                         </button>
-
-                        <label
-                            htmlFor="import-input"
-                            className="bg-blue-600 text-white px-4 py-2 rounded cursor-pointer hover:bg-blue-800"
-                        >
-                            Importar Excel
-                        </label>
                     </div>
 
                     {previewType && (
