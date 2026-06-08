@@ -12,7 +12,7 @@ import {
   ResponsiveContainer,
   LabelList,
 } from "recharts";
-import { type LeadStatus, STATUS_COLORS } from "@/shared/types/LeadType";
+import { LeadStatus, STATUS_COLORS } from "@/shared/types/LeadType";
 import type { countStatusResponse, LeadStatusChartData } from "@/services/leads/types/leads";
 
 interface Props {
@@ -32,12 +32,12 @@ export default function CustomChart({
     onStatusClick?.(entry.payload.status);
   };
 
-  const chartData: LeadStatusChartData[] = Object.entries(data.porStatus).map(
-    ([status, total]) => ({
+  const chartData: LeadStatusChartData[] = Object.entries(data.porStatus)
+    .filter(([status]) => status !== LeadStatus.ENCERRADO)
+    .map(([status, total]) => ({
       status: status as LeadStatus,
       total,
-    })
-  );
+    }));
   // 🔵 PIE
   if (type === "pie") {
     return (
@@ -109,14 +109,20 @@ export default function CustomChart({
               data={chartData}
               isAnimationActive
             >
-              {chartData.map((entry) => (
-                <Cell
-                  key={entry.status}
-                  fill={STATUS_COLORS[entry.status]}
-                >
-                  <h1 className="text-black text-2xl absolute top-0">aaaaaa</h1>
-                </Cell>
-              ))}
+              {chartData.map((entry) => {
+                if (entry.status != LeadStatus.ENCERRADO) {
+                  return (
+                    <Cell
+                      key={entry.status}
+                      fill={STATUS_COLORS[entry.status]}
+                      className="cursor-pointer"
+                    />
+                  )
+                } else {
+                  return;
+                }
+              }
+              )}
             </Funnel>
           </FunnelChart>
         </ResponsiveContainer>

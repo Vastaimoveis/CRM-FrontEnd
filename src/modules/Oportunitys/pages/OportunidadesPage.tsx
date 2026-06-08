@@ -6,7 +6,6 @@ import LeadDocumentsModal from "../components/LeadDocumentsModal";
 
 
 const PIPELINE_STATUS: LeadStatus[] = [
-
   LeadStatus.ATENDIMENTO,
   LeadStatus.AGUARDANDO,
   LeadStatus.VISITA,
@@ -27,6 +26,7 @@ export default function OportunidadesPage() {
       [LeadStatus.VISITA]: [],
       [LeadStatus.NEGOCIACAO]: [],
       [LeadStatus.VENDA]: [],
+      [LeadStatus.ENCERRADO]: []
     }
 
     for (const lead of leads) {
