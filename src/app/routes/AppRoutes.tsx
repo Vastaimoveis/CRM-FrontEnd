@@ -52,7 +52,7 @@ function App() {
             }
           />
 
-          <Route
+          {/*<Route
             path="/requisicoes"
             element={
               <PrivateRoute>
@@ -60,9 +60,9 @@ function App() {
                   <RequisitosPage />
                 </DashboardLayout>
               </PrivateRoute>
-            }
-          />
-
+              }
+              />
+          */}
           <Route
             path="/corretores"
             element={

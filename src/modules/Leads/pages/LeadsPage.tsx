@@ -88,10 +88,6 @@ export default function Leads() {
         }
     }
 
-    async function handleDelete(id: string) {
-        setIsOpen(true);
-    }
-
     function handleStatusChanges(newStatus: LeadStatus | null) {
         setStatus(newStatus);
         setPage(0);

@@ -7,11 +7,5 @@ interface RegisterPayload {
 
 export async function registerUser(data: RegisterPayload) {
 
-    // mock temporário
-    console.log({
-        ...data,
-        status: "pendente_aprovacao",
-    });
-
     return true;
 }

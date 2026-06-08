@@ -1,11 +1,5 @@
 import axios from "axios";
 
-
-console.log(
-  "VITE_API_URL =",
-  import.meta.env.VITE_API_URL
-);
-
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
 });
@@ -29,11 +23,6 @@ api.interceptors.response.use(
 
   async (error) => {
     const originalRequest = error.config;
-    console.log(
-      "INTERCEPTOR:",
-      error.config?.url,
-      error.response?.status
-    );
 
     if (
       [401, 403].includes(error.response?.status) &&
@@ -68,10 +57,7 @@ api.interceptors.response.use(
 
         originalRequest.headers.Authorization =
           `Bearer ${newAccessToken}`;
-
-        console.log(
-          "REFRESH EXECUTADO"
-        );
+          
         return api(originalRequest);
       } catch (err) {
         localStorage.removeItem("accessToken");

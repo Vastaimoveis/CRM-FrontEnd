@@ -27,8 +27,8 @@ export function UserTable({ users }: Props) {
           <tbody>
             {users.map((user) => (
               <tr key={user.id} className="border-t hover:bg-gray-50">
-                <td className="px-4 py-2">{user.name}</td>
-                <td className="px-4 py-2">{user.telefone}</td>
+                <td className="px-4 py-2">{user.nome}</td>
+                <td className="px-4 py-2">{user.telefone? user.telefone : "Não possui"}</td>
                 <td className="px-4 py-2">{user.email}</td>
                 <td className="px-4 py-2">{user.regiao}</td>
                 <td className="px-4 py-2">{user.role}</td>

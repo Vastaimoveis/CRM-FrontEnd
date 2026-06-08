@@ -1,8 +1,9 @@
 import { AuthProvider } from "./AuthProvider";
 import { FunnelProvider } from "./FunnelProvider";
 import { LeadNotesProvider } from "./LeadNoteProvider";
-import { LeadProvider} from "./LeadProvider";
+import { LeadProvider } from "./LeadProvider";
 import { ToastProvider } from "./ToastProvider";
+import { UserProvider } from "./UserProvider";
 
 export default function AppProviders({
     children,
@@ -11,11 +12,13 @@ export default function AppProviders({
         <AuthProvider>
             <ToastProvider>
                 <FunnelProvider>
-                    <LeadProvider>
-                        <LeadNotesProvider>
-                        {children}
-                        </LeadNotesProvider>
-                    </LeadProvider>
+                    <UserProvider>
+                        <LeadProvider>
+                            <LeadNotesProvider>
+                                {children}
+                            </LeadNotesProvider>
+                        </LeadProvider>
+                    </UserProvider>
                 </FunnelProvider>
             </ToastProvider>
         </AuthProvider>
