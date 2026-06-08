@@ -13,5 +13,5 @@ export enum UserRoles{
 }
 
 export enum RegioesEnum{
-  CURITIBA = "Curitiba",
+  CURITIBA = "CURITIBA",
 }

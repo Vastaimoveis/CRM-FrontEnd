@@ -25,7 +25,8 @@ export default function Leads() {
     const [status, setStatus] = useState<LeadStatus | null>(null);
     const [search, setSearch] = useState("");
     const [page, setPage] = useState<number>(0);
-    const toast = useToast();
+    const { showToast } = useToast();
+
     const [confirmModal, setConfirmModal] = useState<{
         title: string;
         message: string;
@@ -57,13 +58,12 @@ export default function Leads() {
 
             await fetchLeads(page);
         }
-
         load();
     }, [debouncedSearch, status, page]);
 
     async function handlePatchStatus(id: string, status: LeadStatus) {
         try {
-
+            showToast("Alterando status", "warning")
             if (status === LeadStatus.ENCERRADO) {
                 setConfirmModal({
                     title: "Encerrar Lead",
@@ -72,15 +72,16 @@ export default function Leads() {
                     onConfirm: async () => {
                         await patchLeadStatus(id, status);
                         setConfirmModal(null);
+                        showToast("Lead encerrado com sucesso", "success");
                     }
                 });
                 return;
             }
 
             await patchLeadStatus(id, status);
-            toast.showToast("Lead encerrado com sucesso", "success");
+            showToast("Status alterado com sucesso", "success")
         } catch {
-            toast.showToast("Erro ao encerrar lead", "error")
+            showToast("Erro ao encerrar lead", "error")
         }
     }
 
@@ -104,13 +105,14 @@ export default function Leads() {
                 message: "Tem certeza que deseja excluir este lead? Esta ação não poderá ser desfeita.",
                 confirmLabel: "Excluir",
                 onConfirm: async () => {
+                    showToast("Deletando lead", "warning")
                     await deleteLead(id);
                     setConfirmModal(null);
-                    toast.showToast("Lead deletado com sucesso", "success")
+                    showToast("Lead deletado com sucesso", "success")
                 }
             })
         } catch {
-            toast.showToast("Erro ao deletar lead", "error")
+            showToast("Erro ao deletar lead", "error")
         }
     }
 

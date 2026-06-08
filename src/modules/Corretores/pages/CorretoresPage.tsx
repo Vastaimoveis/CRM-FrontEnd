@@ -1,24 +1,29 @@
-import { RegioesEnum} from "@/shared/types/UserTypes";
+import { RegioesEnum, UserRoles } from "@/shared/types/UserTypes";
 import { UserTable } from "../components/CorretoresTable";
 import { useEffect, useState } from "react";
 import { useHooksCorretores } from "../hooks/useHooksCorretores";
 import { validatePhone } from "@/shared/utils/validatePhone";
 import { useToast } from "@/app/providers/ToastProvider";
 import { useUsers } from "@/app/providers/UserProvider";
+import { Eye, EyeOff } from "lucide-react";
+import capitalizeWords from "@/shared/utils/capitalizeWords";
 
 export default function CorretoresPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const { showToast } = useToast();
     const {
         form,
+        setForm,
         handleChange,
+        handleRoleChange,
         loading,
         resetForm,
         setLoading
     } = useHooksCorretores();
-    const { users, CreateUser, fetchUsers} = useUsers();
+    const { users, CreateUser, fetchUsers } = useUsers();
 
-    useEffect(()=>{
+    const [showPassword, setShowPassword] = useState(false);
+    useEffect(() => {
         fetchUsers();
     }, [])
 
@@ -37,10 +42,14 @@ export default function CorretoresPage() {
                 return;
             }
 
+            setForm(prev => ({
+                ...prev,
+                nome: capitalizeWords(prev.nome)
+            }))
             await CreateUser(form);
             resetForm();
-            showToast("User criado com sucesso", "success");
             setIsModalOpen(false);
+            showToast("User criado com sucesso", "success");
         } catch {
             showToast("Erro ao criar user", "error");
         } finally {
@@ -78,13 +87,23 @@ export default function CorretoresPage() {
                             Novo Corretor
                         </h2>
 
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                        <form onSubmit={handleSubmit} className="space-y-4 flex flex-col">
 
                             <input
                                 type="text"
                                 name="nome"
                                 placeholder="Nome"
                                 value={form.nome}
+                                onChange={handleChange}
+                                required
+                                className="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black"
+                            />
+
+                            <input
+                                type="tel"
+                                name="telefone"
+                                placeholder="Telefone"
+                                value={form.telefone}
                                 onChange={handleChange}
                                 required
                                 className="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black"
@@ -100,25 +119,29 @@ export default function CorretoresPage() {
                                 className="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black"
                             />
 
-                            <input
-                                type="password"
-                                name="password"
-                                placeholder="password"
-                                value={form.password}
-                                onChange={handleChange}
+                            <div className="relative">
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    name="password"
+                                    placeholder="Senha"
+                                    value={form.password}
+                                    onChange={handleChange}
+                                    className="w-full border rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-black"
+                                />
 
-                                className="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black"
-                            />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword((prev) => !prev)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black"
+                                >
+                                    {showPassword ? (
+                                        <EyeOff size={18} />
+                                    ) : (
+                                        <Eye size={18} />
+                                    )}
+                                </button>
+                            </div>
 
-                            <input
-                                type="tel"
-                                name="telefone"
-                                placeholder="Telefone"
-                                value={form.telefone}
-                                onChange={handleChange}
-                                required
-                                className="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black"
-                            />
 
                             <div>
                                 <label className="block text-sm font-medium mb-1">
@@ -127,12 +150,31 @@ export default function CorretoresPage() {
                                 <select
                                     name="regiao"
                                     value={form.regiao}
+                                    defaultValue={RegioesEnum.CURITIBA}
                                     className="w-full border rounded-lg px-3 py-2">
-                                    {Object.values(RegioesEnum).map((regiao) =>
-                                        <option key={regiao} value={regiao}>{regiao}</option>
+
+                                    <option key={RegioesEnum.CURITIBA} value={RegioesEnum.CURITIBA}>{RegioesEnum.CURITIBA}</option>
+
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium mb-1">
+                                    Cargo
+                                </label>
+                                <select
+                                    name="role"
+                                    value={form.role}
+                                    onChange={(e) =>
+                                        handleRoleChange(e.target.value as UserRoles)
+                                    }
+                                    className="w-full border rounded-lg px-3 py-2">
+                                    {Object.values(UserRoles).map((role) =>
+                                        <option key={role} value={role}>{role}</option>
                                     )}
                                 </select>
                             </div>
+
 
                             <div className="flex justify-end gap-2 pt-4">
                                 <button

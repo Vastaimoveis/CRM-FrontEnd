@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { formatPhone } from "@/shared/utils/formatPhone";
-import { capitalizeFirstLetter } from "@/shared/utils/capitalizeFirstLetter";
 import type { CreateUserDTO } from "@/services/users/userService";
 import { RegioesEnum, UserRoles } from "@/shared/types/UserTypes";
 
@@ -16,7 +15,14 @@ export function useHooksCorretores() {
 
     const [loading, setLoading] = useState(false);
 
-    function handleChange(e: React.ChangeEvent<HTMLInputElement> ) {
+    const handleRoleChange = (role: UserRoles) => {
+    setForm((prev) => ({
+        ...prev,
+        role,
+    }));
+};
+
+    function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
         const { name, value } = e.target;
 
         if (name === "telefone") {
@@ -30,7 +36,7 @@ export function useHooksCorretores() {
         if (name === "nome") {
             setForm(prev => ({
                 ...prev,
-                nome: capitalizeFirstLetter(value),
+                nome: value,
             }));
             return;
         }
@@ -43,10 +49,18 @@ export function useHooksCorretores() {
             return;
         }
 
+        if (name === "role") {
+            setForm(prev => ({
+                ...prev,
+                role: value as UserRoles
+            }))
+        }
+
         setForm(prev => ({
             ...prev,
             [name]: value,
         }));
+
     }
 
     function resetForm() {
@@ -66,6 +80,7 @@ export function useHooksCorretores() {
         loading,
         setLoading,
         handleChange,
+        handleRoleChange,
         resetForm,
     };
 }

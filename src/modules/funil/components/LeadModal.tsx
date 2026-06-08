@@ -2,6 +2,7 @@ import { useToast } from "@/app/providers/ToastProvider";
 import { useHooksFunnel } from "../hooks/useHooksFunnel";
 import type { CreateLeadDTO } from "@/shared/types/LeadType";
 import { validatePhone } from "@/shared/utils/validatePhone";
+import capitalizeWords from "@/shared/utils/capitalizeWords";
 
 interface Props {
   open: boolean;
@@ -17,6 +18,7 @@ export default function LeadModal({ open, onClose, createLead, fetchLeads }: Pro
 
   const {
     form,
+    setForm,
     loading,
     setLoading,
     handleChange,
@@ -35,11 +37,16 @@ export default function LeadModal({ open, onClose, createLead, fetchLeads }: Pro
         return;
       }
 
+      setForm(prev => ({
+        ...prev,
+        nome: capitalizeWords(prev.nome)
+      }))
+
       await createLead(form);
       resetForm();
-      showToast("Lead criado com sucesso", "success");
       await fetchLeads(0);
       onClose();
+      showToast("Lead criado com sucesso", "success");
     } catch {
       showToast("Erro ao criar lead", "error");
     } finally {

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { formatPhone } from "@/shared/utils/formatPhone";
-import { capitalizeFirstLetter } from "@/shared/utils/capitalizeFirstLetter";
 import type { CreateLeadDTO } from "@/types/LeadType";
 
 export function useHooksFunnel() {
@@ -26,7 +25,7 @@ export function useHooksFunnel() {
     if (name === "nome") {
       setForm(prev => ({
         ...prev,
-        nome: capitalizeFirstLetter(value),
+        nome: value,
       }));
       return;
     }
