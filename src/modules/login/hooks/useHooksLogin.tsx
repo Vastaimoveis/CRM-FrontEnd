@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { useToast } from "@/app/providers/ToastProvider";
 import { validatePhone } from "@/shared/utils/validatePhone";
-import { registerUser } from "../services/authService";
 
 export function useLoginForm() {
 
@@ -40,12 +39,12 @@ export function useLoginForm() {
           return;
         }
 
-        await registerUser({
+        /*await registerUser({
           name,
           phone,
           email,
           password,
-        });
+        });*/
 
         showToast("Solicitação enviada para aprovação do gerente!");
       }

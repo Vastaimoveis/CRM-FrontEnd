@@ -44,7 +44,7 @@ export default function RequisitosSearchDropdown({ items, placeholder, onSelect 
                                 onClick={() => handleSelect(item)}
                                 className="p-2 hover:bg-gray-100 cursor-pointer"
                             >
-                                {item.name}
+                                {item.nome}
                             </div>
                         ))
                     ) : (

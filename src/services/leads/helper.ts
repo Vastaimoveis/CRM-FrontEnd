@@ -1,5 +1,6 @@
 import { LeadStatus } from "@/shared/types/LeadType";
-import type { countStatusResponse } from "./leadsService";
+import type { countStatusResponse } from "./types/leads";
+
 
 export const EMPTY_STATUS = {
     [LeadStatus.CADASTRADO]: 0,

@@ -10,9 +10,9 @@ interface props {
 }
 
 const corretores: User[] = [
-    { id: "2103", name: "João da Silva", email: "joao@email.com", telefone: "41 999929392", regiao: RegioesEnum.CURITIBA, role: UserRoles.CORRETOR },
-    { id: "2104", name: "Maria Souza", email: "Maria@email.com", telefone: "41 988829392", regiao: RegioesEnum.CURITIBA, role: UserRoles.CORRETOR },
-    { id: "2105", name: "Carlos Junior", email: "Carlos@email.com", telefone: "41 977729392", regiao: RegioesEnum.CURITIBA, role: UserRoles.CORRETOR },
+    { id: "2103", nome: "João da Silva", email: "joao@email.com", telefone: "41 999929392", regiao: RegioesEnum.CURITIBA, role: UserRoles.CORRETOR },
+    { id: "2104", nome: "Maria Souza", email: "Maria@email.com", telefone: "41 988829392", regiao: RegioesEnum.CURITIBA, role: UserRoles.CORRETOR },
+    { id: "2105", nome: "Carlos Junior", email: "Carlos@email.com", telefone: "41 977729392", regiao: RegioesEnum.CURITIBA, role: UserRoles.CORRETOR },
 ];
 
 export default function RequisitoNovo({ onSend, onClose }: props) {
