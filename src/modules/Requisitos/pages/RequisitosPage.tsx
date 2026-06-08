@@ -47,7 +47,7 @@ export default function RequisitosPage() {
   const [selected, setSelected] = useState<Requisito | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [requisitos, setRequisitos] = useState(mockData);
-  const { paginatedData, totalPages } = usePagination({
+  const { totalPages } = usePagination({
     data: requisitos,
     currentPage,
     itemsPerPage: 5,
@@ -62,7 +62,7 @@ export default function RequisitosPage() {
       mensagem: message,
       dataEnvio: new Date().toLocaleDateString("pt-BR"),
       status: RequisitoStatus.PENDENTE,
-      corretor: corretor.name, // pode vir do dropdown depois
+      corretor: corretor.nome, // pode vir do dropdown depois
     };
 
     setRequisitos((prev) => [novoRequisito, ...prev]);

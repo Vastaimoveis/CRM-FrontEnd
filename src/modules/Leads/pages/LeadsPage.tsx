@@ -8,8 +8,6 @@ import LeadsTable from "../components/LeadsTable";
 import { exportLeadsToExcel } from "../utils/exportLeadsToExcel";
 import LeadsPreviewModal from "../components/LeadsPreviewModal";
 import { useEffect, useState } from "react";
-import { parseExcel } from "../utils/importLeadsFromExcel";
-import type { Lead } from "@/types/LeadType";
 import LeadsConfirmModal from "../components/LeadsConfirmModal";
 import { useToast } from "@/app/providers/ToastProvider";
 
@@ -22,10 +20,8 @@ export default function Leads() {
         fetchBySearch,
         patchLeadStatus,
         deleteLead,
-        importLeads,
         totalPages, } = useLeads();
     const [previewType, setPreviewType] = useState<"export" | "import" | null>(null);
-    const [importedLeads, setImportedLeads] = useState<Lead[]>([]);
     const [status, setStatus] = useState<LeadStatus | null>(null);
     const [search, setSearch] = useState("");
     const [page, setPage] = useState<number>(0);
@@ -98,16 +94,6 @@ export default function Leads() {
         setPage(0);
     }
 
-    async function handleFileImport(e: React.ChangeEvent<HTMLInputElement>) {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        const parsedLeads = await parseExcel(file);
-
-        setImportedLeads(parsedLeads);
-        setPreviewType("import");
-    }
-
     const filteredLeads = leads;
 
     async function handleDelete(id: string) {
@@ -164,14 +150,6 @@ export default function Leads() {
                             Exportar Excel
                         </button>
 
-                        <input
-                            type="file"
-                            accept=".xlsx,.xls,.csv"
-                            className="hidden"
-                            id="import-input"
-                            onChange={handleFileImport}
-                        />
-
                         <label
                             htmlFor="import-input"
                             className="bg-blue-600 text-white px-4 py-2 rounded cursor-pointer hover:bg-blue-800"
@@ -182,26 +160,20 @@ export default function Leads() {
 
                     {previewType && (
                         <LeadsPreviewModal
-                            leads={previewType === "import" ? importedLeads : filteredLeads}
+                            leads={filteredLeads}
                             title={
-                                previewType === "export"
-                                    ? "Pré-visualização do Export"
-                                    : "Pré-visualização do Import"
+                                "Pré-visualização do Export"
+
                             }
                             confirmLabel={
-                                previewType === "export"
-                                    ? "Exportar Excel"
-                                    : "Importar Leads"
+
+                                "Exportar Excel"
+
                             }
                             onConfirm={() => {
-                                if (previewType === "export") {
-                                    exportLeadsToExcel(filteredLeads);
-                                } else {
-                                    importLeads(importedLeads);
-                                }
-
-                                setPreviewType(null);
-                            }}
+                                exportLeadsToExcel(leads)
+                            }
+                            }
                             onCancel={() => setPreviewType(null)}
                         />
                     )}

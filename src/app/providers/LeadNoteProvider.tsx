@@ -5,6 +5,7 @@ import { createContext, useContext, useState, type ReactNode } from "react"
 
 interface LeadNotesContextType {
     leadNotes: LeadNotes[];
+    totalPages: number;
     noteLoading: boolean;
 
     createNewLeadNote: (data: LeadNoteRequest) => Promise<void>;
@@ -44,6 +45,7 @@ export function LeadNotesProvider({ children }: { children: ReactNode }) {
         <LeadNotesContext.Provider value={{
             leadNotes,
             noteLoading,
+            totalPages,
             createNewLeadNote,
             fetchLeadNotesByLead
         }}>

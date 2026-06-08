@@ -10,7 +10,6 @@ interface LeadsConfirmModalProps {
 export default function LeadsConfirmModal({
     title,
     message,
-    status = false,
     confirmLabel = "Confirmar",
     onConfirm,
     onCancel,

@@ -9,13 +9,13 @@ export function useSearchDropdown(items: User[]) {
 
     const filteredItems = useMemo(() => {
         return items.filter(item =>
-            item.name.toLowerCase().includes(query.toLowerCase())
+            item.nome.toLowerCase().includes(query.toLowerCase())
         );
     }, [query, items]);
 
     function selectItem(item: User) {
         setSelected(item);
-        setQuery(item.name);
+        setQuery(item.nome);
         setOpen(false);
     }
 

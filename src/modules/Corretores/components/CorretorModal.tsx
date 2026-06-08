@@ -23,6 +23,7 @@ export default function CorretorModal({
 
     function handleSelectUser(user: User) {
         setSelectedUser(user)
+        console.log(selectedUser);
      }
 
     return (
@@ -38,7 +39,7 @@ export default function CorretorModal({
             <div className="relative bg-white rounded-lg shadow-lg w-100 min-h-40 p-4">
 
                 <h2 className="text-lg font-semibold mb-2">
-                    {viewUser.name}
+                    {viewUser.nome}
                 </h2>
                 {/* 🔁 CONTEÚDO DINÂMICO */}
                 {modalView === "menu" && (
