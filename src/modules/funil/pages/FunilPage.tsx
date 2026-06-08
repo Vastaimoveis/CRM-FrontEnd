@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CustomChart from "../components/FunnelChart";
 import ChartSwitcher from "../components/ChartSwitcher";
 import { LeadStatus } from "@/shared/types/LeadType";
@@ -8,12 +8,27 @@ import { useFunnel } from "@/app/providers/FunnelProvider";
 import { useLeads } from "@/app/providers/LeadProvider";
 
 export default function FunilPage() {
-  const [chartType, setChartType] = useState<"funnel" | "pie" | "bar">("funnel");
-  const navigate = useNavigate();
+  const [chartType, setChartType] = useState<"funnel" | "pie" | "bar">(() => {
+    const saved = localStorage.getItem("chartType");
+
+    if (
+      saved === "funnel" ||
+      saved === "pie" ||
+      saved === "bar"
+    ) {
+      return saved;
+    }
+
+    return "funnel";
+  }); const navigate = useNavigate();
 
   const [modalOpen, setModalOpen] = useState(false);
   const { createLead, countLeads } = useFunnel();
   const { fetchLeads, fetchByStatus } = useLeads();
+
+  useEffect(() => {
+    localStorage.setItem("chartType", chartType);
+  }, [chartType]);
 
   async function handleStatusClick(status: LeadStatus) {
     navigate(`/leads`);

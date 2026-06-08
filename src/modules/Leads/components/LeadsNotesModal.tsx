@@ -56,6 +56,7 @@ export default function LeadsNotesModal({ leadId, hasNotes }: LeadsNotesModalPro
         setNewNote(null);
         await fetchLeadNotesByLead(notaDto.leadId, 0);
         resetModal();
+        showToast("Nota criada com sucesso");
       } else {
         showToast("Erro ao salvar lead", "warning");
       }

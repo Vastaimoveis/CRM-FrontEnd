@@ -10,6 +10,8 @@ import LeadsPreviewModal from "../components/LeadsPreviewModal";
 import { useEffect, useState } from "react";
 import { parseExcel } from "../utils/importLeadsFromExcel";
 import type { Lead } from "@/types/LeadType";
+import LeadsConfirmModal from "../components/LeadsConfirmModal";
+import { useToast } from "@/app/providers/ToastProvider";
 
 export default function Leads() {
     const {
@@ -27,11 +29,14 @@ export default function Leads() {
     const [status, setStatus] = useState<LeadStatus | null>(null);
     const [search, setSearch] = useState("");
     const [page, setPage] = useState<number>(0);
-    const [isOpen, setIsOpen] = useState<boolean>(false);
-    const [pendingStatusChange, setPendingStatusChange] = useState<{
-        id: string;
-        status: LeadStatus;
+    const toast = useToast();
+    const [confirmModal, setConfirmModal] = useState<{
+        title: string;
+        message: string;
+        confirmLabel: string;
+        onConfirm: () => void | Promise<void>;
     } | null>(null);
+
     const [debouncedSearch, setDebouncedSearch] = useState("");
 
     useEffect(() => {
@@ -60,14 +65,27 @@ export default function Leads() {
         load();
     }, [debouncedSearch, status, page]);
 
-    function handlePatchStatus(id: string, status: LeadStatus) {
-        if (status === LeadStatus.ENCERRADO) {
-            setPendingStatusChange({ id, status });
-            setIsOpen(true);
-            return;
-        }
+    async function handlePatchStatus(id: string, status: LeadStatus) {
+        try {
 
-        patchLeadStatus(id, status);
+            if (status === LeadStatus.ENCERRADO) {
+                setConfirmModal({
+                    title: "Encerrar Lead",
+                    message: "Tem certeza que deseja encerrar esse Lead?",
+                    confirmLabel: "Encerrar",
+                    onConfirm: async () => {
+                        await patchLeadStatus(id, status);
+                        setConfirmModal(null);
+                    }
+                });
+                return;
+            }
+
+            await patchLeadStatus(id, status);
+            toast.showToast("Lead encerrado com sucesso", "success");
+        } catch {
+            toast.showToast("Erro ao encerrar lead", "error")
+        }
     }
 
     async function handleDelete(id: string) {
@@ -96,9 +114,22 @@ export default function Leads() {
 
     const filteredLeads = leads;
 
+    async function handleDelete(id: string) {
+        try {
 
-    async function handleCreateLeadNote(id: string, note: string) {
-
+            setConfirmModal({
+                title: "Excluir lead",
+                message: "Tem certeza que deseja excluir este lead? Esta ação não poderá ser desfeita.",
+                confirmLabel: "Excluir",
+                onConfirm: async () => {
+                    await deleteLead(id);
+                    setConfirmModal(null);
+                    toast.showToast("Lead deletado com sucesso", "success")
+                }
+            })
+        } catch {
+            toast.showToast("Erro ao deletar lead", "error")
+        }
     }
 
     if (loading) {
@@ -201,40 +232,15 @@ export default function Leads() {
             />
 
             {
-                isOpen &&
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-                >
-                    <div className="bg-white rounded-xl p-6 w-100 max-h-[90vh] flex flex-col gap-10">
-                        <h1 className="text-2xl">tem certeza que quer <strong>Encerrar</strong> esse lead?</h1>
-                        <div className="flex gap-10 place-self-center">
-                            <button
-                                className="bg-green-500 rounded-2xl p-2 hover:bg-green-800"
-                                onClick={async () => {
-                                    if (pendingStatusChange) {
-                                        await patchLeadStatus(
-                                            pendingStatusChange.id,
-                                            pendingStatusChange.status
-                                        );
-                                    }
-
-                                    setPendingStatusChange(null);
-                                    setIsOpen(false);
-                                }}
-                            >
-                                Confirmar
-                            </button>
-                            <button
-                                className="bg-red-600 rounded-2xl p-2 hover:bg-red-800"
-                                onClick={() => {
-                                    setPendingStatusChange(null);
-                                    setIsOpen(false);
-                                }}
-                            >
-                                Cancelar
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                confirmModal && (
+                    <LeadsConfirmModal
+                        title={confirmModal.title}
+                        message={confirmModal.message}
+                        confirmLabel={confirmModal.confirmLabel}
+                        onConfirm={confirmModal.onConfirm}
+                        onCancel={() => setConfirmModal(null)}
+                    />
+                )
             }
         </div>
     );

@@ -1,55 +1,50 @@
-import type { LeadStatus } from "@/shared/types/LeadType";
-
-interface statusChange {
-    id: string;
-    status: LeadStatus;
+interface LeadsConfirmModalProps {
+    title: string;
+    message: string;
+    confirmLabel?: string;
+    status?: boolean;
+    onConfirm: () => void | Promise<void>;
+    onCancel: () => void;
 }
 
-interface props {
-    pendingStatusChange: statusChange;
-    patchLeadStatus: (id: string, status: LeadStatus) => Promise<void>
-    setIsOpen: React.Dispatch<React.SetStateAction<boolean>>
-    setPendingStatusChange: React.Dispatch<React.SetStateAction<{
-        id: string;
-        status: LeadStatus;
-    } | null>>;
-};
+export default function LeadsConfirmModal({
+    title,
+    message,
+    status = false,
+    confirmLabel = "Confirmar",
+    onConfirm,
+    onCancel,
 
-export function leadConfirmModal({ patchLeadStatus, pendingStatusChange, setIsOpen, setPendingStatusChange }: props) {
-
+}: LeadsConfirmModalProps) {
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-        >
-            <div className="bg-white rounded-xl p-6 w-100 max-h-[90vh] flex flex-col gap-10">
-                <h1 className="text-2xl">tem certeza que quer <strong>Encerrar</strong> esse lead?</h1>
-                <div className="flex gap-10 place-self-center">
-                    <button
-                        className="bg-green-500 rounded-2xl p-2 hover:bg-green-800"
-                        onClick={async () => {
-                            if (pendingStatusChange) {
-                                await patchLeadStatus(
-                                    pendingStatusChange.id,
-                                    pendingStatusChange.status
-                                );
-                            }
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+                <h2 className="text-lg font-semibold mb-2">
+                    {title}
+                </h2>
 
-                            setPendingStatusChange(null);
-                            setIsOpen(false);
-                        }}
-                    >
-                        Confirmar
-                    </button>
+                <p className="text-gray-600 mb-6">
+                    {message}
+                </p>
+
+                
+                
+                <div className="flex justify-end gap-2">
                     <button
-                        className="bg-red-600 rounded-2xl p-2 hover:bg-red-800"
-                        onClick={() => {
-                            setPendingStatusChange(null);
-                            setIsOpen(false);
-                        }}
+                        onClick={onCancel}
+                        className="px-4 py-2 border rounded"
                     >
                         Cancelar
+                    </button>
+
+                    <button
+                        onClick={onConfirm}
+                        className="px-4 py-2 bg-red-600 text-white rounded"
+                    >
+                        {confirmLabel}
                     </button>
                 </div>
             </div>
         </div>
-    )
+    );
 }
