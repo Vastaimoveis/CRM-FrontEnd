@@ -1,19 +1,25 @@
-import { type Lead } from "@/shared/types/LeadType";
+import type { Lead } from "@/shared/types/LeadType";
 
 interface Props {
   lead: Lead;
-  onClick: () => void;
+  onOpenNotes: (lead: Lead) => void;
 }
 
-export default function LeadCard({ lead, onClick }: Props) {
+export default function LeadCard({ lead, onOpenNotes }: Props) {
   return (
-    <div
-    onClick={onClick}
-    className="w-full h-fit border border-black rounded-lg p-2 bg-white hover:bg-gray-300"
-    >
-      <strong>{lead.nome}</strong>
-      <p>{lead.email}</p>
-      <p>{lead.telefone}</p>
+    <div className="w-full border rounded-lg p-2 bg-white hover:bg-gray-300">
+
+      <div className="flex flex-col">
+        <strong>{lead.nome}</strong>
+        <p>{lead.email}</p>
+        <p>{lead.telefone}</p>
+      </div>
+
+      <button className={`${lead.hasNotes ? "bg-green-700" : "bg-black"}  text-white font-semibold px-3 py-1 rounded-full`}
+        onClick={() => onOpenNotes(lead)}>
+        {lead.hasNotes ? "Visualizar notas" : "adicionar nota"}
+      </button>
+
     </div>
   );
 }

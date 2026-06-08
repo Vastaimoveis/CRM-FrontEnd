@@ -83,13 +83,16 @@ export default function CustomChart({
               position="top"
 
             />
-            {chartData.map((entry) => (
-              <Cell
-                key={entry.status}
-                fill={STATUS_COLORS[entry.status]}
-                className="cursor-pointer"
-              />
-            ))}
+            {chartData.map((entry) => {
+              console.log(chartData);
+              return (
+                <Cell
+                  key={entry.status}
+                  fill={STATUS_COLORS[entry.status]}
+                  className="cursor-pointer"
+                />
+              )
+            })}
           </Bar>
         </BarChart>
       </ResponsiveContainer>

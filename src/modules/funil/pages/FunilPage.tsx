@@ -39,7 +39,7 @@ export default function FunilPage() {
   return (
     <div className="flex gap-8">
       {/* Gráfico */}
-      <div className="flex w-3/6  bg-white p-6 rounded-xl shadow-sm">
+      <div className="flex w-4/6  bg-white p-6 rounded-xl shadow-sm">
         <CustomChart
           data={countLeads!}
           type={chartType}
@@ -49,6 +49,7 @@ export default function FunilPage() {
 
       {/* Lateral Direita */}
       <div className="w-64 flex flex-col gap-4">
+        <h1 className="font-semibold text-xl">Tipos de Funil</h1>
         <ChartSwitcher type={chartType} setType={setChartType} />
 
         <button
