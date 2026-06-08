@@ -50,7 +50,7 @@ export default function Login() {
 
           {error && (
             <div className="mb-4 text-sm text-red-500 text-center">
-              {"Login não encontrado"}
+              {"Login não concluído"}
             </div>
           )}
 
