@@ -1,21 +1,24 @@
 import { useToast } from "@/app/providers/ToastProvider";
 import { useHooksFunnel } from "../hooks/useHooksFunnel";
-import { LeadStatus, type CreateLeadDTO } from "@/shared/types/LeadType";
+import { LeadStatus, type CreateLeadDTO, type Lead } from "@/shared/types/LeadType";
 import { validatePhone } from "@/shared/utils/validatePhone";
 import capitalizeWords from "@/shared/utils/capitalizeWords";
+import { useState } from "react";
+import { useLeadNotes } from "@/app/providers/LeadNoteProvider";
 
 interface Props {
   open: boolean;
   onClose: () => void;
 
-  createLead: (data: CreateLeadDTO) => Promise<void>;
+  createLead: (data: CreateLeadDTO) => Promise<Lead>;
 
   fetchLeads: (page: number) => Promise<void>;
 }
 
 export default function LeadModal({ open, onClose, createLead, fetchLeads }: Props) {
   const { showToast } = useToast();
-
+  const [note, setNote] = useState<string>("");
+  const { createNewLeadNote } = useLeadNotes();
   const {
     form,
     setForm,
@@ -43,8 +46,16 @@ export default function LeadModal({ open, onClose, createLead, fetchLeads }: Pro
         nome: capitalizeWords(prev.nome)
       }))
 
-      await createLead(form);
+      const createdLead = await createLead(form);
+
+      if (note.trim()) {
+        await createNewLeadNote({
+          leadId: createdLead.id,
+          note: note.trim(),
+        });
+      }
       resetForm();
+      setNote("");
       await fetchLeads(0);
       onClose();
       showToast("Lead criado com sucesso", "success");
@@ -104,6 +115,14 @@ export default function LeadModal({ open, onClose, createLead, fetchLeads }: Pro
             className="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black"
           />
 
+          <textarea
+            placeholder="Anotação inicial (opcional)"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            rows={4}
+            className="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black resize-none"
+          />
+
           <select className="border-2 p-2" onChange={(e) => handleStatusChange(e.target.value as LeadStatus)} >
             {Object.values(LeadStatus)
               .filter((status) => status !== LeadStatus.ENCERRADO)
@@ -120,6 +139,7 @@ export default function LeadModal({ open, onClose, createLead, fetchLeads }: Pro
               onClick={() => {
                 onClose()
                 resetForm()
+                setNote("")
               }}
               className="px-4 py-2 rounded-lg border hover:bg-gray-100 transition"
             >

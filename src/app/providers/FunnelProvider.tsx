@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
-import type { CreateLeadDTO } from "@/shared/types/LeadType";
+import type { CreateLeadDTO, Lead } from "@/shared/types/LeadType";
 import { createLeadRequest, EMPTY_LEADS_COUNT, getLeadsStatus } from "@/services/leads/leadsService";
 import type { countStatusResponse } from "@/services/leads/types/leads";
 import { normalizeLeadStatusResponse } from "@/services/leads/helper";
@@ -10,7 +10,7 @@ interface FunnelContextType {
     fetchCountLeads: () => Promise<void>;
     createLead: (
         data: CreateLeadDTO
-    ) => Promise<void>;
+    ) => Promise<Lead>;
 }
 
 const FunnelContext = createContext<FunnelContextType | null>(null);
@@ -21,8 +21,10 @@ export function FunnelProvider({ children }: { children: ReactNode }) {
     async function createLead(
         data: CreateLeadDTO
     ) {
-        await createLeadRequest(data);
+        const response = await createLeadRequest(data);
         await fetchCountLeads();
+
+        return response;
     }
 
     async function fetchCountLeads() {
