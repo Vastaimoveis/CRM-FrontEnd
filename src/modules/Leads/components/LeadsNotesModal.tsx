@@ -10,7 +10,6 @@ import { useToast } from "@/app/providers/ToastProvider";
 interface LeadsNotesModalProps {
   leadId: string;
   hasNotes: boolean;
-  
 }
 
 export default function LeadsNotesModal({ leadId, hasNotes }: LeadsNotesModalProps) {

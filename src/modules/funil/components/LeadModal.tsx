@@ -1,6 +1,6 @@
 import { useToast } from "@/app/providers/ToastProvider";
 import { useHooksFunnel } from "../hooks/useHooksFunnel";
-import type { CreateLeadDTO } from "@/shared/types/LeadType";
+import { LeadStatus, type CreateLeadDTO } from "@/shared/types/LeadType";
 import { validatePhone } from "@/shared/utils/validatePhone";
 import capitalizeWords from "@/shared/utils/capitalizeWords";
 
@@ -21,6 +21,7 @@ export default function LeadModal({ open, onClose, createLead, fetchLeads }: Pro
     setForm,
     loading,
     setLoading,
+    handleStatusChange,
     handleChange,
     resetForm
   } = useHooksFunnel();
@@ -102,6 +103,16 @@ export default function LeadModal({ open, onClose, createLead, fetchLeads }: Pro
             required
             className="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black"
           />
+
+          <select className="border-2 p-2" onChange={(e) => handleStatusChange(e.target.value as LeadStatus)} >
+            {Object.values(LeadStatus)
+              .filter((status) => status !== LeadStatus.ENCERRADO)
+              .map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+          </select>
 
           <div className="flex justify-end gap-3 mt-4">
             <button

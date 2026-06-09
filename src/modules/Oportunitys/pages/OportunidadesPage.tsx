@@ -60,15 +60,15 @@ export default function OportunidadesPage() {
       {selectedLead && (
         <div className="fixed inset-0 z-9999 flex items-center justify-center bg-black/50">
 
-          <div className="bg-white rounded-xl p-4 w-600px max-h-[80vh] ">
-
+          <div className="bg-white rounded-xl p-4 w-600px h-80vh ">
+            <p className="text-xl mb-4">{selectedLead.nome}</p>
             <LeadsNotesModal
               leadId={selectedLead.id}
               hasNotes={selectedLead.hasNotes}
             />
 
             <button
-              className="mt-4 text-red-500"
+              className="mt-4 text-white bg-red-600 p-2 rounded-2xl"
               onClick={handleCloseNotes}
             >
               Fechar

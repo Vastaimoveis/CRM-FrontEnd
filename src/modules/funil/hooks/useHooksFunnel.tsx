@@ -1,16 +1,23 @@
 import { useState } from "react";
 import { formatPhone } from "@/shared/utils/formatPhone";
-import type { CreateLeadDTO } from "@/types/LeadType";
+import { LeadStatus, type CreateLeadDTO } from "@/types/LeadType";
 
 export function useHooksFunnel() {
   const [form, setForm] = useState<CreateLeadDTO>({
     nome: "",
     email: "",
     telefone: "",
+    status: LeadStatus.CADASTRADO,
   });
 
   const [loading, setLoading] = useState(false);
 
+  const handleStatusChange = (status: LeadStatus) => {
+    setForm((prev) => ({
+      ...prev,
+      status,
+    }));
+  }
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;
 
@@ -41,12 +48,14 @@ export function useHooksFunnel() {
       nome: "",
       email: "",
       telefone: "",
+      status: LeadStatus.CADASTRADO
     });
   }
 
   return {
     form,
     setForm,
+    handleStatusChange,
     loading,
     setLoading,
     handleChange,

@@ -23,6 +23,7 @@ export interface CreateLeadDTO {
   nome: string;
   email: string;
   telefone: string;
+  status: LeadStatus;
 }
 
 export const STATUS_COLORS: Record<LeadStatus, string> = {

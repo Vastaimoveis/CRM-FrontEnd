@@ -16,11 +16,11 @@ export function useHooksCorretores() {
     const [loading, setLoading] = useState(false);
 
     const handleRoleChange = (role: UserRoles) => {
-    setForm((prev) => ({
-        ...prev,
-        role,
-    }));
-};
+        setForm((prev) => ({
+            ...prev,
+            role,
+        }));
+    };
 
     function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
         const { name, value } = e.target;
