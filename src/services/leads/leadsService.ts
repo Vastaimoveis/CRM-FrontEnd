@@ -29,6 +29,12 @@ export async function getLeads(
     return response.data.data;
 }
 
+export async function getOportunity() {
+    const response = await api.get<ApiResponse<Lead[]>>(`leads/oportunidades`);
+
+    return response.data.data;
+}
+
 export async function getLeadsBySearch(search: string, page: number) {
     const response = await api.get<ApiResponse<PageResponse<Lead>>>(`/leads/search/${search}?page=${page}`);
 

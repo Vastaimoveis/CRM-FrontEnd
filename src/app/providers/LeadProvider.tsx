@@ -7,7 +7,7 @@ import {
 } from "react";
 import type { Lead } from "@/shared/types/LeadType";
 import { LeadStatus } from "@/shared/types/LeadType";
-import { createLeadRequest, deleteLeadRequest, getAllLeadsNotEncerrado, getLeadById, getLeadsBySearch, getLeadsByUserId, getLeadsFilterByStatus, patchStatus, updateLeadRequest } from "@/services/leads/leadsService";
+import { createLeadRequest, deleteLeadRequest, getAllLeadsNotEncerrado, getLeadById, getLeadsBySearch, getLeadsByUserId, getLeadsFilterByStatus, getOportunity, patchStatus, updateLeadRequest } from "@/services/leads/leadsService";
 import { useAuth } from "./AuthProvider";
 import type { LeadStatusDTO } from "@/services/leads/types/leads";
 import { useToast } from "./ToastProvider";
@@ -31,7 +31,9 @@ export interface LeadContextType {
     fetchByStatus: (status: LeadStatus, actualPage: number) => Promise<void>;
 
     fetchBySearch: (search: string, actualPage: number) => Promise<void>;
+    opportunities: Lead[];
 
+    fetchOportunidade: () => Promise<void>;
     updateLeadStatus: (
         id: string,
         status: LeadStatus
@@ -60,6 +62,7 @@ export function LeadProvider({ children }: { children: ReactNode }) {
     const { showToast } = useToast();
     const { fetchCountLeads } = useFunnel();
     const [loaded, setLoaded] = useState(false);
+    const [opportunities, setOpportunities] = useState<Lead[]>([]);
 
     async function fetchLeads(actualPage = 0) {
         if (loading) return;
@@ -85,6 +88,18 @@ export function LeadProvider({ children }: { children: ReactNode }) {
                 showToast("Página máxima atingida", "warning");
             }
 
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    async function fetchOportunidade() {
+        setLoading(true);
+
+        try {
+            const response = await getOportunity();
+
+            setOpportunities(response);
         } finally {
             setLoading(false);
         }
@@ -218,6 +233,8 @@ export function LeadProvider({ children }: { children: ReactNode }) {
             value={{
                 leads,
                 allLeads,
+                fetchOportunidade,
+                opportunities,
                 loading,
                 fetchByStatus,
                 fetchBySearch,

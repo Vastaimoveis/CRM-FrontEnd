@@ -15,7 +15,7 @@ export default function LeadCard({ lead, onOpenNotes }: Props) {
         <p>{lead.telefone}</p>
       </div>
 
-      <button className={`${lead.hasNotes ? "bg-green-700" : "bg-black"}  text-white font-semibold px-3 py-1 rounded-full hover:scale-110 duration-150`}
+      <button className={`${lead.hasNotes ? "bg-green-700" : "bg-black"}  text-white font-semibold px-3 py-1 rounded-full max-w-30 hover:scale-110 duration-150`}
         onClick={() => onOpenNotes(lead)}>
         {lead.hasNotes ? "Visualizar notas" : "adicionar nota"}
       </button>
