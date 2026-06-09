@@ -62,32 +62,31 @@ export function LeadProvider({ children }: { children: ReactNode }) {
     const [loaded, setLoaded] = useState(false);
 
     async function fetchLeads(actualPage = 0) {
-        if (loading) return; // evita duplicação
+        if (loading) return;
 
         setLoading(true);
-        setPage(actualPage);
 
         try {
-            const response = await getAllLeadsNotEncerrado(page, user);
+            const response = await getAllLeadsNotEncerrado(actualPage, user);
 
             if (!response) {
                 showToast("Nenhum lead encontrado", "warning");
                 return;
             }
 
+            setPage(actualPage);
             setTotalPages(response.totalPages);
 
-            if (response.totalPages >= page) {
+            if (response.totalPages > actualPage) {
                 setLeads(response.content);
                 await fetchCountLeads();
-                setLoaded(true); // 👈 marca como carregado
+                setLoaded(true);
             } else {
                 showToast("Página máxima atingida", "warning");
             }
 
         } finally {
             setLoading(false);
-            setPage(0);
         }
     }
 
