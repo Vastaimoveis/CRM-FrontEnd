@@ -184,6 +184,7 @@ export function LeadProvider({ children }: { children: ReactNode }) {
                     nome: lead.nome,
                     email: lead.email,
                     telefone: lead.telefone,
+                    status: lead.status
                 });
             }
             await fetchLeads();
