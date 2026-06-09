@@ -59,25 +59,35 @@ export function LeadProvider({ children }: { children: ReactNode }) {
     const { user } = useAuth();
     const { showToast } = useToast();
     const { fetchCountLeads } = useFunnel();
+    const [loaded, setLoaded] = useState(false);
 
     async function fetchLeads(actualPage = 0) {
-        setLoading(true);
-        setPage(actualPage)
-        try {
+        if (loading) return; // evita duplicação
 
-            const response = await getAllLeadsNotEncerrado(page);
-            setTotalPages(response.totalPages)
-            
+        setLoading(true);
+        setPage(actualPage);
+
+        try {
+            const response = await getAllLeadsNotEncerrado(page, user);
+
+            if (!response) {
+                showToast("Nenhum lead encontrado", "warning");
+                return;
+            }
+
+            setTotalPages(response.totalPages);
+
             if (response.totalPages >= page) {
                 setLeads(response.content);
                 await fetchCountLeads();
+                setLoaded(true); // 👈 marca como carregado
             } else {
                 showToast("Página máxima atingida", "warning");
             }
 
         } finally {
             setLoading(false);
-            setPage(0)
+            setPage(0);
         }
     }
 
@@ -185,13 +195,14 @@ export function LeadProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         async function load() {
+            if (loaded) return; // 👈 evita múltiplas chamadas
 
             await fetchLeads();
             await fetchCountLeads();
-
         }
+
         load();
-    }, [page]);
+    }, [user]);
 
     useEffect(() => {
         if (!user?.id) {

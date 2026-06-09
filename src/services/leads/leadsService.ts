@@ -6,6 +6,7 @@ import {
     type Lead,
 } from "@/shared/types/LeadType";
 import type { countStatusResponse, LeadStatusDTO } from "./types/leads";
+import { UserRoles, type User } from "@/shared/types/UserTypes";
 
 export const EMPTY_LEADS_COUNT: countStatusResponse = {
     total: 0,
@@ -51,9 +52,17 @@ export async function getLeadsFilterByStatus(status: LeadStatusDTO, page = 0) {
     return response.data.data;
 }
 
-export async function getAllLeadsNotEncerrado(page = 0) {
-    const response = await api.get<ApiResponse<PageResponse<Lead>>>(`/leads/status?page=${page}`);
-    return response.data.data;
+export async function getAllLeadsNotEncerrado(page = 0, user: User | null) {
+    if (!user) {
+        return
+    } else if (user.role == UserRoles.GERENTE) {
+        const response = await api.get<ApiResponse<PageResponse<Lead>>>(`/leads/status?page=${page}`);
+
+        return response.data.data;
+    } else {
+        const response = await api.get<ApiResponse<PageResponse<Lead>>>(`/leads/status/userid/${user.id}?page=${page}`);
+        return response.data.data;
+    }
 }
 
 export async function getLeadById(

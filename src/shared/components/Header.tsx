@@ -3,9 +3,12 @@ import { useAuth } from "@/app/providers/AuthProvider";
 import logo from "/logo.png"
 import { UserRoles } from "@/types/UserTypes";
 import Permission from "@/shared/permissions/Permission";
+import { useEffect, useRef, useState } from "react";
 
 export default function Header() {
-  const { user, selectedUser } = useAuth();
+  const { user, selectedUser, logout } = useAuth();
+  const [openDropdown, setOpenDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const navItemClass = ({ isActive }: { isActive: boolean }) =>
     `px-4 py-2 text-sm font-medium transition ${isActive
@@ -13,15 +16,50 @@ export default function Header() {
       : "text-gray-500 hover:text-black"
     }`;
 
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setOpenDropdown(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () =>
+      document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
     <header className="w-full bg-white border-b border-gray-200">
       {/* Linha 1 */}
       <div className="flex justify-between items-center px-8 h-16">
         <img className="max-h-15" src={logo} alt="Logo da Vasta Imoveis" />
 
-        <button className="px-4 py-2 border border-black rounded-md text-sm font-medium hover:bg-black hover:text-white transition">
-          {user?.nome}
-        </button>
+        <div className="relative" ref={dropdownRef}>
+          <button
+            onClick={() => setOpenDropdown((prev) => !prev)}
+            className="px-4 py-2 border border-black rounded-md text-sm font-medium hover:bg-black hover:text-white transition"
+          >
+            {user?.nome}
+          </button>
+          {openDropdown && (
+            <div className="absolute right-0 mt-2 w-40 bg-white border rounded-md shadow-lg z-50">
+
+              <button
+                onClick={() => {
+                  logout();
+                  setOpenDropdown(false);
+                }}
+                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+              >
+                Sair
+              </button>
+
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Linha 2 */}

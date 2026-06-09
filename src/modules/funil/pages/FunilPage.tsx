@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import LeadModal from "../components/LeadModal";
 import { useFunnel } from "@/app/providers/FunnelProvider";
 import { useLeads } from "@/app/providers/LeadProvider";
+import { useAuth } from "@/app/providers/AuthProvider";
 
 export default function FunilPage() {
   const [chartType, setChartType] = useState<"funnel" | "pie" | "bar">(() => {
@@ -23,8 +24,15 @@ export default function FunilPage() {
   }); const navigate = useNavigate();
 
   const [modalOpen, setModalOpen] = useState(false);
-  const { createLead, countLeads } = useFunnel();
+  const { createLead, countLeads, fetchCountLeads } = useFunnel();
   const { fetchLeads, fetchByStatus } = useLeads();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchCountLeads();
+    }
+  }, [user]);
 
   useEffect(() => {
     localStorage.setItem("chartType", chartType);
