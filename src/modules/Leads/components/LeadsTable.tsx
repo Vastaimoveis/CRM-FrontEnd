@@ -1,10 +1,10 @@
 import { type Lead, LeadStatus } from "@/shared/types/LeadType";
 import Permission from "@/shared/permissions/Permission";
 import { UserRoles } from "@/shared/types/UserTypes";
-import LeadsNotesModal from "./LeadsNotesModal";
 
 interface LeadsTableProps {
     leads: Lead[];
+    onOpenNotes: (lead: Lead) => void;
 
     patchLeadStatus: (id: string, status: LeadStatus) => void;
     onDelete: (id: string) => Promise<void>;
@@ -12,10 +12,12 @@ interface LeadsTableProps {
 
 export default function LeadsTable({
     leads,
-
+    onOpenNotes,
     patchLeadStatus,
     onDelete
 }: LeadsTableProps) {
+
+
     if (!leads.length) {
         return (
             <div className="text-center py-6 text-gray-400">
@@ -25,7 +27,9 @@ export default function LeadsTable({
     }
 
 
-    
+
+
+
     return (
         <table className="w-full border-collapse">
             <thead>
@@ -66,7 +70,15 @@ export default function LeadsTable({
                                 ))}
                             </select>
                         </td>
-                        <LeadsNotesModal leadId={lead.id} hasNotes={lead.hasNotes} />
+                        <td>
+
+                            <button
+                                className={`${lead.hasNotes ? "bg-green-700" : "bg-black"}  text-white font-semibold px-3 py-2 rounded-full`}
+                                onClick={() => onOpenNotes(lead)}
+                            >
+                                {lead.hasNotes ? "Visualizar notas" : "adicionar nota"}
+                            </button>
+                        </td>
                         <td>
                             {lead.updatedAt == null ? new Date(lead.createdAt).toLocaleDateString() : new Date(lead.updatedAt).toLocaleDateString()}
                         </td>
@@ -80,6 +92,7 @@ export default function LeadsTable({
                         </td>
                     </tr>
                 ))}
+
             </tbody>
         </table>
     );

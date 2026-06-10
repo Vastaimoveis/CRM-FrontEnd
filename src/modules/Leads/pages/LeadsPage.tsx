@@ -1,5 +1,5 @@
 import { useLeads } from "@/app/providers/LeadProvider";
-import { LeadStatus } from "@/shared/types/LeadType";
+import { LeadStatus, type Lead } from "@/shared/types/LeadType";
 
 import LeadsFilter from "../components/LeadsFilter";
 import LeadsPagination from "../components/LeadsPagination";
@@ -10,6 +10,9 @@ import LeadsPreviewModal from "../components/LeadsPreviewModal";
 import { useEffect, useState } from "react";
 import LeadsConfirmModal from "../components/LeadsConfirmModal";
 import { useToast } from "@/app/providers/ToastProvider";
+import { useLeadNotes } from "@/app/providers/LeadNoteProvider";
+import Modal from "@/shared/components/leadNotesModal";
+import type { LeadNoteRequest } from "@/shared/types/LeadNotesType";
 
 export default function Leads() {
     const {
@@ -19,11 +22,18 @@ export default function Leads() {
         patchLeadStatus,
         deleteLead,
         totalPages, } = useLeads();
+
+    const { fetchLeadNotesByLead, createNewLeadNote, leadNotes, noteLoading } = useLeadNotes();
     const [previewType, setPreviewType] = useState<"export" | "import" | null>(null);
     const [status, setStatus] = useState<LeadStatus | null>(null);
     const [search, setSearch] = useState("");
-    const [page, setPage] = useState<number>(0);
     const { showToast } = useToast();
+    const [page, setPage] = useState<number>(0);
+
+    const [selectedLead, setSelectedLead] = useState<Lead | null>();
+    const [newNote, setNewNote] = useState<string>("");
+    const [saving, setSaving] = useState<boolean>(false);
+    
 
     const [confirmModal, setConfirmModal] = useState<{
         title: string;
@@ -42,15 +52,36 @@ export default function Leads() {
         return () => clearTimeout(timeout);
     }, [search]);
 
-useEffect(() => {
+    useEffect(() => {
 
-    fetchFilteredLeads(
-        debouncedSearch,
-        status ?? null,
-        page
-    );
+        fetchFilteredLeads(
+            debouncedSearch,
+            status ?? null,
+            page
+        );
 
-}, [debouncedSearch, status, page]);
+    }, [debouncedSearch, status, page]);
+
+    async function handleAddNote() {
+        if (!selectedLead || !newNote.trim()) return;
+
+        setSaving(true);
+
+        try {
+            const dto: LeadNoteRequest = {
+                leadId: selectedLead.id,
+                note: newNote.trim(),
+            };
+
+            await createNewLeadNote(dto);
+
+            await fetchLeadNotesByLead(selectedLead.id, 0);
+
+            setNewNote("");
+        } finally {
+            setSaving(false);
+        }
+    }
 
     async function handlePatchStatus(id: string, status: LeadStatus) {
         try {
@@ -84,6 +115,16 @@ useEffect(() => {
     function handleSearchChanges(value: string | "") {
         setSearch(value);
         setPage(0);
+    }
+
+    async function handleOpenNotes(lead: Lead) {
+        setSelectedLead(lead);
+        await fetchLeadNotesByLead(lead.id, 0);
+    }
+
+    async function handleCloseNotes() {
+        setSelectedLead(null);
+
     }
 
     const filteredLeads = leads;
@@ -172,6 +213,8 @@ useEffect(() => {
                 leads={filteredLeads}
                 patchLeadStatus={handlePatchStatus}
                 onDelete={handleDelete}
+                onOpenNotes={handleOpenNotes}
+                
             />
 
             <LeadsPagination
@@ -196,6 +239,75 @@ useEffect(() => {
                     />
                 )
             }
+
+            {selectedLead &&
+                <Modal
+                    open={!!selectedLead}
+                    title={"Anotações de:"}
+                    onClose={handleCloseNotes}
+                    width="w-[600px]"
+                    height="h-[80vh]"
+                >
+                    {selectedLead && (
+                        <div className="flex flex-col gap-4 h-full">
+
+                            <div>
+                                <h2 className="text-2xl font-semibold">
+                                    {selectedLead.nome}
+                                </h2>
+
+                                <p className="text-gray-500">
+                                    {selectedLead.email}
+                                </p>
+
+                                <p className="text-gray-500">
+                                    {selectedLead.telefone}
+                                </p>
+                            </div>
+
+                            <div>
+                                <textarea
+                                    value={newNote}
+                                    onChange={(e) => setNewNote(e.target.value)}
+                                    placeholder="Digite uma anotação..."
+                                    rows={4}
+                                    className="w-full border rounded-lg p-3 resize-none"
+                                />
+
+                                <button
+                                    onClick={handleAddNote}
+                                    disabled={saving}
+                                    className="mt-2 bg-green-600 text-white px-4 py-2 rounded-lg"
+                                >
+                                    {saving ? "Salvando..." : "Salvar anotação"}
+                                </button>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto border rounded-lg p-3">
+                                {noteLoading ? (
+                                    <p>Carregando notas...</p>
+                                ) : leadNotes.length > 0 ? (
+                                    leadNotes.map((note) => (
+                                        <div
+                                            key={note.id}
+                                            className="border-b pb-2 mb-2"
+                                        >
+                                            <p>{note.note}</p>
+
+                                            <span className="text-xs text-gray-500">
+                                                {new Date(note.createdAt)
+                                                    .toLocaleString("pt-BR")}
+                                            </span>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p>Nenhuma anotação encontrada.</p>
+                                )}
+                            </div>
+
+                        </div>
+                    )}
+                </Modal>}
         </div>
     );
 }

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import PipelineColumn from "../components/PipelineColumn";
 import { useLeadNotes } from "@/app/providers/LeadNoteProvider";
 import type { LeadNoteRequest } from "@/shared/types/LeadNotesType";
+import Modal from "@/shared/components/leadNotesModal";
 
 export default function OportunidadesPage() {
   const { opportunities, fetchOportunidade } = useLeads();
@@ -99,83 +100,73 @@ export default function OportunidadesPage() {
         </div>
       </div>
 
-      {selectedLead && (
-        <div className="fixed inset-0 z-9999 flex items-center justify-center bg-black/50">
+      <Modal
+        open={!!selectedLead}
+        title={"Anotações de:"}
+        onClose={handleCloseNotes}
+        width="w-[600px]"
+        height="h-[80vh]"
+      >
+        {selectedLead && (
+          <div className="flex flex-col gap-4 h-full">
 
-          <div className="bg-white rounded-xl p-6 w-150 h-[80vh] relative flex flex-col">
-            <p className="text-xl mb-4">{selectedLead.nome}</p>
-            <div className="flex flex-col gap-4 h-full">
+            <div>
+              <h2 className="text-2xl font-semibold">
+                {selectedLead.nome}
+              </h2>
 
-              <div>
-                <h2 className="text-2xl font-semibold">
-                  {selectedLead.nome}
-                </h2>
+              <p className="text-gray-500">
+                {selectedLead.email}
+              </p>
 
-                <p className="text-gray-500">
-                  {selectedLead.email}
-                </p>
-
-                <p className="text-gray-500">
-                  {selectedLead.telefone}
-                </p>
-              </div>
-
-              <div>
-                <textarea
-                  value={newNote}
-                  onChange={(e) => setNewNote(e.target.value)}
-                  placeholder="Digite uma anotação..."
-                  rows={4}
-                  className="w-full border rounded-lg p-3 resize-none"
-                />
-
-                <button
-                  onClick={handleAddNote}
-                  disabled={saving}
-                  className="mt-2 bg-green-600 text-white px-4 py-2 rounded-lg"
-                >
-                  {saving ? "Salvando..." : "Salvar anotação"}
-                </button>
-              </div>
-
-              <div className="flex-1 overflow-y-auto border rounded-lg p-3">
-                {noteLoading ? (
-                  <p>Carregando notas...</p>
-                ) : leadNotes.length > 0 ? (
-                  leadNotes.map((note) => (
-                    <div
-                      key={note.id}
-                      className="border-b pb-2 mb-2"
-                    >
-                      <p>{note.note}</p>
-
-                      <span className="text-xs text-gray-500">
-                        {new Date(note.createdAt).toLocaleString("pt-BR")}
-                      </span>
-                    </div>
-                  ))
-                ) : (
-                  <p>Nenhuma anotação encontrada.</p>
-                )}
-              </div>
-
-              <div className="flex justify-end">
-                <button
-                  className="bg-red-600 text-white px-4 py-2 rounded-lg"
-                  onClick={handleCloseNotes}
-                >
-                  Fechar
-                </button>
-              </div>
-
+              <p className="text-gray-500">
+                {selectedLead.telefone}
+              </p>
             </div>
 
+            <div>
+              <textarea
+                value={newNote}
+                onChange={(e) => setNewNote(e.target.value)}
+                placeholder="Digite uma anotação..."
+                rows={4}
+                className="w-full border rounded-lg p-3 resize-none"
+              />
 
+              <button
+                onClick={handleAddNote}
+                disabled={saving}
+                className="mt-2 bg-green-600 text-white px-4 py-2 rounded-lg"
+              >
+                {saving ? "Salvando..." : "Salvar anotação"}
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto border rounded-lg p-3">
+              {noteLoading ? (
+                <p>Carregando notas...</p>
+              ) : leadNotes.length > 0 ? (
+                leadNotes.map((note) => (
+                  <div
+                    key={note.id}
+                    className="border-b pb-2 mb-2"
+                  >
+                    <p>{note.note}</p>
+
+                    <span className="text-xs text-gray-500">
+                      {new Date(note.createdAt)
+                        .toLocaleString("pt-BR")}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <p>Nenhuma anotação encontrada.</p>
+              )}
+            </div>
 
           </div>
-
-        </div>
-      )}
+        )}
+      </Modal>
 
     </div>
   );
