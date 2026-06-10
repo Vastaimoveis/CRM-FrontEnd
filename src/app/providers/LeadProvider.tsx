@@ -7,7 +7,7 @@ import {
 } from "react";
 import type { Lead } from "@/shared/types/LeadType";
 import { LeadStatus } from "@/shared/types/LeadType";
-import { createLeadRequest, deleteLeadRequest, getAllLeadsNotEncerrado, getFilteredLeads, getLeadById, getLeadsByUserId, getOportunity, patchStatus, updateLeadRequest } from "@/services/leads/leadsService";
+import { createLeadRequest, deleteLeadRequest, getAllLeadsNotEncerrado, getFilteredLeads, getLeadById, getOportunity, patchStatus, updateLeadRequest } from "@/services/leads/leadsService";
 import { useAuth } from "./AuthProvider";
 import type { LeadStatusDTO } from "@/services/leads/types/leads";
 import { useToast } from "./ToastProvider";
@@ -17,8 +17,6 @@ import { getApiErrorMessage } from "@/shared/utils/getApiErrorResponse";
 
 export interface LeadContextType {
     leads: Lead[];
-    allLeads: Lead[];
-
     loading: boolean;
 
     page: number;
@@ -55,7 +53,6 @@ const LeadContext =
 
 export function LeadProvider({ children }: { children: ReactNode }) {
     const [leads, setLeads] = useState<Lead[]>([]);
-    const [allLeads, setAllLeads] = useState<Lead[]>([]);
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState<number>(0);
     const [loading, setLoading] = useState(false);
@@ -144,19 +141,6 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         }
     }
 
-    async function fetchAllLeads(userId: string) {
-        setLoading(true)
-        try {
-            const response = await getLeadsByUserId(userId);
-
-            setAllLeads(response)
-        } catch (error) {
-            handleError(error)
-        } finally {
-            setLoading(false)
-        }
-    }
-
     async function updateLeadStatus(
         id: string,
         status: LeadStatus
@@ -192,10 +176,7 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         id: string,
         status: LeadStatus
     ) {
-
-
         try {
-
             const statusDTO: LeadStatusDTO = {
                 statusLead: status
             };
@@ -233,25 +214,24 @@ export function LeadProvider({ children }: { children: ReactNode }) {
 
             return null;
 
-        } finally {
-
-
-
         }
     }
 
     async function deleteLead(id: string) {
-        setLoading(true);
+
         try {
             await deleteLeadRequest(id);
-            await fetchLeads();
+            setLeads(prev =>
+                prev.filter(
+                    lead => lead.id !== id
+                )
+            );
             await fetchCountLeads();
         } catch (error) {
-            handleError(error)
-        } finally {
-            setLoading(false);
-        }
 
+            handleError(error);
+
+        }
     }
 
     async function importLeads(newLeads: Lead[]) {
@@ -289,7 +269,7 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         if (!user?.id) {
             return;
         }
-        fetchAllLeads(user.id);
+
     }, [user])
 
     function handleError(error: unknown) {
@@ -306,7 +286,6 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         <LeadContext.Provider
             value={{
                 leads,
-                allLeads,
                 fetchOportunidade,
                 opportunities,
                 fetchFilteredLeads,

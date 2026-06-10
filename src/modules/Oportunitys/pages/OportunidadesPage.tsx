@@ -1,23 +1,24 @@
 import { useLeads } from "@/app/providers/LeadProvider";
 import { LeadStatus, type Lead } from "@/shared/types/LeadType";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import PipelineColumn from "../components/PipelineColumn";
 import { useLeadNotes } from "@/app/providers/LeadNoteProvider";
-import type { LeadNoteRequest } from "@/shared/types/LeadNotesType";
 import Modal from "@/shared/components/leadNotesModal";
 
 export default function OportunidadesPage() {
   const { opportunities, fetchOportunidade } = useLeads();
 
-  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
-  const [newNote, setNewNote] = useState("");
-  const [saving, setSaving] = useState(false);
-
   const {
     leadNotes,
     noteLoading,
-    fetchLeadNotesByLead,
-    createNewLeadNote,
+    addNote,
+    closeNotes,
+    newNote,
+    setNewNote,
+    openNotes,
+    saving,
+    selectedLead,
+
   } = useLeadNotes();
 
   useEffect(() => {
@@ -42,36 +43,6 @@ export default function OportunidadesPage() {
     return grouped;
   }, [opportunities]);
 
-  async function handleAddNote() {
-    if (!selectedLead || !newNote.trim()) return;
-
-    setSaving(true);
-
-    try {
-      const dto: LeadNoteRequest = {
-        leadId: selectedLead.id,
-        note: newNote.trim(),
-      };
-
-      await createNewLeadNote(dto);
-
-      await fetchLeadNotesByLead(selectedLead.id, 0);
-
-      setNewNote("");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function handleOpenNotes(lead: Lead) {
-    setSelectedLead(lead);
-    await fetchLeadNotesByLead(lead.id, 0);
-  }
-
-  function handleCloseNotes() {
-    setSelectedLead(null);
-    setNewNote("");
-  }
 
   return (
     <div className="h-150 flex flex-col">
@@ -93,7 +64,7 @@ export default function OportunidadesPage() {
                 key={status}
                 status={status as LeadStatus}
                 leads={leads}
-                onOpenNotes={handleOpenNotes}
+                onOpenNotes={openNotes}
               />
             ))}
 
@@ -103,7 +74,7 @@ export default function OportunidadesPage() {
       <Modal
         open={!!selectedLead}
         title={"Anotações de:"}
-        onClose={handleCloseNotes}
+        onClose={closeNotes}
         width="w-[600px]"
         height="h-[80vh]"
       >
@@ -134,7 +105,7 @@ export default function OportunidadesPage() {
               />
 
               <button
-                onClick={handleAddNote}
+                onClick={addNote}
                 disabled={saving}
                 className="mt-2 bg-green-600 text-white px-4 py-2 rounded-lg"
               >

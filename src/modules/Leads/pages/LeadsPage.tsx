@@ -1,5 +1,5 @@
 import { useLeads } from "@/app/providers/LeadProvider";
-import { LeadStatus, type Lead } from "@/shared/types/LeadType";
+import { LeadStatus } from "@/shared/types/LeadType";
 
 import LeadsFilter from "../components/LeadsFilter";
 import LeadsPagination from "../components/LeadsPagination";
@@ -12,7 +12,6 @@ import LeadsConfirmModal from "../components/LeadsConfirmModal";
 import { useToast } from "@/app/providers/ToastProvider";
 import { useLeadNotes } from "@/app/providers/LeadNoteProvider";
 import Modal from "@/shared/components/leadNotesModal";
-import type { LeadNoteRequest } from "@/shared/types/LeadNotesType";
 
 export default function Leads() {
     const {
@@ -23,17 +22,19 @@ export default function Leads() {
         deleteLead,
         totalPages, } = useLeads();
 
-    const { fetchLeadNotesByLead, createNewLeadNote, leadNotes, noteLoading } = useLeadNotes();
+    const {
+        leadNotes,
+        noteLoading,
+        addNote, closeNotes,
+        newNote, openNotes, saving,
+        selectedLead, setNewNote
+    } = useLeadNotes();
     const [previewType, setPreviewType] = useState<"export" | "import" | null>(null);
     const [status, setStatus] = useState<LeadStatus | null>(null);
     const [search, setSearch] = useState("");
     const { showToast } = useToast();
     const [page, setPage] = useState<number>(0);
 
-    const [selectedLead, setSelectedLead] = useState<Lead | null>();
-    const [newNote, setNewNote] = useState<string>("");
-    const [saving, setSaving] = useState<boolean>(false);
-    
 
     const [confirmModal, setConfirmModal] = useState<{
         title: string;
@@ -62,26 +63,7 @@ export default function Leads() {
 
     }, [debouncedSearch, status, page]);
 
-    async function handleAddNote() {
-        if (!selectedLead || !newNote.trim()) return;
 
-        setSaving(true);
-
-        try {
-            const dto: LeadNoteRequest = {
-                leadId: selectedLead.id,
-                note: newNote.trim(),
-            };
-
-            await createNewLeadNote(dto);
-
-            await fetchLeadNotesByLead(selectedLead.id, 0);
-
-            setNewNote("");
-        } finally {
-            setSaving(false);
-        }
-    }
 
     async function handlePatchStatus(id: string, status: LeadStatus) {
         try {
@@ -117,15 +99,7 @@ export default function Leads() {
         setPage(0);
     }
 
-    async function handleOpenNotes(lead: Lead) {
-        setSelectedLead(lead);
-        await fetchLeadNotesByLead(lead.id, 0);
-    }
 
-    async function handleCloseNotes() {
-        setSelectedLead(null);
-
-    }
 
     const filteredLeads = leads;
 
@@ -213,8 +187,8 @@ export default function Leads() {
                 leads={filteredLeads}
                 patchLeadStatus={handlePatchStatus}
                 onDelete={handleDelete}
-                onOpenNotes={handleOpenNotes}
-                
+                onOpenNotes={openNotes}
+
             />
 
             <LeadsPagination
@@ -244,7 +218,7 @@ export default function Leads() {
                 <Modal
                     open={!!selectedLead}
                     title={"Anotações de:"}
-                    onClose={handleCloseNotes}
+                    onClose={closeNotes}
                     width="w-[600px]"
                     height="h-[80vh]"
                 >
@@ -275,7 +249,7 @@ export default function Leads() {
                                 />
 
                                 <button
-                                    onClick={handleAddNote}
+                                    onClick={addNote}
                                     disabled={saving}
                                     className="mt-2 bg-green-600 text-white px-4 py-2 rounded-lg"
                                 >

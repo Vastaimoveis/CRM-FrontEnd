@@ -25,7 +25,7 @@ export default function FunilPage() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const { createLead, countLeads, fetchCountLeads } = useFunnel();
-  const { fetchLeads, fetchByStatus } = useLeads();
+  const { fetchLeads, fetchFilteredLeads } = useLeads();
   const { user } = useAuth();
 
   useEffect(() => {
@@ -40,7 +40,7 @@ export default function FunilPage() {
 
   async function handleStatusClick(status: LeadStatus) {
     navigate(`/leads`);
-    await fetchByStatus(status, 0);
+    await fetchFilteredLeads("", status, 0);
     await fetchLeads(0);
   }
 
