@@ -111,6 +111,26 @@ export async function patchStatus(id: string, data: LeadStatusDTO): Promise<Lead
     return response.data.data;
 }
 
+export async function getFilteredLeads(
+    search?: string,
+    status?: LeadStatus,
+    page = 0
+) {
+
+    const response = await api.get(
+        "/leads/filter",
+        {
+            params: {
+                search,
+                status,
+                page
+            }
+        }
+    );
+
+    return response.data.data;
+}
+
 export async function deleteLeadRequest(
     id: string
 ): Promise<void> {

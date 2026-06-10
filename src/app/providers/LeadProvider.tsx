@@ -7,11 +7,12 @@ import {
 } from "react";
 import type { Lead } from "@/shared/types/LeadType";
 import { LeadStatus } from "@/shared/types/LeadType";
-import { createLeadRequest, deleteLeadRequest, getAllLeadsNotEncerrado, getLeadById, getLeadsBySearch, getLeadsByUserId, getLeadsFilterByStatus, getOportunity, patchStatus, updateLeadRequest } from "@/services/leads/leadsService";
+import { createLeadRequest, deleteLeadRequest, getAllLeadsNotEncerrado, getFilteredLeads, getLeadById, getLeadsByUserId, getOportunity, patchStatus, updateLeadRequest } from "@/services/leads/leadsService";
 import { useAuth } from "./AuthProvider";
 import type { LeadStatusDTO } from "@/services/leads/types/leads";
 import { useToast } from "./ToastProvider";
 import { useFunnel } from "./FunnelProvider";
+import { getApiErrorMessage } from "@/shared/utils/getApiErrorResponse";
 
 
 export interface LeadContextType {
@@ -22,27 +23,27 @@ export interface LeadContextType {
 
     page: number;
     totalPages: number;
-
-
+    opportunities: Lead[];
     setPage: React.Dispatch<React.SetStateAction<number>>;
 
     fetchLeads: (page: number) => Promise<void>;
 
-    fetchByStatus: (status: LeadStatus, actualPage: number) => Promise<void>;
-
-    fetchBySearch: (search: string, actualPage: number) => Promise<void>;
-    opportunities: Lead[];
+    fetchFilteredLeads: (
+        search: string,
+        status: LeadStatus | null,
+        page: number
+    ) => Promise<void>;
 
     fetchOportunidade: () => Promise<void>;
     updateLeadStatus: (
         id: string,
         status: LeadStatus
-    ) => Promise<Lead>;
+    ) => Promise<Lead | null>;
 
     patchLeadStatus: (
         id: string,
         status: LeadStatus
-    ) => Promise<Lead>
+    ) => Promise<Lead | null>
 
     deleteLead: (id: string) => Promise<void>;
 
@@ -88,6 +89,11 @@ export function LeadProvider({ children }: { children: ReactNode }) {
                 showToast("Página máxima atingida", "warning");
             }
 
+        } catch (error) {
+            showToast(
+                getApiErrorMessage(error),
+                "error"
+            );
         } finally {
             setLoading(false);
         }
@@ -100,27 +106,41 @@ export function LeadProvider({ children }: { children: ReactNode }) {
             const response = await getOportunity();
 
             setOpportunities(response);
+        } catch (error) {
+            handleError(error)
         } finally {
             setLoading(false);
         }
     }
 
-    async function fetchByStatus(status: LeadStatus, actualPage = 0) {
-        setLoading(true)
-        setPage(actualPage);
+    async function fetchFilteredLeads(
+        search: string,
+        status: LeadStatus | null,
+        actualPage = 0
+    ) {
+        setLoading(true);
 
         try {
-            const response = await getLeadsFilterByStatus({ statusLead: status },)
-            setTotalPages(response.totalPages)
-            if (response.totalPages >= page) {
-                setLeads(response.content);
-            } else {
-                showToast("Página máxima atingida", "warning")
-            }
+
+            const response =
+                await getFilteredLeads(
+                    search,
+                    status ?? undefined,
+                    actualPage
+                );
+
+            setPage(actualPage);
+            setTotalPages(response.totalPages);
+            setLeads(response.content);
+
+        } catch (error) {
+
+            handleError(error);
 
         } finally {
+
             setLoading(false);
-            setPage(0)
+
         }
     }
 
@@ -130,21 +150,8 @@ export function LeadProvider({ children }: { children: ReactNode }) {
             const response = await getLeadsByUserId(userId);
 
             setAllLeads(response)
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    async function fetchBySearch(search: string, page: number) {
-        setLoading(true)
-        try {
-            const response = await getLeadsBySearch(search, page)
-            setTotalPages(response.totalPages)
-            if (response.totalPages >= page) {
-                setLeads(response.content);
-            } else {
-                showToast("Página máxima atingida", "warning")
-            }
+        } catch (error) {
+            handleError(error)
         } finally {
             setLoading(false)
         }
@@ -154,39 +161,96 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         id: string,
         status: LeadStatus
     ) {
-        const lead = await getLeadById(id);
-        const updatedDto = {
-            nome: lead.nome,
-            email: lead.email,
-            telefone: lead.telefone,
-            status,
-        }
+        setLoading(true);
+        try {
 
-        const updated =
-            await updateLeadRequest(
-                id,
-                updatedDto
-            );
-        await fetchLeads();
-        await fetchCountLeads();
-        return updated
+            const lead = await getLeadById(id);
+            const updatedDto = {
+                nome: lead.nome,
+                email: lead.email,
+                telefone: lead.telefone,
+                status,
+            }
+
+            const updated =
+                await updateLeadRequest(
+                    id,
+                    updatedDto
+                );
+            await fetchLeads();
+            await fetchCountLeads();
+            return updated
+        } catch (error) {
+            handleError(error)
+            return null;
+        } finally {
+            setLoading(false)
+        }
     }
 
-    async function patchLeadStatus(id: string, status: LeadStatus) {
-        const statusDTO: LeadStatusDTO = { statusLead: status }
+    async function patchLeadStatus(
+        id: string,
+        status: LeadStatus
+    ) {
 
-        const patched = await patchStatus(id, statusDTO)
 
-        await fetchLeads();
-        await fetchCountLeads();
+        try {
 
-        return patched;
+            const statusDTO: LeadStatusDTO = {
+                statusLead: status
+            };
+
+            const patched =
+                await patchStatus(id, statusDTO);
+
+            if (status === LeadStatus.ENCERRADO) {
+
+                setLeads(prev =>
+                    prev.filter(
+                        lead => lead.id !== id
+                    )
+                );
+
+            } else {
+
+                setLeads(prev =>
+                    prev.map(lead =>
+                        lead.id === id
+                            ? patched
+                            : lead
+                    )
+                );
+
+            }
+
+            await fetchCountLeads();
+
+            return patched;
+
+        } catch (error) {
+
+            handleError(error);
+
+            return null;
+
+        } finally {
+
+
+
+        }
     }
 
     async function deleteLead(id: string) {
-        await deleteLeadRequest(id);
-        await fetchLeads();
-        await fetchCountLeads();
+        setLoading(true);
+        try {
+            await deleteLeadRequest(id);
+            await fetchLeads();
+            await fetchCountLeads();
+        } catch (error) {
+            handleError(error)
+        } finally {
+            setLoading(false);
+        }
 
     }
 
@@ -203,6 +267,8 @@ export function LeadProvider({ children }: { children: ReactNode }) {
             }
             await fetchLeads();
             await fetchCountLeads();
+        } catch (error) {
+            handleError(error)
         } finally {
             setLoading(false);
         }
@@ -226,7 +292,15 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         fetchAllLeads(user.id);
     }, [user])
 
+    function handleError(error: unknown) {
 
+        showToast(
+            getApiErrorMessage(error),
+            "error"
+        );
+
+        console.error(error);
+    }
 
     return (
         <LeadContext.Provider
@@ -235,9 +309,8 @@ export function LeadProvider({ children }: { children: ReactNode }) {
                 allLeads,
                 fetchOportunidade,
                 opportunities,
+                fetchFilteredLeads,
                 loading,
-                fetchByStatus,
-                fetchBySearch,
                 page,
                 totalPages,
                 setPage,

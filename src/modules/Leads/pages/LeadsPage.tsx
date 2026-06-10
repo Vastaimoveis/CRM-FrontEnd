@@ -15,9 +15,7 @@ export default function Leads() {
     const {
         leads,
         loading,
-        fetchLeads,
-        fetchByStatus,
-        fetchBySearch,
+        fetchFilteredLeads,
         patchLeadStatus,
         deleteLead,
         totalPages, } = useLeads();
@@ -39,27 +37,20 @@ export default function Leads() {
     useEffect(() => {
         const timeout = setTimeout(() => {
             setDebouncedSearch(search);
-        }, 2000);
+        }, 1000);
 
         return () => clearTimeout(timeout);
     }, [search]);
 
-    useEffect(() => {
-        async function load() {
-            if (debouncedSearch.trim()) {
-                await fetchBySearch(debouncedSearch, 0);
-                return;
-            }
+useEffect(() => {
 
-            if (status) {
-                await fetchByStatus(status, page);
-                return;
-            }
+    fetchFilteredLeads(
+        debouncedSearch,
+        status ?? null,
+        page
+    );
 
-            await fetchLeads(page);
-        }
-        load();
-    }, [debouncedSearch, status, page]);
+}, [debouncedSearch, status, page]);
 
     async function handlePatchStatus(id: string, status: LeadStatus) {
         try {

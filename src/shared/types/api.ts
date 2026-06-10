@@ -16,3 +16,9 @@ export interface PageResponse<T> {
     first: boolean;
     last: boolean;
 }
+
+export interface ApiErrorResponse {
+    success: false;
+    data: unknown;
+    message: string;
+}
