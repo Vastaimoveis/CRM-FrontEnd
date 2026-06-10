@@ -112,22 +112,26 @@ export async function patchStatus(id: string, data: LeadStatusDTO): Promise<Lead
 }
 
 export async function getFilteredLeads(
-    search?: string,
-    status?: LeadStatus,
+    search: string | null,
+    status: LeadStatus | null,
+    userId: string | null,
     page = 0
 ) {
 
+    const params = new URLSearchParams();
+    if (search) {
+        params.append("search", search);
+    }
+    if (status) {
+        params.append("status", status);
+    }
+    if (userId) {
+        params.append("userId", userId);
+    }
+    params.append("page", String(page));
     const response = await api.get(
-        "/leads/filter",
-        {
-            params: {
-                search,
-                status,
-                page
-            }
-        }
+        `/leads/filter?${params.toString()}`
     );
-
     return response.data.data;
 }
 

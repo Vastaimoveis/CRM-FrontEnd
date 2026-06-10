@@ -12,6 +12,8 @@ import LeadsConfirmModal from "../components/LeadsConfirmModal";
 import { useToast } from "@/app/providers/ToastProvider";
 import { useLeadNotes } from "@/app/providers/LeadNoteProvider";
 import Modal from "@/shared/components/leadNotesModal";
+import { useAuth } from "@/app/providers/AuthProvider";
+import { UserRoles } from "@/shared/types/UserTypes";
 
 export default function Leads() {
     const {
@@ -34,7 +36,7 @@ export default function Leads() {
     const [search, setSearch] = useState("");
     const { showToast } = useToast();
     const [page, setPage] = useState<number>(0);
-
+    const { user } = useAuth();
 
     const [confirmModal, setConfirmModal] = useState<{
         title: string;
@@ -54,10 +56,14 @@ export default function Leads() {
     }, [search]);
 
     useEffect(() => {
-
+        const userId =
+            user?.role === UserRoles.GERENTE
+                ? null
+                : user?.id ?? null;
         fetchFilteredLeads(
             debouncedSearch,
             status ?? null,
+            userId,
             page
         );
 

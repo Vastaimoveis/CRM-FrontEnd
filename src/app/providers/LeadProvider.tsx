@@ -29,6 +29,7 @@ export interface LeadContextType {
     fetchFilteredLeads: (
         search: string,
         status: LeadStatus | null,
+        user: string | null,
         page: number
     ) => Promise<void>;
 
@@ -113,6 +114,7 @@ export function LeadProvider({ children }: { children: ReactNode }) {
     async function fetchFilteredLeads(
         search: string,
         status: LeadStatus | null,
+        userId: string | null,
         actualPage = 0
     ) {
         setLoading(true);
@@ -122,7 +124,8 @@ export function LeadProvider({ children }: { children: ReactNode }) {
             const response =
                 await getFilteredLeads(
                     search,
-                    status ?? undefined,
+                    status ?? null,
+                    userId,
                     actualPage
                 );
 
