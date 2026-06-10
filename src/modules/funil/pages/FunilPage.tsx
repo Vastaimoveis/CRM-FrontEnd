@@ -7,6 +7,7 @@ import LeadModal from "../components/LeadModal";
 import { useFunnel } from "@/app/providers/FunnelProvider";
 import { useLeads } from "@/app/providers/LeadProvider";
 import { useAuth } from "@/app/providers/AuthProvider";
+import { UserRoles } from "@/shared/types/UserTypes";
 
 export default function FunilPage() {
   const [chartType, setChartType] = useState<"funnel" | "pie" | "bar">(() => {
@@ -40,7 +41,11 @@ export default function FunilPage() {
 
   async function handleStatusClick(status: LeadStatus) {
     navigate(`/leads`);
-    await fetchFilteredLeads("", status, 0);
+    const userId =
+      user?.role === UserRoles.GERENTE
+        ? null
+        : user?.id ?? null;
+    await fetchFilteredLeads("", status, userId, 0);
     await fetchLeads(0);
   }
 
