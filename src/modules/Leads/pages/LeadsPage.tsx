@@ -14,6 +14,7 @@ import { useLeadNotes } from "@/app/providers/LeadNoteProvider";
 import Modal from "@/shared/components/leadNotesModal";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { UserRoles } from "@/shared/types/UserTypes";
+import { createLeadNote } from "@/services/leadsNote/LeadsNoteService";
 
 export default function Leads() {
     const {
@@ -42,7 +43,8 @@ export default function Leads() {
         title: string;
         message: string;
         confirmLabel: string;
-        onConfirm: () => void | Promise<void>;
+        requireNote?: boolean;
+        onConfirm: (note?: string) => void | Promise<void>;
     } | null>(null);
 
     const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -71,27 +73,62 @@ export default function Leads() {
 
 
 
-    async function handlePatchStatus(id: string, status: LeadStatus) {
+    async function handlePatchStatus(
+        id: string,
+        status: LeadStatus
+    ) {
         try {
-            showToast("Alterando status", "warning")
             if (status === LeadStatus.ENCERRADO) {
+
                 setConfirmModal({
                     title: "Encerrar Lead",
-                    message: "Tem certeza que deseja encerrar esse Lead?",
+                    message:
+                        "Informe o motivo do encerramento do lead.",
                     confirmLabel: "Encerrar",
-                    onConfirm: async () => {
-                        await patchLeadStatus(id, status);
+                    requireNote: true,
+                    onConfirm: async (note?: string) => {
+                        if (!note?.trim()) {
+                            showToast(
+                                "A anotação é obrigatória",
+                                "error"
+                            );
+                            return;
+                        }
+                        showToast(
+                            "Encerrando lead...",
+                            "warning"
+                        );
+                        await createLeadNote({
+                            leadId: id,
+                            note: note.trim()
+                        });
+                        await patchLeadStatus(
+                            id,
+                            LeadStatus.ENCERRADO
+                        );
                         setConfirmModal(null);
-                        showToast("Lead encerrado com sucesso", "success");
+                        showToast(
+                            "Lead encerrado com sucesso",
+                            "success"
+                        );
                     }
                 });
                 return;
             }
-
+            showToast(
+                "Alterando status...",
+                "warning"
+            );
             await patchLeadStatus(id, status);
-            showToast("Status alterado com sucesso", "success")
+            showToast(
+                "Status alterado com sucesso",
+                "success"
+            );
         } catch {
-            showToast("Erro ao encerrar lead", "error")
+            showToast(
+                "Erro ao alterar status",
+                "error"
+            );
         }
     }
 
@@ -214,6 +251,7 @@ export default function Leads() {
                         title={confirmModal.title}
                         message={confirmModal.message}
                         confirmLabel={confirmModal.confirmLabel}
+                        requireNote={confirmModal.requireNote}
                         onConfirm={confirmModal.onConfirm}
                         onCancel={() => setConfirmModal(null)}
                     />

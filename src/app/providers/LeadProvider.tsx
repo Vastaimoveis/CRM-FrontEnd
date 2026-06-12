@@ -7,7 +7,7 @@ import {
 } from "react";
 import type { Lead } from "@/shared/types/LeadType";
 import { LeadStatus } from "@/shared/types/LeadType";
-import { createLeadRequest, deleteLeadRequest, getAllLeadsNotEncerrado, getFilteredLeads, getLeadById, getOportunity, patchStatus, updateLeadRequest } from "@/services/leads/leadsService";
+import { deleteLeadRequest, getAllLeadsNotEncerrado, getFilteredLeads, getLeadById, getOportunity, patchStatus, updateLeadRequest } from "@/services/leads/leadsService";
 import { useAuth } from "./AuthProvider";
 import type { LeadStatusDTO } from "@/services/leads/types/leads";
 import { useToast } from "./ToastProvider";
@@ -45,8 +45,6 @@ export interface LeadContextType {
     ) => Promise<Lead | null>
 
     deleteLead: (id: string) => Promise<void>;
-
-    importLeads: (leads: Lead[]) => Promise<void>;
 }
 
 const LeadContext =
@@ -237,26 +235,6 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         }
     }
 
-    async function importLeads(newLeads: Lead[]) {
-        setLoading(true);
-        try {
-            for (const lead of newLeads) {
-                await createLeadRequest({
-                    nome: lead.nome,
-                    email: lead.email,
-                    telefone: lead.telefone,
-                    status: lead.status
-                });
-            }
-            await fetchLeads();
-            await fetchCountLeads();
-        } catch (error) {
-            handleError(error)
-        } finally {
-            setLoading(false);
-        }
-    }
-
     useEffect(() => {
         async function load() {
             if (loaded) return; // 👈 evita múltiplas chamadas
@@ -300,7 +278,6 @@ export function LeadProvider({ children }: { children: ReactNode }) {
                 updateLeadStatus,
                 patchLeadStatus,
                 deleteLead,
-                importLeads,
             }}
         >
             {children}

@@ -92,9 +92,7 @@ export function LeadNotesProvider({ children }: { children: ReactNode }) {
             );
 
             setNewNote("");
-
         } finally {
-
             setSaving(false);
 
         }
