@@ -18,18 +18,15 @@ import type { countStatusResponse, LeadStatusChartData } from "@/services/leads/
 interface Props {
   data: countStatusResponse;
   type: "funnel" | "pie" | "bar";
-  onStatusClick?: (status: LeadStatus) => void;
 }
 
 export default function CustomChart({
   data,
   type,
-  onStatusClick,
 }: Props) {
 
   const handleClick = (entry: any) => {
     if (!entry?.payload?.status) return;
-    onStatusClick?.(entry.payload.status);
   };
 
   const chartData: LeadStatusChartData[] = Object.entries(data.porStatus)
@@ -136,7 +133,6 @@ export default function CustomChart({
         {chartData.map((entry) => (
           <button
             key={entry.status}
-            onClick={() => onStatusClick?.(entry.status)}
             className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-100 transition"
           >
             <div className="flex items-center gap-3">

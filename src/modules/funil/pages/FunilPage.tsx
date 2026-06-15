@@ -1,13 +1,10 @@
 import { useEffect, useState } from "react";
 import CustomChart from "../components/FunnelChart";
 import ChartSwitcher from "../components/ChartSwitcher";
-import { LeadStatus } from "@/shared/types/LeadType";
-import { useNavigate } from "react-router-dom";
 import LeadModal from "../components/LeadModal";
 import { useFunnel } from "@/app/providers/FunnelProvider";
 import { useLeads } from "@/app/providers/LeadProvider";
 import { useAuth } from "@/app/providers/AuthProvider";
-import { UserRoles } from "@/shared/types/UserTypes";
 
 export default function FunilPage() {
   const [chartType, setChartType] = useState<"funnel" | "pie" | "bar">(() => {
@@ -22,11 +19,11 @@ export default function FunilPage() {
     }
 
     return "funnel";
-  }); const navigate = useNavigate();
+  }); 
 
   const [modalOpen, setModalOpen] = useState(false);
-  const { createLead, countLeads, fetchCountLeads } = useFunnel();
-  const { fetchLeads, fetchFilteredLeads } = useLeads();
+  const { createLead, countLeads, fetchCountLeads, totalLeads } = useFunnel();
+  const { fetchLeads } = useLeads();
   const { user } = useAuth();
 
   useEffect(() => {
@@ -39,16 +36,6 @@ export default function FunilPage() {
     localStorage.setItem("chartType", chartType);
   }, [chartType]);
 
-  async function handleStatusClick(status: LeadStatus) {
-    navigate(`/leads`);
-    const userId =
-      user?.role === UserRoles.GERENTE
-        ? null
-        : user?.id ?? null;
-    await fetchFilteredLeads("", status, userId, 0);
-    await fetchLeads(0);
-  }
-
   return (
     <div className="flex gap-8">
       {/* Gráfico */}
@@ -56,7 +43,6 @@ export default function FunilPage() {
         <CustomChart
           data={countLeads!}
           type={chartType}
-          onStatusClick={handleStatusClick}
         />
       </div>
 
@@ -71,6 +57,10 @@ export default function FunilPage() {
         >
           + Novo Lead
         </button>
+        <div className="font-semibold text-xl">
+          <p>Total de leads:</p>
+          <p>{totalLeads}</p>
+        </div>
       </div>
       <LeadModal
         open={modalOpen}

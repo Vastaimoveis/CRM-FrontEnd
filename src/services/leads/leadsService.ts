@@ -115,23 +115,24 @@ export async function getFilteredLeads(
     search: string | null,
     status: LeadStatus | null,
     userId: string | null,
+    startDate: string | null,
+    endDate: string | null,
     page = 0
 ) {
-
     const params = new URLSearchParams();
-    if (search) {
-        params.append("search", search);
-    }
-    if (status) {
-        params.append("status", status);
-    }
-    if (userId) {
-        params.append("userId", userId);
-    }
+
+    if (search) params.append("search", search);
+    if (status) params.append("status", status);
+    if (userId) params.append("userId", userId);
+    if (startDate) params.append("startDate", startDate);
+    if (endDate) params.append("endDate", endDate);
+
     params.append("page", String(page));
+
     const response = await api.get(
         `/leads/filter?${params.toString()}`
     );
+
     return response.data.data;
 }
 

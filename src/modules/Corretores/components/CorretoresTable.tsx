@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { User } from "@/shared/types/UserTypes";
 import CorretorModal, { type ModalView } from "./CorretorModal";
+import capitalizeWords from "@/shared/utils/capitalizeWords";
 
 interface Props {
   users: User[];
@@ -27,8 +28,8 @@ export function UserTable({ users }: Props) {
           <tbody>
             {users.map((user) => (
               <tr key={user.id} className="border-t hover:bg-gray-50">
-                <td className="px-4 py-2">{user.nome}</td>
-                <td className="px-4 py-2">{user.telefone? user.telefone : "Não possui"}</td>
+                <td className="px-4 py-2">{capitalizeWords(user.nome)}</td>
+                <td className="px-4 py-2">{user.telefone ? user.telefone : "Não possui"}</td>
                 <td className="px-4 py-2">{user.email}</td>
                 <td className="px-4 py-2">{user.regiao}</td>
                 <td className="px-4 py-2">{user.role}</td>

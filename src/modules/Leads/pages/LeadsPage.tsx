@@ -15,11 +15,16 @@ import Modal from "@/shared/components/leadNotesModal";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { UserRoles } from "@/shared/types/UserTypes";
 import { createLeadNote } from "@/services/leadsNote/LeadsNoteService";
+import LeadDatePicker from "../components/LeadsDatePicker";
 
 export default function Leads() {
     const {
         leads,
         loading,
+        endDate,
+        startDate,
+        setEndDate,
+        setStartDate,
         fetchFilteredLeads,
         patchLeadStatus,
         deleteLead,
@@ -49,6 +54,14 @@ export default function Leads() {
 
     const [debouncedSearch, setDebouncedSearch] = useState("");
 
+    function handleClearFilters() {
+        setSearch("");
+        setStatus(null);
+        setStartDate(null);
+        setEndDate(null);
+        setPage(0);
+    }
+
     useEffect(() => {
         const timeout = setTimeout(() => {
             setDebouncedSearch(search);
@@ -62,14 +75,16 @@ export default function Leads() {
             user?.role === UserRoles.GERENTE
                 ? null
                 : user?.id ?? null;
+
         fetchFilteredLeads(
             debouncedSearch,
             status ?? null,
             userId,
+            startDate,
+            endDate,
             page
         );
-
-    }, [debouncedSearch, status, page]);
+    }, [debouncedSearch, status, startDate, endDate, page]);
 
 
 
@@ -142,8 +157,6 @@ export default function Leads() {
         setPage(0);
     }
 
-
-
     const filteredLeads = leads;
 
     async function handleDelete(id: string) {
@@ -193,7 +206,23 @@ export default function Leads() {
                         onSearchChange={(value) => handleSearchChanges(value)}
                     />
 
+                    <LeadDatePicker
+                        startDate={startDate}
+                        endDate={endDate}
+                        onChange={(start, end) => {
+                            setStartDate(start);
+                            setEndDate(end);
+                            setPage(0);
+                        }}
+                    />
                     <div className="flex gap-2">
+                        <button
+                            onClick={handleClearFilters}
+                            className="px-4 py-2 rounded border text-sm hover:bg-gray-100"
+                        >
+                            Limpar filtros
+                        </button>
+
                         <button
                             onClick={() => setPreviewType("export")}
                             className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-800"

@@ -6,6 +6,7 @@ import { normalizeLeadStatusResponse } from "@/services/leads/helper";
 
 interface FunnelContextType {
     countLeads: countStatusResponse;
+    totalLeads: number;
 
     fetchCountLeads: () => Promise<void>;
     createLead: (
@@ -17,7 +18,7 @@ const FunnelContext = createContext<FunnelContextType | null>(null);
 
 export function FunnelProvider({ children }: { children: ReactNode }) {
     const [countLeads, setCountLeads] = useState<countStatusResponse>(EMPTY_LEADS_COUNT);
-
+    const [totalLeads, setTotalLeads] = useState<number>(0);
     async function createLead(
         data: CreateLeadDTO
     ) {
@@ -33,6 +34,7 @@ export function FunnelProvider({ children }: { children: ReactNode }) {
             const data = await getLeadsStatus();
 
             setCountLeads(normalizeLeadStatusResponse(data));
+            setTotalLeads(data.total);
 
         } catch (error) {
 
@@ -46,6 +48,7 @@ export function FunnelProvider({ children }: { children: ReactNode }) {
     return (
         <FunnelContext.Provider
             value={{
+                totalLeads,
                 createLead,
                 countLeads,
                 fetchCountLeads,

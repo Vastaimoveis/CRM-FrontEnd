@@ -23,13 +23,18 @@ export interface LeadContextType {
     totalPages: number;
     opportunities: Lead[];
     setPage: React.Dispatch<React.SetStateAction<number>>;
-
+    startDate: string | null;
+    setStartDate: React.Dispatch<React.SetStateAction<string | null>>
+    endDate: string | null;
+    setEndDate: React.Dispatch<React.SetStateAction<string | null>>
     fetchLeads: (page: number) => Promise<void>;
 
     fetchFilteredLeads: (
         search: string,
         status: LeadStatus | null,
         user: string | null,
+        startDate: string | null,
+        endDate: string | null,
         page: number
     ) => Promise<void>;
 
@@ -45,6 +50,7 @@ export interface LeadContextType {
     ) => Promise<Lead | null>
 
     deleteLead: (id: string) => Promise<void>;
+    handleDateChange(start: string | null, end: string | null): void
 }
 
 const LeadContext =
@@ -60,6 +66,8 @@ export function LeadProvider({ children }: { children: ReactNode }) {
     const { fetchCountLeads } = useFunnel();
     const [loaded, setLoaded] = useState(false);
     const [opportunities, setOpportunities] = useState<Lead[]>([]);
+    const [startDate, setStartDate] = useState<string | null>(null);
+    const [endDate, setEndDate] = useState<string | null>(null);
 
     async function fetchLeads(actualPage = 0) {
         if (loading) return;
@@ -113,17 +121,20 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         search: string,
         status: LeadStatus | null,
         userId: string | null,
+        startDate: string | null,
+        endDate: string | null,
         actualPage = 0
     ) {
         setLoading(true);
 
         try {
-
             const response =
                 await getFilteredLeads(
                     search,
                     status ?? null,
                     userId,
+                    startDate,
+                    endDate,
                     actualPage
                 );
 
@@ -235,6 +246,12 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         }
     }
 
+    function handleDateChange(start: string | null, end: string | null) {
+        setStartDate(start);
+        setEndDate(end);
+        setPage(0);
+    }
+
     useEffect(() => {
         async function load() {
             if (loaded) return; // 👈 evita múltiplas chamadas
@@ -270,12 +287,17 @@ export function LeadProvider({ children }: { children: ReactNode }) {
                 fetchOportunidade,
                 opportunities,
                 fetchFilteredLeads,
+                endDate,
+                setEndDate,
+                setStartDate,
+                startDate,
                 loading,
                 page,
                 totalPages,
                 setPage,
                 fetchLeads,
                 updateLeadStatus,
+                handleDateChange,
                 patchLeadStatus,
                 deleteLead,
             }}

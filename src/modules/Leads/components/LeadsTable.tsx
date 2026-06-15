@@ -39,7 +39,7 @@ export default function LeadsTable({
                     <th>Telefone</th>
                     <th>Status</th>
                     <th>Anotação</th>
-                    <th>Última alteração</th>
+                    <th>Data de Criação</th>
                 </tr>
             </thead>
 
@@ -80,7 +80,7 @@ export default function LeadsTable({
                             </button>
                         </td>
                         <td>
-                            {lead.updatedAt == null ? new Date(lead.createdAt).toLocaleDateString() : new Date(lead.updatedAt).toLocaleDateString()}
+                            {new Date(lead.createdAt).toLocaleDateString()}
                         </td>
                         <td>
                             <Permission allowed={[UserRoles.GERENTE]}>
