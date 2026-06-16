@@ -7,6 +7,7 @@ import {
 } from "@/shared/types/LeadType";
 import type { countStatusResponse, LeadStatusDTO } from "./types/leads";
 import { UserRoles, type User } from "@/shared/types/UserTypes";
+import type { LeadFilters } from "@/shared/types/filterTypes";
 
 export const EMPTY_LEADS_COUNT: countStatusResponse = {
     total: 0,
@@ -112,23 +113,17 @@ export async function patchStatus(id: string, data: LeadStatusDTO): Promise<Lead
 }
 
 export async function getFilteredLeads(
-    search: string | null,
-    status: LeadStatus | null,
-    userId: string | null,
-    startDate: string | null,
-    endDate: string | null,
-    page = 0
+    filter: LeadFilters
 ) {
     const params = new URLSearchParams();
 
-    if (search) params.append("search", search);
-    if (status) params.append("status", status);
-    if (userId) params.append("userId", userId);
-    if (startDate) params.append("startDate", startDate);
-    if (endDate) params.append("endDate", endDate);
+    if (filter.search) params.append("search", filter.search.toString());
+    if (filter.status) params.append("status", filter.status);
+    if (filter.userId) params.append("userId", filter.userId);
+    if (filter.startDate) params.append("startDate", filter.startDate);
+    if (filter.endDate) params.append("endDate", filter.endDate);
 
-    params.append("page", String(page));
-
+    params.append("page", String(filter.page));
     const response = await api.get(
         `/leads/filter?${params.toString()}`
     );

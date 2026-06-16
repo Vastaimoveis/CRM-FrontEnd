@@ -21,10 +21,8 @@ export default function Leads() {
     const {
         leads,
         loading,
-        endDate,
-        startDate,
-        setEndDate,
-        setStartDate,
+        filters,
+        updateFilters,
         fetchFilteredLeads,
         patchLeadStatus,
         deleteLead,
@@ -38,12 +36,9 @@ export default function Leads() {
         selectedLead, setNewNote
     } = useLeadNotes();
     const [previewType, setPreviewType] = useState<"export" | "import" | null>(null);
-    const [status, setStatus] = useState<LeadStatus | null>(null);
-    const [search, setSearch] = useState("");
     const { showToast } = useToast();
-    const [page, setPage] = useState<number>(0);
     const { user } = useAuth();
-
+    const [searchInput, setSearchInput] = useState(filters.search);
     const [confirmModal, setConfirmModal] = useState<{
         title: string;
         message: string;
@@ -52,23 +47,31 @@ export default function Leads() {
         onConfirm: (note?: string) => void | Promise<void>;
     } | null>(null);
 
-    const [debouncedSearch, setDebouncedSearch] = useState("");
-
     function handleClearFilters() {
-        setSearch("");
-        setStatus(null);
-        setStartDate(null);
-        setEndDate(null);
-        setPage(0);
+        updateFilters({
+            search: "",
+            status: null,
+            startDate: null,
+            endDate: null,
+            page: 0
+        })
+        setSearchInput("")
     }
 
     useEffect(() => {
+        if (searchInput === filters.search) {
+            return;
+        }
+
         const timeout = setTimeout(() => {
-            setDebouncedSearch(search);
+            updateFilters({
+                search: searchInput,
+                page: 0,
+            });
         }, 1000);
 
         return () => clearTimeout(timeout);
-    }, [search]);
+    }, [searchInput, filters.search]);
 
     useEffect(() => {
         const userId =
@@ -77,16 +80,12 @@ export default function Leads() {
                 : user?.id ?? null;
 
         fetchFilteredLeads(
-            debouncedSearch,
-            status ?? null,
-            userId,
-            startDate,
-            endDate,
-            page
+            {
+                ...filters,
+                userId,
+            }
         );
-    }, [debouncedSearch, status, startDate, endDate, page]);
-
-
+    }, [filters, user]);
 
     async function handlePatchStatus(
         id: string,
@@ -148,13 +147,16 @@ export default function Leads() {
     }
 
     function handleStatusChanges(newStatus: LeadStatus | null) {
-        setStatus(newStatus);
-        setPage(0);
+        updateFilters(
+            {
+                status: newStatus,
+                page: 0
+            }
+        )
     }
 
     function handleSearchChanges(value: string | "") {
-        setSearch(value);
-        setPage(0);
+        setSearchInput(value);
     }
 
     const filteredLeads = leads;
@@ -200,19 +202,21 @@ export default function Leads() {
                 </div>
                 <div className="flex justify-between">
                     <LeadsFilter
-                        status={status ? status : ""}
-                        search={search}
-                        onStatusChange={(value) => handleStatusChanges(value)}
-                        onSearchChange={(value) => handleSearchChanges(value)}
+                        status={filters.status ?? ""}
+                        search={searchInput}
+                        onStatusChange={handleStatusChanges}
+                        onSearchChange={handleSearchChanges}
                     />
 
                     <LeadDatePicker
-                        startDate={startDate}
-                        endDate={endDate}
+                        startDate={filters.startDate}
+                        endDate={filters.endDate}
                         onChange={(start, end) => {
-                            setStartDate(start);
-                            setEndDate(end);
-                            setPage(0);
+                            updateFilters({
+                                startDate: start,
+                                endDate: end,
+                                page: 0
+                            })
                         }}
                     />
                     <div className="flex gap-2">
@@ -264,13 +268,18 @@ export default function Leads() {
             />
 
             <LeadsPagination
-                currentPage={page + 1}
+                currentPage={filters.page + 1}
                 totalPages={totalPages}
                 onPrev={() =>
-                    setPage((p) => Math.max(0, p - 1))}
+                    updateFilters({
+                        page: Math.max(0, filters.page - 1)
+                    })
+                }
 
                 onNext={() =>
-                    setPage((p) => p + 1)
+                    updateFilters({
+                        page: filters.page + 1
+                    })
                 }
             />
 
