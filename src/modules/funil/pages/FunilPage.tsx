@@ -3,7 +3,6 @@ import CustomChart from "../components/FunnelChart";
 import ChartSwitcher from "../components/ChartSwitcher";
 import LeadModal from "../components/LeadModal";
 import { useFunnel } from "@/app/providers/FunnelProvider";
-import { useLeads } from "@/app/providers/LeadProvider";
 import { useAuth } from "@/app/providers/AuthProvider";
 
 export default function FunilPage() {
@@ -23,7 +22,6 @@ export default function FunilPage() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const { createLead, countLeads, fetchCountLeads, totalLeads } = useFunnel();
-  const { fetchLeads } = useLeads();
   const { user } = useAuth();
 
   useEffect(() => {
@@ -65,7 +63,6 @@ export default function FunilPage() {
       <LeadModal
         open={modalOpen}
         createLead={createLead}
-        fetchLeads={fetchLeads}
         onClose={() => setModalOpen(false)}
       />
 

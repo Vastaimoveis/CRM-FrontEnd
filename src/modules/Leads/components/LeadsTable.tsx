@@ -2,6 +2,7 @@ import { type Lead, LeadStatus } from "@/shared/types/LeadType";
 import Permission from "@/shared/permissions/Permission";
 import { UserRoles } from "@/shared/types/UserTypes";
 import { memo } from "react";
+import capitalizeWords from "@/shared/utils/capitalizeWords";
 
 interface LeadsTableProps {
     leads: Lead[];
@@ -47,7 +48,7 @@ function LeadsTable({
             <tbody>
                 {leads.map((lead) => (
                     <tr key={lead.id} className="border-b hover:bg-gray-50">
-                        <td className="py-3">{lead.nome}</td>
+                        <td className="py-3">{capitalizeWords(lead.nome)}</td>
                         <td>{lead.email ? lead.email : "Sem email"}</td>
                         <td>{lead.telefone}</td>
 

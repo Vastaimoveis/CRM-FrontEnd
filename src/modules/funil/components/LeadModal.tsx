@@ -11,11 +11,9 @@ interface Props {
   onClose: () => void;
 
   createLead: (data: CreateLeadDTO) => Promise<Lead>;
-
-  fetchLeads: (page: number) => Promise<void>;
 }
 
-export default function LeadModal({ open, onClose, createLead, fetchLeads }: Props) {
+export default function LeadModal({ open, onClose, createLead }: Props) {
   const { showToast } = useToast();
   const [note, setNote] = useState<string>("");
   const { createNewLeadNote } = useLeadNotes();
@@ -56,7 +54,6 @@ export default function LeadModal({ open, onClose, createLead, fetchLeads }: Pro
       }
       resetForm();
       setNote("");
-      await fetchLeads(0);
       onClose();
       showToast("Lead criado com sucesso", "success");
     } catch {
