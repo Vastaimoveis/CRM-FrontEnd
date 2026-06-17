@@ -1,4 +1,5 @@
 import { LeadStatus } from "@/shared/types/LeadType";
+import { memo } from "react";
 
 interface LeadsFilterProps {
     status: LeadStatus | "",
@@ -7,7 +8,7 @@ interface LeadsFilterProps {
     onSearchChange: (search: string) => void;
 }
 
-export default function LeadsFilter({
+ function LeadsFilter({
     status,
     search,
     onStatusChange,
@@ -48,3 +49,5 @@ export default function LeadsFilter({
         </div >
     );
 }
+
+export default memo(LeadsFilter);

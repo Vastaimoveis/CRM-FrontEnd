@@ -7,7 +7,7 @@ import LeadsTable from "../components/LeadsTable";
 
 import { exportLeadsToExcel } from "../utils/exportLeadsToExcel";
 import LeadsPreviewModal from "../components/LeadsPreviewModal";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import LeadsConfirmModal from "../components/LeadsConfirmModal";
 import { useToast } from "@/app/providers/ToastProvider";
 import { useLeadNotes } from "@/app/providers/LeadNoteProvider";
@@ -20,7 +20,6 @@ import LeadDatePicker from "../components/LeadsDatePicker";
 export default function Leads() {
     const {
         leads,
-        loading,
         filters,
         updateFilters,
         fetchFilteredLeads,
@@ -73,20 +72,19 @@ export default function Leads() {
         return () => clearTimeout(timeout);
     }, [searchInput, filters.search]);
 
-    useEffect(() => {
-        const userId =
+    const userId = useMemo(
+        () =>
             user?.role === UserRoles.GERENTE
                 ? null
-                : user?.id ?? null;
-
-        fetchFilteredLeads(
-            {
-                ...filters,
-                userId,
-            }
-        );
-    }, [filters, user]);
-
+                : user?.id ?? null,
+        [user]
+    );
+    useEffect(() => {
+        fetchFilteredLeads({
+            ...filters,
+            userId,
+        });
+    }, [filters, userId]);
     async function handlePatchStatus(
         id: string,
         status: LeadStatus
@@ -159,8 +157,6 @@ export default function Leads() {
         setSearchInput(value);
     }
 
-    const filteredLeads = leads;
-
     async function handleDelete(id: string) {
         try {
 
@@ -180,16 +176,6 @@ export default function Leads() {
         }
     }
 
-    if (loading) {
-        return (
-            <div className="p-6">
-                <p className="text-gray-500">
-                    Carregando leads...
-                </p>
-            </div>
-        );
-    }
-
     return (
         <div className="bg-white p-6 rounded-xl shadow-sm">
             <div className="flex flex-col gap-4 mb-6">
@@ -197,7 +183,7 @@ export default function Leads() {
                     <h1 className="text-xl font-semibold">Leads</h1>
 
                     <div className="text-sm text-gray-500">
-                        {filteredLeads.length} resultado(s)
+                        {leads.length} resultado(s)
                     </div>
                 </div>
                 <div className="flex justify-between">
@@ -237,7 +223,7 @@ export default function Leads() {
 
                     {previewType && (
                         <LeadsPreviewModal
-                            leads={filteredLeads}
+                            leads={leads}
                             title={
                                 "Pré-visualização do Export"
 
@@ -260,7 +246,7 @@ export default function Leads() {
             </div>
 
             <LeadsTable
-                leads={filteredLeads}
+                leads={leads}
                 patchLeadStatus={handlePatchStatus}
                 onDelete={handleDelete}
                 onOpenNotes={openNotes}

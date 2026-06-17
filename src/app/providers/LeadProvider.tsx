@@ -1,13 +1,15 @@
 import {
     createContext,
+    useCallback,
     useContext,
     useEffect,
+    useMemo,
     useState,
     type ReactNode,
 } from "react";
 import type { Lead } from "@/shared/types/LeadType";
 import { LeadStatus } from "@/shared/types/LeadType";
-import { deleteLeadRequest, getAllLeadsNotEncerrado, getFilteredLeads, getLeadById, getOportunity, patchStatus, updateLeadRequest } from "@/services/leads/leadsService";
+import { deleteLeadRequest, getFilteredLeads, getLeadById, getOportunity, patchStatus, updateLeadRequest } from "@/services/leads/leadsService";
 import { useAuth } from "./AuthProvider";
 import type { LeadStatusDTO } from "@/services/leads/types/leads";
 import { useToast } from "./ToastProvider";
@@ -24,7 +26,6 @@ export interface LeadContextType {
     setFilters: React.Dispatch<React.SetStateAction<LeadFilters>>
     totalPages: number;
     opportunities: Lead[];
-    fetchLeads: (page: number) => Promise<void>;
 
     fetchFilteredLeads: (filters: LeadFilters) => Promise<void>;
 
@@ -55,7 +56,6 @@ export function LeadProvider({ children }: { children: ReactNode }) {
     const { user } = useAuth();
     const { showToast } = useToast();
     const { fetchCountLeads } = useFunnel();
-    const [loaded, setLoaded] = useState(false);
     const [opportunities, setOpportunities] = useState<Lead[]>([]);
 
     const [filters, setFilters] = useState<LeadFilters>({
@@ -68,51 +68,30 @@ export function LeadProvider({ children }: { children: ReactNode }) {
     }
     );
 
-    function updateFilters(partial: Partial<LeadFilters>) {
-        setFilters((prev) => ({
-            ...prev,
-            ...partial
-        }))
-    }
+    const updateFilters = useCallback(
+        (partial: Partial<LeadFilters>) => {
+            setFilters((prev) => ({
+                ...prev,
+                ...partial
+            }));
+        },
+        []
+    );
 
+    const handleError = useCallback(
+        (error: unknown) => {
 
-    async function fetchLeads(actualPage = 0) {
-        if (loading) return;
-
-        setLoading(true);
-
-        try {
-            const response = await getAllLeadsNotEncerrado(actualPage, user);
-
-            if (!response) {
-                showToast("Nenhum lead encontrado", "warning");
-                return;
-            }
-
-            updateFilters(
-                { page: actualPage }
-            )
-            setTotalPages(response.totalPages);
-
-            if (response.totalPages > actualPage) {
-                setLeads(response.content);
-                await fetchCountLeads();
-                setLoaded(true);
-            } else {
-                showToast("Página máxima atingida", "warning");
-            }
-
-        } catch (error) {
             showToast(
                 getApiErrorMessage(error),
                 "error"
             );
-        } finally {
-            setLoading(false);
-        }
-    }
 
-    async function fetchOportunidade() {
+            console.error(error);
+        },
+        [showToast]
+    )
+
+    const fetchOportunidade = useCallback(async () => {
         setLoading(true);
 
         try {
@@ -124,180 +103,197 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         } finally {
             setLoading(false);
         }
-    }
+    },
+        [handleError]
+    )
 
-    async function fetchFilteredLeads(
-        filter: LeadFilters
-    ) {
-        setLoading(true);
+    const fetchFilteredLeads = useCallback(
+        async (filter: LeadFilters) => {
+            setLoading(true);
 
-        try {
-            const response =
-                await getFilteredLeads(filter);
+            try {
+                const response =
+                    await getFilteredLeads(filter);
 
-            setTotalPages(response.totalPages);
-            setLeads(response.content);
+                setTotalPages(response.totalPages);
+                setLeads(response.content);
 
-        } catch (error) {
+            } catch (error) {
 
-            handleError(error);
+                handleError(error);
 
-        } finally {
+            } finally {
 
-            setLoading(false);
+                setLoading(false);
 
-        }
-    }
-
-    async function updateLeadStatus(
-        id: string,
-        status: LeadStatus
-    ) {
-        setLoading(true);
-        try {
-
-            const lead = await getLeadById(id);
-            const updatedDto = {
-                nome: lead.nome,
-                email: lead.email,
-                telefone: lead.telefone,
-                status,
             }
+        },
+        [handleError]
+    )
 
-            const updated =
-                await updateLeadRequest(
-                    id,
-                    updatedDto
-                );
-            await fetchLeads();
-            await fetchCountLeads();
-            return updated
-        } catch (error) {
-            handleError(error)
-            return null;
-        } finally {
-            setLoading(false)
-        }
-    }
+    const updateLeadStatus = useCallback(
+        async (id: string, status: LeadStatus
+        ) => {
+            setLoading(true);
+            try {
 
-    async function patchLeadStatus(
-        id: string,
-        status: LeadStatus
-    ) {
-        try {
-            const statusDTO: LeadStatusDTO = {
-                statusLead: status
-            };
+                const lead = await getLeadById(id);
+                const updatedDto = {
+                    nome: lead.nome,
+                    email: lead.email,
+                    telefone: lead.telefone,
+                    status,
+                }
 
-            const patched =
-                await patchStatus(id, statusDTO);
+                const updated =
+                    await updateLeadRequest(
+                        id,
+                        updatedDto
+                    );
+                await fetchFilteredLeads(filters);
+                await fetchCountLeads();
+                return updated
+            } catch (error) {
+                handleError(error)
+                return null;
+            } finally {
+                setLoading(false)
+            }
+        },
+        [
+            filters,
+            fetchFilteredLeads,
+            fetchCountLeads,
+            handleError
+        ]
+    )
 
-            if (status === LeadStatus.ENCERRADO) {
+    const patchLeadStatus = useCallback(
+        async (id: string, status: LeadStatus
+        ) => {
+            try {
+                const statusDTO: LeadStatusDTO = {
+                    statusLead: status
+                };
 
+                const patched =
+                    await patchStatus(id, statusDTO);
+
+                if (status === LeadStatus.ENCERRADO) {
+
+                    setLeads(prev =>
+                        prev.filter(
+                            lead => lead.id !== id
+                        )
+                    );
+
+                } else {
+
+                    setLeads(prev =>
+                        prev.map(lead =>
+                            lead.id === id
+                                ? patched
+                                : lead
+                        )
+                    );
+
+                }
+
+                await fetchCountLeads();
+
+                return patched;
+
+            } catch (error) {
+
+                handleError(error);
+
+                return null;
+
+            }
+        },
+        [fetchCountLeads, handleError]
+    )
+    const deleteLead = useCallback(
+        async (id: string) => {
+            try {
+                await deleteLeadRequest(id);
                 setLeads(prev =>
                     prev.filter(
                         lead => lead.id !== id
                     )
                 );
-
-            } else {
-
-                setLeads(prev =>
-                    prev.map(lead =>
-                        lead.id === id
-                            ? patched
-                            : lead
-                    )
-                );
+                await fetchCountLeads();
+            } catch (error) {
+                handleError(error);
 
             }
+        },
+        [fetchCountLeads, handleError]
+    )
 
-            await fetchCountLeads();
-
-            return patched;
-
-        } catch (error) {
-
-            handleError(error);
-
-            return null;
-
-        }
-    }
-
-    async function deleteLead(id: string) {
-
-        try {
-            await deleteLeadRequest(id);
-            setLeads(prev =>
-                prev.filter(
-                    lead => lead.id !== id
-                )
-            );
-            await fetchCountLeads();
-        } catch (error) {
-
-            handleError(error);
-
-        }
-    }
-
-    function handleDateChange(start: string | null, end: string | null) {
-        updateFilters(
-            {
-                startDate: start,
-                endDate: end,
-                page: 0,
-            }
-        )
-    }
+    const handleDateChange = useCallback(
+        (start: string | null,
+            end: string | null
+        ) => {
+            updateFilters(
+                {
+                    startDate: start,
+                    endDate: end,
+                    page: 0,
+                }
+            )
+        },
+        [updateFilters]
+    )
 
     useEffect(() => {
-        async function load() {
-            if (loaded) return; // 👈 evita múltiplas chamadas
+        if (!user?.id) return;
 
-            await fetchLeads();
-            await fetchCountLeads();
+        fetchFilteredLeads(filters);
+    }, [
+        filters,
+        user?.id
+    ]);
+
+ 
+
+    const value = useMemo(() => (
+        {
+            leads,
+            fetchOportunidade,
+            opportunities,
+            fetchFilteredLeads,
+            filters,
+            setFilters,
+            totalPages,
+            loading,
+            updateFilters,
+            updateLeadStatus,
+            handleDateChange,
+            patchLeadStatus,
+            deleteLead,
         }
+    ), [
+        leads,
+        opportunities,
+        filters,
+        totalPages,
+        loading,
 
-        load();
-    }, [user]);
+        updateFilters,
+        handleDateChange,
+        patchLeadStatus,
+        deleteLead,
 
-    useEffect(() => {
-        if (!user?.id) {
-            return;
-        }
-
-    }, [user])
-
-    function handleError(error: unknown) {
-
-        showToast(
-            getApiErrorMessage(error),
-            "error"
-        );
-
-        console.error(error);
-    }
+        fetchOportunidade,
+        fetchFilteredLeads,
+        updateLeadStatus
+    ]
+    )
 
     return (
         <LeadContext.Provider
-            value={{
-                leads,
-                fetchOportunidade,
-                opportunities,
-                fetchFilteredLeads,
-                filters,
-                setFilters,
-                totalPages,
-                loading,
-                updateFilters,
-                fetchLeads,
-                updateLeadStatus,
-                handleDateChange,
-                patchLeadStatus,
-                deleteLead,
-            }}
+            value={value}
         >
             {children}
         </LeadContext.Provider>

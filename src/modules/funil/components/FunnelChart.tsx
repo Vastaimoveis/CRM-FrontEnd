@@ -81,7 +81,6 @@ export default function CustomChart({
 
             />
             {chartData.map((entry) => {
-              console.log(chartData);
               return (
                 <Cell
                   key={entry.status}

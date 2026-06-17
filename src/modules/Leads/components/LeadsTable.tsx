@@ -1,6 +1,7 @@
 import { type Lead, LeadStatus } from "@/shared/types/LeadType";
 import Permission from "@/shared/permissions/Permission";
 import { UserRoles } from "@/shared/types/UserTypes";
+import { memo } from "react";
 
 interface LeadsTableProps {
     leads: Lead[];
@@ -10,7 +11,7 @@ interface LeadsTableProps {
     onDelete: (id: string) => Promise<void>;
 }
 
-export default function LeadsTable({
+function LeadsTable({
     leads,
     onOpenNotes,
     patchLeadStatus,
@@ -97,3 +98,5 @@ export default function LeadsTable({
         </table>
     );
 }
+
+export default memo(LeadsTable);

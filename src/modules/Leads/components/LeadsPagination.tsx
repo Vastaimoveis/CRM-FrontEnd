@@ -1,3 +1,5 @@
+import { memo } from "react";
+
 interface LeadsPaginationProps {
     currentPage: number;
     totalPages: number;
@@ -5,7 +7,7 @@ interface LeadsPaginationProps {
     onNext: () => void;
 }
 
-export default function LeadsPagination({
+function LeadsPagination({
     currentPage,
     totalPages,
     onPrev,
@@ -37,3 +39,5 @@ export default function LeadsPagination({
         </div>
     );
 }
+
+export default memo(LeadsPagination);
