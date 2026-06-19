@@ -9,9 +9,9 @@ import {
 } from "react";
 import type { Lead } from "@/shared/types/LeadType";
 import { LeadStatus } from "@/shared/types/LeadType";
-import { deleteLeadRequest, getFilteredLeads, getLeadById, getOportunity, patchStatus, updateLeadRequest } from "@/services/leads/leadsService";
+import { deleteLeadRequest, editLead, getFilteredLeads, getLeadById, getOportunity, patchStatus, updateLeadRequest } from "@/services/leads/leadsService";
 import { useAuth } from "./AuthProvider";
-import type { LeadStatusDTO } from "@/services/leads/types/leads";
+import type { LeadStatusDTO, UpdateLeadDto } from "@/services/leads/types/leads";
 import { useToast } from "./ToastProvider";
 import { useFunnel } from "./FunnelProvider";
 import { getApiErrorMessage } from "@/shared/utils/getApiErrorResponse";
@@ -43,6 +43,7 @@ export interface LeadContextType {
     ) => Promise<Lead | null>
 
     deleteLead: (id: string) => Promise<void>;
+    handleEdit: (id: string, data: UpdateLeadDto) => Promise<void>;
     handleDateChange(start: string | null, end: string | null): void
 }
 
@@ -246,6 +247,13 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         [updateFilters]
     )
 
+    const handleEdit = useCallback(async (id: string, data: UpdateLeadDto) => {
+        await editLead(id, data);
+
+        fetchFilteredLeads(filters);
+
+    }, [fetchFilteredLeads])
+
     useEffect(() => {
         if (!user?.id) return;
 
@@ -255,7 +263,7 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         user?.id
     ]);
 
- 
+
 
     const value = useMemo(() => (
         {
@@ -270,6 +278,7 @@ export function LeadProvider({ children }: { children: ReactNode }) {
             updateFilters,
             updateLeadStatus,
             handleDateChange,
+            handleEdit,
             patchLeadStatus,
             deleteLead,
         }
@@ -283,6 +292,7 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         updateFilters,
         handleDateChange,
         patchLeadStatus,
+        handleEdit,
         deleteLead,
 
         fetchOportunidade,

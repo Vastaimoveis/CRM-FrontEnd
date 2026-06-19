@@ -1,5 +1,5 @@
 import { useLeads } from "@/app/providers/LeadProvider";
-import { LeadStatus } from "@/shared/types/LeadType";
+import { LeadStatus, type Lead } from "@/shared/types/LeadType";
 
 import LeadsFilter from "../components/LeadsFilter";
 import LeadsPagination from "../components/LeadsPagination";
@@ -16,6 +16,8 @@ import { useAuth } from "@/app/providers/AuthProvider";
 import { UserRoles } from "@/shared/types/UserTypes";
 import { createLeadNote } from "@/services/leadsNote/LeadsNoteService";
 import LeadDatePicker from "../components/LeadsDatePicker";
+import LeadEditModal from "../components/LeadsEditModal";
+import type { UpdateLeadDto } from "@/services/leads/types/leads";
 
 export default function Leads() {
     const {
@@ -25,6 +27,7 @@ export default function Leads() {
         fetchFilteredLeads,
         patchLeadStatus,
         deleteLead,
+        handleEdit,
         totalPages, } = useLeads();
 
     const {
@@ -38,6 +41,7 @@ export default function Leads() {
     const { showToast } = useToast();
     const { user } = useAuth();
     const [searchInput, setSearchInput] = useState(filters.search);
+    const [editingLead, setEditingLead] = useState<Lead | null>(null);
     const [confirmModal, setConfirmModal] = useState<{
         title: string;
         message: string;
@@ -142,6 +146,14 @@ export default function Leads() {
                 "error"
             );
         }
+    }
+
+    async function handleEditLead(
+        id: string,
+        data: UpdateLeadDto
+    ) {
+        await handleEdit(id, data);
+
     }
 
     function handleStatusChanges(newStatus: LeadStatus | null) {
@@ -249,6 +261,7 @@ export default function Leads() {
                 leads={leads}
                 patchLeadStatus={handlePatchStatus}
                 onDelete={handleDelete}
+                onEdit={setEditingLead}
                 onOpenNotes={openNotes}
 
             />
@@ -350,6 +363,13 @@ export default function Leads() {
                         </div>
                     )}
                 </Modal>}
+
+            {editingLead && <LeadEditModal
+                open={!!editingLead}
+                lead={editingLead}
+                onClose={() => setEditingLead(null)}
+                onSave={handleEditLead}
+            />}
         </div>
     );
 }

@@ -5,7 +5,7 @@ import {
     type CreateLeadDTO,
     type Lead,
 } from "@/shared/types/LeadType";
-import type { countStatusResponse, LeadStatusDTO } from "./types/leads";
+import type { countStatusResponse, LeadStatusDTO, UpdateLeadDto } from "./types/leads";
 import { UserRoles, type User } from "@/shared/types/UserTypes";
 import type { LeadFilters } from "@/shared/types/filterTypes";
 
@@ -129,6 +129,12 @@ export async function getFilteredLeads(
     );
 
     return response.data.data;
+}
+
+export async function editLead(id:string, data: UpdateLeadDto){
+    const altered = await api.put<ApiResponse<Lead>>(`/leads/${id}`, data)
+
+    return altered.data.data
 }
 
 export async function deleteLeadRequest(

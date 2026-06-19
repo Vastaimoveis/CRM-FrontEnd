@@ -3,6 +3,7 @@ import Permission from "@/shared/permissions/Permission";
 import { UserRoles } from "@/shared/types/UserTypes";
 import { memo } from "react";
 import capitalizeWords from "@/shared/utils/capitalizeWords";
+import { Trash2, SquarePen } from "lucide-react";
 
 interface LeadsTableProps {
     leads: Lead[];
@@ -10,12 +11,15 @@ interface LeadsTableProps {
 
     patchLeadStatus: (id: string, status: LeadStatus) => void;
     onDelete: (id: string) => Promise<void>;
+      onEdit: (lead: Lead) => void;
+
 }
 
 function LeadsTable({
     leads,
     onOpenNotes,
     patchLeadStatus,
+    onEdit,
     onDelete
 }: LeadsTableProps) {
 
@@ -86,10 +90,25 @@ function LeadsTable({
                         </td>
                         <td>
                             <Permission allowed={[UserRoles.GERENTE]}>
-                                <button className="bg-red-500 hover:bg-red-800 text-white font-bold rounded-2xl p-2"
-                                    onClick={() => onDelete(lead.id)}>
-                                    Excluir Lead
-                                </button>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => onEdit(lead)}
+                                        className="p-2 rounded-lg hover:bg-blue-100 transition"
+                                        title="Editar Lead"
+                                    >
+                                        <SquarePen size={18}
+                                            className="text-blue-600" />
+                                    </button>
+
+                                    <button
+                                        onClick={() => onDelete(lead.id)}
+                                        className="p-2 rounded-lg hover:bg-red-100 transition"
+                                        title="Excluir Lead"
+                                    >
+                                        <Trash2 size={18}
+                                            className="text-red-600" />
+                                    </button>
+                                </div>
                             </Permission>
                         </td>
                     </tr>
