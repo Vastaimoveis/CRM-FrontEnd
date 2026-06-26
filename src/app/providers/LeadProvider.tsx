@@ -110,11 +110,15 @@ export function LeadProvider({ children }: { children: ReactNode }) {
 
     const fetchFilteredLeads = useCallback(
         async (filter: LeadFilters) => {
+            if (!user) return;
             setLoading(true);
             setError("");
 
             try {
-                const response = await getFilteredLeads(filter);
+                const response = await getFilteredLeads({
+                    ...filter,
+                    userId: user.id, // 🔥 FORÇADO SEMPRE
+                });
                 if (!response.success || !response.data) {
                     setError(response.text || "Erro ao buscar leads");
                     showToast(error, "error")
@@ -222,7 +226,7 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         },
         [fetchCountLeads, handleError]
     )
-    
+
     const deleteLead = useCallback(
         async (id: string) => {
             try {
