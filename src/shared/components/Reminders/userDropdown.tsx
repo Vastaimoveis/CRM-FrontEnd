@@ -1,4 +1,4 @@
-import type { User } from "../types/UserTypes";
+import type { User } from "@/shared/types/UserTypes";
 
 interface props {
     openDropdown: boolean;
