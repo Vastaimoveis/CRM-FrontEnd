@@ -58,7 +58,7 @@ export function LeadProvider({ children }: { children: ReactNode }) {
     const { showToast } = useToast();
     const { fetchCountLeads } = useFunnel();
     const [opportunities, setOpportunities] = useState<Lead[]>([]);
-
+    const [error, setError] = useState<string>("");
     const [filters, setFilters] = useState<LeadFilters>({
         search: "",
         status: null,
@@ -111,26 +111,34 @@ export function LeadProvider({ children }: { children: ReactNode }) {
     const fetchFilteredLeads = useCallback(
         async (filter: LeadFilters) => {
             setLoading(true);
+            setError("");
 
             try {
-                const response =
-                    await getFilteredLeads(filter);
+                const response = await getFilteredLeads(filter);
+                if (!response.success || !response.data) {
+                    setError(response.text || "Erro ao buscar leads");
+                    showToast(error, "error")
+                    return;
+                }
 
-                setTotalPages(response.totalPages);
-                setLeads(response.content);
+                setTotalPages(response.data.totalPages);
+                setLeads(response.data.content);
 
-            } catch (error) {
+            } catch (error: unknown) {
+                const message =
+                    error instanceof Error
+                        ? error.message
+                        : "Erro ao buscar leads";
 
+                setError(message);
                 handleError(error);
 
             } finally {
-
                 setLoading(false);
-
             }
         },
         [handleError]
-    )
+    );
 
     const updateLeadStatus = useCallback(
         async (id: string, status: LeadStatus
@@ -214,6 +222,7 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         },
         [fetchCountLeads, handleError]
     )
+    
     const deleteLead = useCallback(
         async (id: string) => {
             try {
@@ -248,10 +257,15 @@ export function LeadProvider({ children }: { children: ReactNode }) {
     )
 
     const handleEdit = useCallback(async (id: string, data: UpdateLeadDto) => {
-        await editLead(id, data);
+        const updatedLead = await editLead(id, data);
 
-        fetchFilteredLeads(filters);
-
+        setLeads(prev =>
+            prev.map(lead =>
+                lead.id === id
+                    ? { ...lead, ...updatedLead }
+                    : lead
+            )
+        );
     }, [fetchFilteredLeads])
 
     useEffect(() => {
@@ -263,6 +277,11 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         user?.id
     ]);
 
+    useEffect(() => {
+        if (error) {
+            showToast(error, "error");
+        }
+    }, [error]);
 
 
     const value = useMemo(() => (

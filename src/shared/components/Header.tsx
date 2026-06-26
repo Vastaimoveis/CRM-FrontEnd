@@ -4,6 +4,8 @@ import logo from "/logo.png"
 import { UserRoles } from "@/types/UserTypes";
 import Permission from "@/shared/permissions/Permission";
 import { useEffect, useRef, useState } from "react";
+import UserDropdown from "./Reminders/userDropdown";
+import ReminderDropdown from "./Reminders/reminderDropdown";
 
 export default function Header() {
   const { user, selectedUser, logout } = useAuth();
@@ -15,6 +17,7 @@ export default function Header() {
       ? "border-b-2 border-black text-black"
       : "text-gray-500 hover:text-black"
     }`;
+
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -34,33 +37,18 @@ export default function Header() {
   return (
     <header className="w-full bg-white border-b border-gray-200">
       {/* Linha 1 */}
-      <div className="flex justify-between items-center px-8 h-16">
+      <section className="flex justify-between items-center px-8 h-16">
         <img className="max-h-15" src={logo} alt="Logo da Vasta Imoveis" />
 
-        <div className="relative" ref={dropdownRef}>
-          <button
-            onClick={() => setOpenDropdown((prev) => !prev)}
-            className="px-4 py-2 border border-black rounded-md text-sm font-medium hover:bg-black hover:text-white transition"
-          >
-            {user?.nome}
-          </button>
-          {openDropdown && (
-            <div className="absolute right-0 mt-2 w-40 bg-white border rounded-md shadow-lg z-50">
+        <div className="flex flex-row items-center gap-10">
+          <ReminderDropdown />
 
-              <button
-                onClick={() => {
-                  logout();
-                  setOpenDropdown(false);
-                }}
-                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
-              >
-                Sair
-              </button>
+          <UserDropdown dropdownRef={dropdownRef} logout={logout} openDropdown={openDropdown} setOpenDropdown={setOpenDropdown} user={user} />
 
-            </div>
-          )}
         </div>
-      </div>
+
+
+      </section>
 
       {/* Linha 2 */}
       <section className="flex items-center justify-between px-8 border-t border-gray-100 h-12">

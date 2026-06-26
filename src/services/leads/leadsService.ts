@@ -114,24 +114,25 @@ export async function patchStatus(id: string, data: LeadStatusDTO): Promise<Lead
 
 export async function getFilteredLeads(
     filter: LeadFilters
-) {
+): Promise<ApiResponse<PageResponse<Lead>> | ApiResponse<null>> {
+
     const params = new URLSearchParams();
 
+    if (filter.userId) params.append("userId", filter.userId)
     if (filter.search) params.append("search", filter.search.toString());
     if (filter.status) params.append("status", filter.status);
-    if (filter.userId) params.append("userId", filter.userId);
     if (filter.startDate) params.append("startDate", filter.startDate);
     if (filter.endDate) params.append("endDate", filter.endDate);
 
     params.append("page", String(filter.page));
-    const response = await api.get(
+    const response = await api.get<ApiResponse<PageResponse<Lead>>>(
         `/leads/filter?${params.toString()}`
     );
 
-    return response.data.data;
+    return response.data;
 }
 
-export async function editLead(id:string, data: UpdateLeadDto){
+export async function editLead(id: string, data: UpdateLeadDto) {
     const altered = await api.put<ApiResponse<Lead>>(`/leads/${id}`, data)
 
     return altered.data.data

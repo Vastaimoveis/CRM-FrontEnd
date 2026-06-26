@@ -1,5 +1,3 @@
-import { useLeads } from "@/app/providers/LeadProvider";
-import { LeadStatus, type Lead } from "@/shared/types/LeadType";
 
 import LeadsFilter from "../components/LeadsFilter";
 import LeadsPagination from "../components/LeadsPagination";
@@ -7,28 +5,35 @@ import LeadsTable from "../components/LeadsTable";
 
 import { exportLeadsToExcel } from "../utils/exportLeadsToExcel";
 import LeadsPreviewModal from "../components/LeadsPreviewModal";
-import { useEffect, useMemo, useState } from "react";
 import LeadsConfirmModal from "../components/LeadsConfirmModal";
-import { useToast } from "@/app/providers/ToastProvider";
 import { useLeadNotes } from "@/app/providers/LeadNoteProvider";
 import Modal from "@/shared/components/leadNotesModal";
-import { useAuth } from "@/app/providers/AuthProvider";
-import { UserRoles } from "@/shared/types/UserTypes";
-import { createLeadNote } from "@/services/leadsNote/LeadsNoteService";
 import LeadDatePicker from "../components/LeadsDatePicker";
 import LeadEditModal from "../components/LeadsEditModal";
-import type { UpdateLeadDto } from "@/services/leads/types/leads";
+import { useLeadsPage } from "../hooks/useLeadsPage";
+import { LeadsReminderPicker } from "../components/LeadsReminderPicker";
+import { useLeadReminder } from "../hooks/useLeadReminder";
 
 export default function Leads() {
     const {
         leads,
         filters,
         updateFilters,
-        fetchFilteredLeads,
-        patchLeadStatus,
-        deleteLead,
-        handleEdit,
-        totalPages, } = useLeads();
+        totalPages,
+        confirmModal,
+        setConfirmModal,
+        previewType,
+        searchInput,
+        setEditingLead,
+        setPreviewType,
+        editingLead,
+        handleClearFilters,
+        handleDelete,
+        handleEditLead,
+        handlePatchStatus,
+        handleSearchChanges,
+        handleStatusChanges,
+    } = useLeadsPage();
 
     const {
         leadNotes,
@@ -37,156 +42,14 @@ export default function Leads() {
         newNote, openNotes, saving,
         selectedLead, setNewNote
     } = useLeadNotes();
-    const [previewType, setPreviewType] = useState<"export" | "import" | null>(null);
-    const { showToast } = useToast();
-    const { user } = useAuth();
-    const [searchInput, setSearchInput] = useState(filters.search);
-    const [editingLead, setEditingLead] = useState<Lead | null>(null);
-    const [confirmModal, setConfirmModal] = useState<{
-        title: string;
-        message: string;
-        confirmLabel: string;
-        requireNote?: boolean;
-        onConfirm: (note?: string) => void | Promise<void>;
-    } | null>(null);
 
-    function handleClearFilters() {
-        updateFilters({
-            search: "",
-            status: null,
-            startDate: null,
-            endDate: null,
-            page: 0
-        })
-        setSearchInput("")
-    }
+    const { dateReminder,
+        openReminder,
+        setOpenReminder,
+        onCancel,
+        onSave,
+        onSelect} = useLeadReminder();
 
-    useEffect(() => {
-        if (searchInput === filters.search) {
-            return;
-        }
-
-        const timeout = setTimeout(() => {
-            updateFilters({
-                search: searchInput,
-                page: 0,
-            });
-        }, 1000);
-
-        return () => clearTimeout(timeout);
-    }, [searchInput, filters.search]);
-
-    const userId = useMemo(
-        () =>
-            user?.role === UserRoles.GERENTE
-                ? null
-                : user?.id ?? null,
-        [user]
-    );
-    useEffect(() => {
-        fetchFilteredLeads({
-            ...filters,
-            userId,
-        });
-    }, [filters, userId]);
-    async function handlePatchStatus(
-        id: string,
-        status: LeadStatus
-    ) {
-        try {
-            if (status === LeadStatus.ENCERRADO) {
-
-                setConfirmModal({
-                    title: "Encerrar Lead",
-                    message:
-                        "Informe o motivo do encerramento do lead.",
-                    confirmLabel: "Encerrar",
-                    requireNote: true,
-                    onConfirm: async (note?: string) => {
-                        if (!note?.trim()) {
-                            showToast(
-                                "A anotação é obrigatória",
-                                "error"
-                            );
-                            return;
-                        }
-                        showToast(
-                            "Encerrando lead...",
-                            "warning"
-                        );
-                        await createLeadNote({
-                            leadId: id,
-                            note: note.trim()
-                        });
-                        await patchLeadStatus(
-                            id,
-                            LeadStatus.ENCERRADO
-                        );
-                        setConfirmModal(null);
-                        showToast(
-                            "Lead encerrado com sucesso",
-                            "success"
-                        );
-                    }
-                });
-                return;
-            }
-            showToast(
-                "Alterando status...",
-                "warning"
-            );
-            await patchLeadStatus(id, status);
-            showToast(
-                "Status alterado com sucesso",
-                "success"
-            );
-        } catch {
-            showToast(
-                "Erro ao alterar status",
-                "error"
-            );
-        }
-    }
-
-    async function handleEditLead(
-        id: string,
-        data: UpdateLeadDto
-    ) {
-        await handleEdit(id, data);
-
-    }
-
-    function handleStatusChanges(newStatus: LeadStatus | null) {
-        updateFilters(
-            {
-                status: newStatus,
-                page: 0
-            }
-        )
-    }
-
-    function handleSearchChanges(value: string | "") {
-        setSearchInput(value);
-    }
-
-    async function handleDelete(id: string) {
-        try {
-
-            setConfirmModal({
-                title: "Excluir lead",
-                message: "Tem certeza que deseja excluir este lead? Esta ação não poderá ser desfeita.",
-                confirmLabel: "Excluir",
-                onConfirm: async () => {
-                    showToast("Deletando lead", "warning")
-                    await deleteLead(id);
-                    setConfirmModal(null);
-                    showToast("Lead deletado com sucesso", "success")
-                }
-            })
-        } catch {
-            showToast("Erro ao deletar lead", "error")
-        }
-    }
 
     return (
         <div className="bg-white p-6 rounded-xl shadow-sm">
@@ -328,14 +191,23 @@ export default function Leads() {
                                     rows={4}
                                     className="w-full border rounded-lg p-3 resize-none"
                                 />
+                                <LeadsReminderPicker leadId={selectedLead.id} date={dateReminder} onCancel={onCancel} open={openReminder} onSave={onSave} onSelect={onSelect} key={"Date picker reminder"} />
 
-                                <button
-                                    onClick={addNote}
-                                    disabled={saving}
-                                    className="mt-2 bg-green-600 text-white px-4 py-2 rounded-lg"
-                                >
-                                    {saving ? "Salvando..." : "Salvar anotação"}
-                                </button>
+                                <div className="flex justify-between">
+                                    <button
+                                        onClick={addNote}
+                                        disabled={saving}
+                                        className="mt-2 bg-green-600 text-white px-4 py-2 rounded-lg"
+                                    >
+                                        {saving ? "Salvando..." : "Salvar anotação"}
+                                    </button>
+                                    <button
+                                        onClick={() => setOpenReminder(true)}
+                                        className="mt-2 bg-blue-600 text-white px-4 py-2 rounded-lg"
+                                    >
+                                        Novo lembrete
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="flex-1 overflow-y-auto border rounded-lg p-3">

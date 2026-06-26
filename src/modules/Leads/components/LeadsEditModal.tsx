@@ -4,6 +4,8 @@ import type { UpdateLeadDto } from "@/services/leads/types/leads";
 import { validatePhone } from "@/shared/utils/validatePhone";
 import { formatPhone } from "@/shared/utils/formatPhone";
 import { useToast } from "@/app/providers/ToastProvider";
+import Permission from "@/shared/permissions/Permission";
+import { UserRoles } from "@/shared/types/UserTypes";
 
 interface Props {
     lead: Lead | null;
@@ -20,7 +22,7 @@ export default function LeadEditModal({
     onSave,
     loading
 }: Props) {
-    const [form, setForm] = useState({
+    const [form, setForm] = useState<UpdateLeadDto>({
         nome: "",
         email: "",
         telefone: "",
@@ -105,16 +107,17 @@ export default function LeadEditModal({
                         }
                         className="border rounded-lg p-2"
                     />
-
-                    <input
-                        value={form.telefone}
-                        onChange={(e) =>
-                            setForm({
-                                ...form,
-                                telefone: formatPhone(e.target.value)
-                            })}
-                        className="border rounded-lg p-2"
-                    />
+                    <Permission allowed={[UserRoles.GERENTE]}>
+                        <input
+                            value={form.telefone}
+                            onChange={(e) =>
+                                setForm({
+                                    ...form,
+                                    telefone: formatPhone(e.target.value)
+                                })}
+                            className="border rounded-lg p-2"
+                        />
+                    </Permission>
 
                     <select
                         value={form.status}

@@ -1,3 +1,4 @@
+import { ReminderProvider } from "./ReminderProvider";
 import { AuthProvider } from "./AuthProvider";
 import { FunnelProvider } from "./FunnelProvider";
 import { LeadNotesProvider } from "./LeadNoteProvider";
@@ -15,7 +16,9 @@ export default function AppProviders({
                     <UserProvider>
                         <LeadProvider>
                             <LeadNotesProvider>
-                                {children}
+                                <ReminderProvider>
+                                    {children}
+                                </ReminderProvider>
                             </LeadNotesProvider>
                         </LeadProvider>
                     </UserProvider>

@@ -6,6 +6,7 @@ import {
     endOfMonth,
     subDays
 } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 interface Props {
     startDate: string | null;
@@ -181,6 +182,7 @@ export default function LeadDatePicker({
                         mode="range"
                         selected={selectedRange}
                         onSelect={setSelectedRange}
+                        locale={ptBR}
                         classNames={{
                             today: "bg-blue-100 text-blue-700 font-bold",
                             selected: "bg-green-600 text-white",
