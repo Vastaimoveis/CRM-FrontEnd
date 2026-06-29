@@ -18,6 +18,7 @@ function App() {
       <AppProviders>
         <Routes>
           <Route path='/' element={<Login />} />
+          <Route path='/login' element={<Login />} />
           <Route
             path="/funil"
             element={
