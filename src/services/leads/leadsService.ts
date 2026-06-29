@@ -118,7 +118,7 @@ export async function getFilteredLeads(
 
     const params = new URLSearchParams();
 
-    if (filter.userId) params.append("userId", filter.userId)
+    if (filter.userId) params.append("userid", filter.userId)
     if (filter.search) params.append("search", filter.search.toString());
     if (filter.status) params.append("status", filter.status);
     if (filter.startDate) params.append("startDate", filter.startDate);
