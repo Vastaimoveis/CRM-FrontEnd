@@ -142,6 +142,12 @@ export function useLeadsPage() {
         setSearchInput("")
     }, [updateFilters])
 
+
+    const loadLeads = useCallback(() => {
+        if (!user?.id) return;
+        fetchFilteredLeads(filters);
+    }, [user?.id, filters, fetchFilteredLeads]);
+
     useEffect(() => {
         if (!user) {
             return;
@@ -164,6 +170,10 @@ export function useLeadsPage() {
             page: 0,
         });
     }, [debouncedSearch, filters.search, updateFilters]);
+
+    useEffect(() => {
+        loadLeads();
+    }, [loadLeads]);
 
     return {
         leads,

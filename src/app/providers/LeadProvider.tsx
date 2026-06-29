@@ -111,14 +111,7 @@ export function LeadProvider({ children }: { children: ReactNode }) {
     const fetchFilteredLeads = useCallback(
         async (filter: LeadFilters) => {
 
-            console.log("Entrou no fetch");
-            console.log("user:", user);
-            if (!user) {
-                console.log("saiu pq user é null")
-                return
-            };
-
-            console.log("fetchFilteredLeads chamado");
+            if (!user) return;
             setLoading(true);
             setError("");
 
@@ -135,7 +128,6 @@ export function LeadProvider({ children }: { children: ReactNode }) {
 
                 setTotalPages(response.data.totalPages);
                 setLeads(response.data.content);
-                console.log("")
             } catch (error: unknown) {
                 const message =
                     error instanceof Error
@@ -149,7 +141,7 @@ export function LeadProvider({ children }: { children: ReactNode }) {
                 setLoading(false);
             }
         },
-        [handleError]
+        [user, handleError, showToast]
     );
 
     const updateLeadStatus = useCallback(
@@ -280,16 +272,6 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         );
     }, [fetchFilteredLeads])
 
-    useEffect(() => {
-        if (!user?.id) return;
-
-        fetchFilteredLeads(filters);
-    }, [
-        user?.id,
-        filters,
-        fetchFilteredLeads
-        
-    ]);
 
     useEffect(() => {
         if (error) {
