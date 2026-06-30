@@ -54,7 +54,7 @@ export function LeadProvider({ children }: { children: ReactNode }) {
     const [leads, setLeads] = useState<Lead[]>([]);
     const [totalPages, setTotalPages] = useState<number>(0);
     const [loading, setLoading] = useState(false);
-    const { user } = useAuth();
+    const { requestUser } = useAuth();
     const { showToast } = useToast();
     const { fetchCountLeads } = useFunnel();
     const [opportunities, setOpportunities] = useState<Lead[]>([]);
@@ -96,8 +96,8 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         setLoading(true);
 
         try {
-            const response = await getOportunity();
-
+            if(!requestUser) return;
+            const response = await getOportunity(requestUser.id);
             setOpportunities(response);
         } catch (error) {
             handleError(error)
@@ -105,20 +105,20 @@ export function LeadProvider({ children }: { children: ReactNode }) {
             setLoading(false);
         }
     },
-        [handleError]
+        [handleError, requestUser]
     )
 
     const fetchFilteredLeads = useCallback(
         async (filter: LeadFilters) => {
 
-            if (!user) return;
+            if (!requestUser) return;
             setLoading(true);
             setError("");
 
             try {
                 const response = await getFilteredLeads({
                     ...filter,
-                    userId: user.id, // 🔥 FORÇADO SEMPRE
+                    userId: requestUser.id, // 🔥 FORÇADO SEMPRE
                 });
                 if (!response.success || !response.data) {
                     setError(response.text || "Erro ao buscar leads");
@@ -141,7 +141,7 @@ export function LeadProvider({ children }: { children: ReactNode }) {
                 setLoading(false);
             }
         },
-        [user, handleError, showToast]
+        [requestUser, handleError, showToast]
     );
 
     const updateLeadStatus = useCallback(

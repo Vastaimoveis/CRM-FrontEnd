@@ -8,8 +8,9 @@ import UserDropdown from "./Reminders/userDropdown";
 import ReminderDropdown from "./Reminders/reminderDropdown";
 
 export default function Header() {
-  const { user, selectedUser, logout } = useAuth();
+  const { user, visualUser, setVisualUser, logout } = useAuth();
   const [openDropdown, setOpenDropdown] = useState(false);
+  const [openDropdownVisual, setOpenDropdownVisual] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const navItemClass = ({ isActive }: { isActive: boolean }) =>
@@ -73,11 +74,30 @@ export default function Header() {
             </NavLink>
           </Permission>
         </div>
-        {selectedUser &&
-          <div className="border rounded-lg p-1">
-            <p>Visualizando: {selectedUser?.nome}</p>
-          </div>
-        }
+
+        <div className="relative">
+          {visualUser &&
+            <button type="button" onClick={() => setOpenDropdownVisual(true)} className="border rounded-lg p-1">
+              <p>Visualizando: {visualUser?.nome}</p>
+            </button>
+          }
+
+          {openDropdownVisual && (
+            <div className="absolute right-0 mt-2 w-40 bg-white border rounded-md shadow-lg z-50">
+
+              <button
+                onClick={() => {
+                  setVisualUser(null);
+                  setOpenDropdownVisual(false);
+                }}
+                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+              >
+                Sair
+              </button>
+
+            </div>
+          )}
+        </div>
       </section>
     </header>
   );

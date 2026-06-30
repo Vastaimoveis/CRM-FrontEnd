@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, type Dispatch } from "react";
-import { type User } from "@/shared/types/UserTypes";
+import { UserRoles, type User } from "@/shared/types/UserTypes";
 import { loginRequest } from "@/services/auth/authService";
 import { mapLoginResponseToUser } from "@/services/auth/authMapper"
 
@@ -7,8 +7,9 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   login: (email: string, password: string) => Promise<void>;
-  selectedUser: User | null;
-  setSelectedUser: Dispatch<React.SetStateAction<User | null>>;
+  visualUser: User | null;
+  setVisualUser: Dispatch<React.SetStateAction<User | null>>;
+  requestUser: User | null;
   logout: () => void;
   loading: boolean;
 }
@@ -18,6 +19,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [visualUser, setVisualUser] = useState<User | null>(null);
+  const requestUser =
+    (user?.role === UserRoles.GERENTE && visualUser) ? visualUser : user
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -32,6 +35,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     setLoading(false);
   }, []);
+
+  useEffect(() => {
+    if (visualUser) {
+      localStorage.setItem("visualUser", JSON.stringify(visualUser));
+    } else {
+      localStorage.removeItem("visualUser");
+    }
+  }, [visualUser]);
 
   async function login(email: string, password: string) {
     try {
@@ -59,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         "refreshToken",
         response.data.refreshToken
       );
-      
+
     } catch (error: any) {
       throw new Error(
         error?.response?.data?.text ||
@@ -81,7 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, selectedUser: visualUser, setSelectedUser: setVisualUser, loading }}>
+    <AuthContext.Provider value={{ user, token, login, logout, visualUser, setVisualUser, requestUser, loading }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,8 +1,9 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { CreateLeadDTO, Lead } from "@/shared/types/LeadType";
 import { createLeadRequest, EMPTY_LEADS_COUNT, getLeadsStatus } from "@/services/leads/leadsService";
 import type { countStatusResponse } from "@/services/leads/types/leads";
 import { normalizeLeadStatusResponse } from "@/services/leads/helper";
+import { useAuth } from "./AuthProvider";
 
 interface FunnelContextType {
     countLeads: countStatusResponse;
@@ -19,6 +20,8 @@ const FunnelContext = createContext<FunnelContextType | null>(null);
 export function FunnelProvider({ children }: { children: ReactNode }) {
     const [countLeads, setCountLeads] = useState<countStatusResponse>(EMPTY_LEADS_COUNT);
     const [totalLeads, setTotalLeads] = useState<number>(0);
+    const { requestUser } = useAuth();
+
     async function createLead(
         data: CreateLeadDTO
     ) {
@@ -30,8 +33,8 @@ export function FunnelProvider({ children }: { children: ReactNode }) {
 
     async function fetchCountLeads() {
         try {
-
-            const data = await getLeadsStatus();
+            if (!requestUser) return;
+            const data = await getLeadsStatus(requestUser.id);
 
             setCountLeads(normalizeLeadStatusResponse(data));
             setTotalLeads(data.total);
@@ -44,6 +47,10 @@ export function FunnelProvider({ children }: { children: ReactNode }) {
             );
         }
     }
+
+    useEffect(() => {
+        fetchCountLeads();
+    }, [requestUser]);
 
     return (
         <FunnelContext.Provider

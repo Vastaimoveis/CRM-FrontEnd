@@ -30,8 +30,8 @@ export async function getLeads(
     return response.data.data;
 }
 
-export async function getOportunity() {
-    const response = await api.get<ApiResponse<Lead[]>>(`leads/oportunidades`);
+export async function getOportunity(userId: string) {
+    const response = await api.get<ApiResponse<Lead[]>>(`leads/oportunidades/${userId}`);
 
     return response.data.data;
 }
@@ -47,8 +47,8 @@ export async function getLeadsByUserId(userId: string) {
     return response.data.data
 }
 
-export async function getLeadsStatus() {
-    const response = await api.get<ApiResponse<countStatusResponse>>(`leads/dashboard`);
+export async function getLeadsStatus(userId: string) {
+    const response = await api.get<ApiResponse<countStatusResponse>>(`leads/dashboard/${userId}`);
     return response.data.data;
 }
 
