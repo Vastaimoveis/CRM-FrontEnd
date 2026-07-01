@@ -15,6 +15,7 @@ export function useLeadsPage() {
         updateFilters,
         fetchFilteredLeads,
         patchLeadStatus,
+        patchLeadCorretor,
         deleteLead,
         handleEdit,
         totalPages,
@@ -31,6 +32,8 @@ export function useLeadsPage() {
         requireNote?: boolean;
         onConfirm: (note?: string) => void | Promise<void>;
     } | null>(null);
+
+    const [sendModal, setSendModal] = useState<Lead | null>(null)
 
     const { user } = useAuth();
 
@@ -142,6 +145,22 @@ export function useLeadsPage() {
         setSearchInput("")
     }, [updateFilters])
 
+    const handleSend = useCallback(async (leadId: string, userId: string) => {
+        try {
+            
+            await patchLeadCorretor(leadId, userId);
+            console.log(leadId, userId);
+            showToast("Sucesso em alterar o corretor do lead", "success")
+            setSendModal(null);
+        } catch {
+            showToast("Erro ao enviar o lead", "error")
+        }
+    }, [])
+
+    const openSendModal = (lead: Lead) => {
+        setSendModal(lead);
+    };
+
 
     const loadLeads = useCallback(() => {
         if (!user?.id) return;
@@ -188,13 +207,16 @@ export function useLeadsPage() {
         totalPages,
         previewType,
         setPreviewType,
+        openSendModal,
 
         handlePatchStatus,
         handleClearFilters,
+        handleSend,
         handleDelete,
         handleEditLead,
         handleStatusChanges,
         handleSearchChanges,
-
+        setSendModal,
+        sendModal,
     };
 }

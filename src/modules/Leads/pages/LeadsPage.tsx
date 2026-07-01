@@ -13,12 +13,15 @@ import LeadEditModal from "../components/LeadsEditModal";
 import { useLeadsPage } from "../hooks/useLeadsPage";
 import { LeadsReminderPicker } from "../components/LeadsReminderPicker";
 import { useLeadReminder } from "../hooks/useLeadReminder";
+import LeadChangeUserModal from "@/shared/components/leadChangeUserModal";
+import { useUsers } from "@/app/providers/UserProvider";
 
 export default function Leads() {
     const {
         leads,
         filters,
         updateFilters,
+        sendModal,
         totalPages,
         confirmModal,
         setConfirmModal,
@@ -28,11 +31,14 @@ export default function Leads() {
         setPreviewType,
         editingLead,
         handleClearFilters,
+        handleSend,
         handleDelete,
         handleEditLead,
         handlePatchStatus,
         handleSearchChanges,
         handleStatusChanges,
+        openSendModal,
+        setSendModal,
     } = useLeadsPage();
 
     const {
@@ -43,12 +49,14 @@ export default function Leads() {
         selectedLead, setNewNote
     } = useLeadNotes();
 
+    const { users } = useUsers();
+
     const { dateReminder,
         openReminder,
         setOpenReminder,
         onCancel,
         onSave,
-        onSelect} = useLeadReminder();
+        onSelect } = useLeadReminder();
 
 
     return (
@@ -123,6 +131,7 @@ export default function Leads() {
             <LeadsTable
                 leads={leads}
                 patchLeadStatus={handlePatchStatus}
+                onSend={openSendModal}
                 onDelete={handleDelete}
                 onEdit={setEditingLead}
                 onOpenNotes={openNotes}
@@ -242,6 +251,14 @@ export default function Leads() {
                 onClose={() => setEditingLead(null)}
                 onSave={handleEditLead}
             />}
+
+            {sendModal &&
+                <LeadChangeUserModal
+                    lead={sendModal}
+                    onClose={() => setSendModal(null)}
+                    users={users}
+                    onSave={handleSend}
+                />}
         </div>
     );
 }

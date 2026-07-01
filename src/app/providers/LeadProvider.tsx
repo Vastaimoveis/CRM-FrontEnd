@@ -9,9 +9,9 @@ import {
 } from "react";
 import type { Lead } from "@/shared/types/LeadType";
 import { LeadStatus } from "@/shared/types/LeadType";
-import { deleteLeadRequest, editLead, getFilteredLeads, getLeadById, getOportunity, patchStatus, updateLeadRequest } from "@/services/leads/leadsService";
+import { deleteLeadRequest, editLead, getFilteredLeads, getLeadById, getOportunity, patchCorretor, patchStatus, updateLeadRequest } from "@/services/leads/leadsService";
 import { useAuth } from "./AuthProvider";
-import type { LeadStatusDTO, UpdateLeadDto } from "@/services/leads/types/leads";
+import type { LeadCorretorDTO, LeadStatusDTO, UpdateLeadDto } from "@/services/leads/types/leads";
 import { useToast } from "./ToastProvider";
 import { useFunnel } from "./FunnelProvider";
 import { getApiErrorMessage } from "@/shared/utils/getApiErrorResponse";
@@ -38,9 +38,11 @@ export interface LeadContextType {
     ) => Promise<Lead | null>;
 
     patchLeadStatus: (
-        id: string,
+        leadId: string,
         status: LeadStatus
     ) => Promise<Lead | null>
+
+    patchLeadCorretor: (id: string, userId: string) => Promise<Lead | null>
 
     deleteLead: (id: string) => Promise<void>;
     handleEdit: (id: string, data: UpdateLeadDto) => Promise<void>;
@@ -96,7 +98,7 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         setLoading(true);
 
         try {
-            if(!requestUser) return;
+            if (!requestUser) return;
             const response = await getOportunity(requestUser.id);
             setOpportunities(response);
         } catch (error) {
@@ -227,6 +229,41 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         [fetchCountLeads, handleError]
     )
 
+    const patchLeadCorretor = useCallback(
+        async (leadId: string, userId: string
+        ) => {
+            try {
+                const corretorDTO: LeadCorretorDTO = {
+                    userId: userId
+                };
+
+                const patched =
+                    await patchCorretor(leadId, corretorDTO);
+
+                setLeads(prev =>
+                    prev.map(lead =>
+                        lead.id === leadId
+                            ? patched
+                            : lead
+                    )
+                );
+
+                await fetchCountLeads();
+                return patched;
+
+            } catch (error) {
+
+                handleError(error);
+
+                return null;
+
+            }
+        },
+        [fetchCountLeads, handleError]
+    )
+
+
+
     const deleteLead = useCallback(
         async (id: string) => {
             try {
@@ -295,6 +332,7 @@ export function LeadProvider({ children }: { children: ReactNode }) {
             handleDateChange,
             handleEdit,
             patchLeadStatus,
+            patchLeadCorretor,
             deleteLead,
         }
     ), [
@@ -307,6 +345,7 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         updateFilters,
         handleDateChange,
         patchLeadStatus,
+        patchLeadCorretor,
         handleEdit,
         deleteLead,
 

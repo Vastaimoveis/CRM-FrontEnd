@@ -9,6 +9,7 @@ export enum LeadStatus {
 }
 export interface Lead {
   id: string;
+  userId: string;
   nome: string;
   email: string;
   telefone: string;

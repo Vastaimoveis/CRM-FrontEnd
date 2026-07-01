@@ -3,26 +3,26 @@ import Permission from "@/shared/permissions/Permission";
 import { UserRoles } from "@/shared/types/UserTypes";
 import { memo } from "react";
 import capitalizeWords from "@/shared/utils/capitalizeWords";
-import { Trash2, SquarePen } from "lucide-react";
+import { Trash2, SquarePen, Send } from "lucide-react";
 
 interface LeadsTableProps {
     leads: Lead[];
     onOpenNotes: (lead: Lead) => void;
 
     patchLeadStatus: (id: string, status: LeadStatus) => void;
+    onSend: (lead: Lead) => void;
     onDelete: (id: string) => Promise<void>;
-      onEdit: (lead: Lead) => void;
-
+    onEdit: (lead: Lead) => void;
 }
 
 function LeadsTable({
     leads,
     onOpenNotes,
     patchLeadStatus,
+    onSend,
     onEdit,
     onDelete
 }: LeadsTableProps) {
-
 
     if (!leads.length) {
         return (
@@ -31,10 +31,6 @@ function LeadsTable({
             </div>
         );
     }
-
-
-
-
 
     return (
         <table className="w-full border-collapse">
@@ -88,17 +84,25 @@ function LeadsTable({
                         <td>
                             {new Date(lead.createdAt).toLocaleDateString()}
                         </td>
-                        <td>
+                        <td className="flex justify-center py-2">
+                            <button
+                                onClick={() => onEdit(lead)}
+                                className="p-2 rounded-lg hover:bg-blue-100 transition"
+                                title="Editar Lead"
+                            >
+                                <SquarePen size={18}
+                                    className="text-blue-600" />
+                            </button>
+
                             <Permission allowed={[UserRoles.GERENTE]}>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => onEdit(lead)}
-                                        className="p-2 rounded-lg hover:bg-blue-100 transition"
-                                        title="Editar Lead"
-                                    >
-                                        <SquarePen size={18}
-                                            className="text-blue-600" />
+                                <div className="flex ">
+                                    <button onClick={() => {
+                                        onSend(lead)
+                                    }}
+                                        className="p-2 rounded-lg hover:bg-green-100 transition">
+                                        <Send size={18} className="text-green-800" />
                                     </button>
+
 
                                     <button
                                         onClick={() => onDelete(lead.id)}

@@ -20,3 +20,7 @@ export interface UpdateLeadDto {
 export interface LeadStatusDTO{
     statusLead: LeadStatus;
 }
+
+export interface LeadCorretorDTO{
+    userId: string
+}

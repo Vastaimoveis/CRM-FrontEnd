@@ -5,7 +5,7 @@ import {
     type CreateLeadDTO,
     type Lead,
 } from "@/shared/types/LeadType";
-import type { countStatusResponse, LeadStatusDTO, UpdateLeadDto } from "./types/leads";
+import type { countStatusResponse, LeadCorretorDTO, LeadStatusDTO, UpdateLeadDto } from "./types/leads";
 import { UserRoles, type User } from "@/shared/types/UserTypes";
 import type { LeadFilters } from "@/shared/types/filterTypes";
 
@@ -111,6 +111,13 @@ export async function patchStatus(id: string, data: LeadStatusDTO): Promise<Lead
 
     return response.data.data;
 }
+
+export async function patchCorretor(leadId: string, data: LeadCorretorDTO):Promise<Lead>{
+    const response = await api.patch<
+    ApiResponse<Lead>>(`/leads/${leadId}/corretor`, data);
+    return response.data.data;
+}
+
 
 export async function getFilteredLeads(
     filter: LeadFilters
