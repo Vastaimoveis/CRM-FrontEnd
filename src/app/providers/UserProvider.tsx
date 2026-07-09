@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { createUser, getAllUsers, type CreateUserDTO, updateUser as updateUserService } from "@/services/users/userService";
 import type { User } from "@/shared/types/UserTypes";
 import capitalizeWords from "@/shared/utils/capitalizeWords";
@@ -19,56 +19,81 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const [users, setUsers] = useState<User[] | null>(null)
     const [loading, setLoading] = useState(true);
 
-    async function fetchUsers() {
+    const fetchUsers = useCallback(async () => {
         const data = await getAllUsers();
 
         setUsers(data.content.map((user) => (
-            {...user, nome: capitalizeWords(user.nome)
-
+            {
+                ...user, nome: capitalizeWords(user.nome)
             })));
-}
+    }, [
+        getAllUsers,
+        setUsers,
 
-async function CreateUser(userDTO: CreateUserDTO) {
-    await createUser(userDTO)
-    await fetchUsers();
-}
+    ]
+    )
 
-async function updateUser(user: User) {
-    await updateUserService(user);
-    await fetchUsers();
-}
-
-useEffect(() => {
-    loadUsers();
-}, []);
-
-async function loadUsers() {
-    await fetchUsers();
-    setLoading(false);
-}
-
-const getUserById = useCallback(
-    (id: string) => {
-        return users?.find(user => user.id === id) ?? null;
+    const CreateUser = useCallback(async (userDTO: CreateUserDTO) => {
+        await createUser(userDTO)
+        await fetchUsers();
     },
-    [users]
-);
+        [
+            createUser,
+            fetchUsers
+        ]
+    )
 
-return (
-    <UserContext.Provider
-        value={{
-            CreateUser,
-            getUserById,
-            fetchUsers,
-            setUsers,
-            updateUser,
-            users,
-            loading
-        }}
-    >
-        {children}
-    </UserContext.Provider>
-)
+    const updateUser = useCallback(async (user: User) => {
+        await updateUserService(user);
+        await fetchUsers();
+    }, [
+        updateUserService,
+        fetchUsers
+    ])
+
+    useEffect(() => {
+        async function load() {
+            try {
+                await fetchUsers();
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        load();
+    }, [fetchUsers]);
+
+    const getUserById = useCallback(
+        (id: string) =>
+            users?.find(user => user.id === id) ?? null,
+        [users]
+    );
+
+    const value = useMemo(() => ({
+        CreateUser,
+        getUserById,
+        fetchUsers,
+        setUsers,
+        updateUser,
+        users,
+        loading
+    }), [
+        CreateUser,
+        getUserById,
+        fetchUsers,
+        setUsers,
+        updateUser,
+        users,
+        loading
+    ])
+
+    return (
+        <UserContext.Provider
+            value={value}
+        >
+            {children}
+        </UserContext.Provider>
+    )
 }
 
 export function useUsers() {

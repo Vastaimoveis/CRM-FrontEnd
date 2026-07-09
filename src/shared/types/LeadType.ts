@@ -7,6 +7,15 @@ export enum LeadStatus {
   VENDA = "VENDA",
   ENCERRADO = "ENCERRADO"
 }
+export enum LeadOrigem {
+  CRM = "CRM",
+  SITE = "SITE",
+  FACEBOOK = "FACEBOOK",
+  GOOGLE = "GOOGLE",
+  WHATSAPP = "WHATSAPP",
+  OUTROS = "OUTROS"
+}
+
 export interface Lead {
   id: string;
   userId: string;
@@ -18,6 +27,7 @@ export interface Lead {
   hasNotes: boolean;
   createdAt: Date;
   updatedAt: Date;
+  origem: LeadOrigem;
 }
 
 export interface CreateLeadDTO {
@@ -25,6 +35,7 @@ export interface CreateLeadDTO {
   email: string;
   telefone: string;
   status: LeadStatus;
+  origem: LeadOrigem
 }
 
 export const STATUS_COLORS: Record<LeadStatus, string> = {

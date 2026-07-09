@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { formatPhone } from "@/shared/utils/formatPhone";
-import { LeadStatus, type CreateLeadDTO } from "@/types/LeadType";
+import { LeadOrigem, LeadStatus, type CreateLeadDTO } from "@/types/LeadType";
 
 export function useHooksFunnel() {
   const [form, setForm] = useState<CreateLeadDTO>({
@@ -8,6 +8,7 @@ export function useHooksFunnel() {
     email: "",
     telefone: "",
     status: LeadStatus.CADASTRADO,
+    origem: LeadOrigem.CRM
   });
 
   const [loading, setLoading] = useState(false);
@@ -48,7 +49,8 @@ export function useHooksFunnel() {
       nome: "",
       email: "",
       telefone: "",
-      status: LeadStatus.CADASTRADO
+      status: LeadStatus.CADASTRADO,
+      origem: LeadOrigem.CRM
     });
   }
 

@@ -1,9 +1,11 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { CreateLeadDTO, Lead } from "@/shared/types/LeadType";
 import { createLeadRequest, EMPTY_LEADS_COUNT, getLeadsStatus } from "@/services/leads/leadsService";
 import type { countStatusResponse } from "@/services/leads/types/leads";
 import { normalizeLeadStatusResponse } from "@/services/leads/helper";
 import { useAuth } from "./AuthProvider";
+import useRequestLock from "@/shared/utils/useRequestLock";
+import { useRequestPromise } from "@/shared/utils/useRequestPromise";
 
 interface FunnelContextType {
     countLeads: countStatusResponse;
@@ -21,24 +23,17 @@ export function FunnelProvider({ children }: { children: ReactNode }) {
     const [countLeads, setCountLeads] = useState<countStatusResponse>(EMPTY_LEADS_COUNT);
     const [totalLeads, setTotalLeads] = useState<number>(0);
     const { requestUser } = useAuth();
+    const runLockedCreateLead = useRequestLock()
+    const runRequestFetchCount = useRequestPromise();
 
-    async function createLead(
-        data: CreateLeadDTO
-    ) {
-        const response = await createLeadRequest(data);
-        await fetchCountLeads();
-
-        return response;
-    }
-
-    async function fetchCountLeads() {
+    const fetchCountLeads = useCallback(async () => {
         try {
             if (!requestUser) return;
-            const data = await getLeadsStatus(requestUser.id);
-
-            setCountLeads(normalizeLeadStatusResponse(data));
-            setTotalLeads(data.total);
-
+            return runRequestFetchCount(async () => {
+                const data = await getLeadsStatus(requestUser.id);
+                setCountLeads(normalizeLeadStatusResponse(data));
+                setTotalLeads(data.total);
+            });
         } catch (error) {
 
             console.error(
@@ -46,20 +41,48 @@ export function FunnelProvider({ children }: { children: ReactNode }) {
                 error
             );
         }
-    }
+    }, [
+        getLeadsStatus,
+        requestUser,
+        setCountLeads,
+        setTotalLeads,
+    ])
+
+    const createLead = useCallback(async (
+        data: CreateLeadDTO
+    ) => {
+        return runLockedCreateLead(async () => {
+            const response = await createLeadRequest(data);
+            await fetchCountLeads();
+
+            return response;
+        })
+    }, [
+        fetchCountLeads
+    ])
+
 
     useEffect(() => {
         fetchCountLeads();
     }, [requestUser]);
 
+    const value = useMemo(() => ({
+        totalLeads,
+        createLead,
+        countLeads,
+        fetchCountLeads,
+
+    }), [
+        totalLeads,
+        createLead,
+        countLeads,
+        fetchCountLeads,
+
+    ])
+
     return (
         <FunnelContext.Provider
-            value={{
-                totalLeads,
-                createLead,
-                countLeads,
-                fetchCountLeads,
-            }}
+            value={value}
         >
             {children}
         </FunnelContext.Provider>

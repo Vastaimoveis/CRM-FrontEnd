@@ -2,7 +2,7 @@ import logo from "/logo.png"
 import { formatPhone } from "@/shared/utils/formatPhone";
 import { useLoginForm } from "../hooks/useHooksLogin";
 import { Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -23,6 +23,9 @@ export default function Login() {
     handleSubmit
   } = useLoginForm();
 
+  useEffect(() => {
+    
+  }, [])
 
   return (
     <div className="min-h-screen flex">

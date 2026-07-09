@@ -2,20 +2,20 @@ import {
     createContext,
     useCallback,
     useContext,
-    useEffect,
     useMemo,
     useState,
     type ReactNode,
 } from "react";
 import type { Lead } from "@/shared/types/LeadType";
 import { LeadStatus } from "@/shared/types/LeadType";
-import { deleteLeadRequest, editLead, getFilteredLeads, getLeadById, getOportunity, patchCorretor, patchStatus, updateLeadRequest } from "@/services/leads/leadsService";
 import { useAuth } from "./AuthProvider";
-import type { LeadCorretorDTO, LeadStatusDTO, UpdateLeadDto } from "@/services/leads/types/leads";
+import type { UpdateLeadDto } from "@/services/leads/types/leads";
 import { useToast } from "./ToastProvider";
 import { useFunnel } from "./FunnelProvider";
 import { getApiErrorMessage } from "@/shared/utils/getApiErrorResponse";
 import type { LeadFilters } from "@/shared/types/filterTypes";
+import { useLeadQueries } from "./hooks/leads/useLeadsQueries";
+import { useLeadMutations } from "./hooks/leads/useLeadsMutation";
 
 
 export interface LeadContextType {
@@ -27,7 +27,7 @@ export interface LeadContextType {
     totalPages: number;
     opportunities: Lead[];
 
-    fetchFilteredLeads: (filters: LeadFilters) => Promise<void>;
+    fetchFilteredLeads: (filters: LeadFilters) => Promise<void | null>;
 
     updateFilters: (partial: Partial<LeadFilters>) => void;
 
@@ -60,7 +60,6 @@ export function LeadProvider({ children }: { children: ReactNode }) {
     const { showToast } = useToast();
     const { fetchCountLeads } = useFunnel();
     const [opportunities, setOpportunities] = useState<Lead[]>([]);
-    const [error, setError] = useState<string>("");
     const [filters, setFilters] = useState<LeadFilters>({
         search: "",
         status: null,
@@ -94,12 +93,26 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         [showToast]
     )
 
+    const {
+        runFetchFilteredLeads,
+        runFetchOportunidade
+    } = useLeadQueries();
+
+
+    const {
+        runDeleteLead,
+        runHandleEdit,
+        runPatchLeadCorretor,
+        runPatchLeadStatus,
+        runUpdateLeadStatus
+    } = useLeadMutations();
+
     const fetchOportunidade = useCallback(async () => {
         setLoading(true);
 
         try {
             if (!requestUser) return;
-            const response = await getOportunity(requestUser.id);
+            const response = await runFetchOportunidade();
             setOpportunities(response);
         } catch (error) {
             handleError(error)
@@ -112,19 +125,13 @@ export function LeadProvider({ children }: { children: ReactNode }) {
 
     const fetchFilteredLeads = useCallback(
         async (filter: LeadFilters) => {
-
-            if (!requestUser) return;
             setLoading(true);
-            setError("");
-
             try {
-                const response = await getFilteredLeads({
-                    ...filter,
-                    userId: requestUser.id, // 🔥 FORÇADO SEMPRE
-                });
+
+                const response = await runFetchFilteredLeads(filter);
+                if (!response) return null;
                 if (!response.success || !response.data) {
-                    setError(response.text || "Erro ao buscar leads");
-                    showToast(error, "error")
+                    showToast("Erro ao buscar os leads filtrados", "error")
                     return;
                 }
 
@@ -136,8 +143,7 @@ export function LeadProvider({ children }: { children: ReactNode }) {
                         ? error.message
                         : "Erro ao buscar leads";
 
-                setError(message);
-                handleError(error);
+                handleError(message);
 
             } finally {
                 setLoading(false);
@@ -151,20 +157,8 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         ) => {
             setLoading(true);
             try {
-
-                const lead = await getLeadById(id);
-                const updatedDto = {
-                    nome: lead.nome,
-                    email: lead.email,
-                    telefone: lead.telefone,
-                    status,
-                }
-
                 const updated =
-                    await updateLeadRequest(
-                        id,
-                        updatedDto
-                    );
+                    await runUpdateLeadStatus(id, status)
                 await fetchFilteredLeads(filters);
                 await fetchCountLeads();
                 return updated
@@ -187,21 +181,15 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         async (id: string, status: LeadStatus
         ) => {
             try {
-                const statusDTO: LeadStatusDTO = {
-                    statusLead: status
-                };
-
                 const patched =
-                    await patchStatus(id, statusDTO);
-
+                    await runPatchLeadStatus(id, status);
+                if (!patched) return null;
                 if (status === LeadStatus.ENCERRADO) {
-
                     setLeads(prev =>
                         prev.filter(
                             lead => lead.id !== id
                         )
                     );
-
                 } else {
 
                     setLeads(prev =>
@@ -213,9 +201,6 @@ export function LeadProvider({ children }: { children: ReactNode }) {
                     );
 
                 }
-
-                await fetchCountLeads();
-
                 return patched;
 
             } catch (error) {
@@ -233,13 +218,8 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         async (leadId: string, userId: string
         ) => {
             try {
-                const corretorDTO: LeadCorretorDTO = {
-                    userId: userId
-                };
-
                 const patched =
-                    await patchCorretor(leadId, corretorDTO);
-
+                    await runPatchLeadCorretor(leadId, userId);
                 setLeads(prev =>
                     prev.map(lead =>
                         lead.id === leadId
@@ -248,7 +228,6 @@ export function LeadProvider({ children }: { children: ReactNode }) {
                     )
                 );
 
-                await fetchCountLeads();
                 return patched;
 
             } catch (error) {
@@ -262,18 +241,15 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         [fetchCountLeads, handleError]
     )
 
-
-
     const deleteLead = useCallback(
         async (id: string) => {
             try {
-                await deleteLeadRequest(id);
+                await runDeleteLead(id);
                 setLeads(prev =>
                     prev.filter(
                         lead => lead.id !== id
                     )
                 );
-                await fetchCountLeads();
             } catch (error) {
                 handleError(error);
 
@@ -298,8 +274,7 @@ export function LeadProvider({ children }: { children: ReactNode }) {
     )
 
     const handleEdit = useCallback(async (id: string, data: UpdateLeadDto) => {
-        const updatedLead = await editLead(id, data);
-
+        const updatedLead = await runHandleEdit(id, data);
         setLeads(prev =>
             prev.map(lead =>
                 lead.id === id
@@ -308,13 +283,6 @@ export function LeadProvider({ children }: { children: ReactNode }) {
             )
         );
     }, [fetchFilteredLeads])
-
-
-    useEffect(() => {
-        if (error) {
-            showToast(error, "error");
-        }
-    }, [error]);
 
 
     const value = useMemo(() => (

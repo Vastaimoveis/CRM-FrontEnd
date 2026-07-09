@@ -1,7 +1,8 @@
-import { createContext, useContext, useEffect, useState, type Dispatch } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type Dispatch } from "react";
 import { UserRoles, type User } from "@/shared/types/UserTypes";
 import { loginRequest } from "@/services/auth/authService";
 import { mapLoginResponseToUser } from "@/services/auth/authMapper"
+import useRequestLock from "@/shared/utils/useRequestLock";
 
 interface AuthContextType {
   user: User | null;
@@ -24,6 +25,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const runLockLogin = useRequestLock();
+
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     const storedToken = localStorage.getItem("accessToken");
@@ -44,33 +47,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [visualUser]);
 
-  async function login(email: string, password: string) {
+  const login = useCallback(async (email: string, password: string) => {
     try {
-      setLoading(true);
+      runLockLogin(async () => {
+        setLoading(true);
+        const response = await loginRequest({
+          email,
+          password,
+        });
 
-      const response = await loginRequest({
-        email,
-        password,
-      });
+        const user = mapLoginResponseToUser(response);
 
-      const user = mapLoginResponseToUser(response);
+        const token = response.data.accessToken;
 
-      const token = response.data.accessToken;
+        setUser(user);
+        setToken(token);
 
-      setUser(user);
-      setToken(token);
+        localStorage.setItem("user", JSON.stringify(user));
+        localStorage.setItem(
+          "accessToken",
+          token
+        );
 
-      localStorage.setItem("user", JSON.stringify(user));
-      localStorage.setItem(
-        "accessToken",
-        token
-      );
+        localStorage.setItem(
+          "refreshToken",
+          response.data.refreshToken
+        );
 
-      localStorage.setItem(
-        "refreshToken",
-        response.data.refreshToken
-      );
-
+      })
     } catch (error: any) {
       throw new Error(
         error?.response?.data?.text ||
@@ -80,19 +84,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [
+    setLoading,
+    loginRequest,
+    mapLoginResponseToUser,
+    setUser,
+    setToken,
+    localStorage,
+    Error,
+  ])
 
-  function logout() {
+  const logout = useCallback(() => {
     setUser(null);
     setToken(null);
+    setVisualUser(null);
 
     localStorage.removeItem("user");
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
-  }
+    localStorage.removeItem("visualUser");
+  }, [setUser, setToken, setVisualUser, localStorage]);
+
+  useEffect(() => {
+    if (location.pathname === "/login") {
+      logout();
+    }
+  }, [location.pathname, logout]);
+
+
+  const value = useMemo(() => ({
+    user, token, login, logout, visualUser, setVisualUser, requestUser, loading
+  }), [user, token, login, logout, visualUser, setVisualUser, requestUser, loading])
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, visualUser, setVisualUser, requestUser, loading }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

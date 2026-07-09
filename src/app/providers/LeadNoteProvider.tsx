@@ -1,29 +1,27 @@
 import { createLeadNote, getLeadNoteByLead } from "@/services/leadsNote/LeadsNoteService";
 import { type LeadNoteRequest, type LeadNotes } from "@/shared/types/LeadNotesType";
 import type { Lead } from "@/shared/types/LeadType";
-import { createContext, useContext, useState, type ReactNode } from "react"
+import useRequestLock from "@/shared/utils/useRequestLock";
+import { useRequestPromise } from "@/shared/utils/useRequestPromise";
+import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react"
 
 
 interface LeadNotesContextType {
     leadNotes: LeadNotes[];
     totalPages: number;
     noteLoading: boolean;
-
+    page: number;
     selectedLead: Lead | null;
     newNote: string;
     saving: boolean;
-
     setNewNote: React.Dispatch<React.SetStateAction<string>>;
 
     openNotes: (lead: Lead) => Promise<void>;
     closeNotes: () => void;
-
     addNote: () => Promise<void>;
-
     createNewLeadNote: (
         data: LeadNoteRequest
     ) => Promise<void>;
-
     fetchLeadNotesByLead: (
         id: string,
         page: number
@@ -46,12 +44,38 @@ export function LeadNotesProvider({ children }: { children: ReactNode }) {
     const [saving, setSaving] =
         useState(false);
 
-    async function createNewLeadNote(data: LeadNoteRequest) {
+    const runLockCreateNote = useRequestLock();
+    const runPromiseFetchNote = useRequestPromise();
+
+    const createNewLeadNote = useCallback(async (data: LeadNoteRequest) => {
         await createLeadNote(data)
+    }, [
+        createLeadNote
+    ])
 
-    }
+    const fetchLeadNotesByLead = useCallback(async (id: string, actualPage: number) => {
+        setNoteLoading(true)
 
-    async function openNotes(lead: Lead) {
+        try {
+            runPromiseFetchNote(async () => {
+                const response = await getLeadNoteByLead(id, actualPage);
+                setTotalPages(response.totalPages)
+                setPage(actualPage);
+                setLeadNotes(response.content);
+            })
+
+        } finally {
+            setNoteLoading(false)
+        }
+    }, [
+        setNoteLoading,
+        setPage,
+        getLeadNoteByLead,
+        setTotalPages,
+
+    ])
+
+    const openNotes = useCallback(async (lead: Lead) => {
 
         setSelectedLead(lead);
 
@@ -59,18 +83,29 @@ export function LeadNotesProvider({ children }: { children: ReactNode }) {
             lead.id,
             0
         );
-    }
+    }, [
+        selectedLead,
+        fetchLeadNotesByLead
+    ]
+    )
 
-    function closeNotes() {
+    const closeNotes = useCallback(() => {
 
         setSelectedLead(null);
 
         setNewNote("");
 
         setLeadNotes([]);
-    }
+    }, [
+        setSelectedLead,
+        setNewNote,
+        setLeadNotes,
+    ])
 
-    async function addNote() {
+
+
+
+    const addNote = useCallback(async () => {
 
         if (!selectedLead || !newNote.trim())
             return;
@@ -78,56 +113,66 @@ export function LeadNotesProvider({ children }: { children: ReactNode }) {
         setSaving(true);
 
         try {
+            runLockCreateNote(async () => {
+                const dto: LeadNoteRequest = {
+                    leadId: selectedLead.id,
+                    note: newNote.trim(),
+                };
 
-            const dto: LeadNoteRequest = {
-                leadId: selectedLead.id,
-                note: newNote.trim(),
-            };
+                await createLeadNote(dto);
 
-            await createLeadNote(dto);
+                await fetchLeadNotesByLead(
+                    selectedLead.id,
+                    0
+                );
 
-            await fetchLeadNotesByLead(
-                selectedLead.id,
-                0
-            );
-
-            setNewNote("");
+                setNewNote("");
+            })
         } finally {
             setSaving(false);
 
         }
-    }
+    }, [
+        selectedLead,
+        setSaving,
+        createLeadNote,
+        fetchLeadNotesByLead,
+        setNewNote,
 
-    async function fetchLeadNotesByLead(id: string, actualPage: number) {
-        setNoteLoading(true)
-        setPage(actualPage);
+    ])
 
-        try {
-            const response = await getLeadNoteByLead(id, page);
-            setTotalPages(response.totalPages)
-            if (response.totalPages >= page) {
-                setLeadNotes(response.content);
-            }
-        } finally {
-            setNoteLoading(false)
-        }
-    }
+    const value = useMemo(() => ({
+        leadNotes,
+        noteLoading,
+        totalPages,
+        addNote,
+        closeNotes,
+        page,
+        newNote,
+        openNotes,
+        saving,
+        selectedLead,
+        setNewNote,
+        createNewLeadNote,
+        fetchLeadNotesByLead
+    }), [
+        leadNotes,
+        noteLoading,
+        totalPages,
+        addNote,
+        closeNotes,
+        page,
+        newNote,
+        openNotes,
+        saving,
+        selectedLead,
+        setNewNote,
+        createNewLeadNote,
+        fetchLeadNotesByLead
+    ])
 
     return (
-        <LeadNotesContext.Provider value={{
-            leadNotes,
-            noteLoading,
-            totalPages,
-            addNote,
-            closeNotes,
-            newNote,
-            openNotes,
-            saving,
-            selectedLead,
-            setNewNote,
-            createNewLeadNote,
-            fetchLeadNotesByLead
-        }}>
+        <LeadNotesContext.Provider value={value}>
             {children}
         </LeadNotesContext.Provider>
     )
