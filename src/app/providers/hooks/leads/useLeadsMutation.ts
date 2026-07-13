@@ -41,7 +41,8 @@ export function useLeadMutations() {
                 nome: lead.nome,
                 email: lead.email,
                 telefone: lead.telefone,
-                status
+                status,
+                origem: lead.origem
             });
 
         });
