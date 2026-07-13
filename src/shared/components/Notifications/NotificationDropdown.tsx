@@ -1,14 +1,14 @@
 import { Bell, BellRing } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useReminder } from "@/app/providers/ReminderProvider";
-import ReminderItem from "./ReminderItem";
-import TodayReminderModal from "./todayRemindersModal";
+import { useNotification } from "@/app/providers/NotificationProvider";
+import NotificationItem from "./NotificationItem";
+import TodayReminderModal from "./todayNotificationModal";
 
-export default function ReminderDropdown() {
+export default function NotificationDropdown() {
     const [open, setOpen] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
 
-    const { reminders, hasUnreadReminders, readReminders, unreadReminders, todayReminders, showTodayModal, setShowTodayModal } = useReminder();
+    const { notifications, hasUnreadNotifications, readNotifications, unreadNotifications, todayNotifications, showTodayModal, setShowTodayModal } = useNotification();
     const [tab, setTab] = useState<"unread" | "read" | "today">("today");
 
 
@@ -34,13 +34,13 @@ export default function ReminderDropdown() {
                 onClick={() => setOpen(!open)}
                 className="relative"
             >
-                {hasUnreadReminders ? (
+                {hasUnreadNotifications ? (
                     <BellRing className="text-red-500" />
                 ) : (
                     <Bell />
                 )}
 
-                {hasUnreadReminders && (
+                {hasUnreadNotifications && (
                     <span
                         className="
                             absolute
@@ -57,7 +57,7 @@ export default function ReminderDropdown() {
                             justify-center
                         "
                     >
-                        {reminders.filter(r => !r.read).length}
+                        {notifications.filter(r => !r.read).length}
                     </span>
                 )}
             </button>
@@ -90,7 +90,7 @@ export default function ReminderDropdown() {
                                 : "text-gray-500"
                                 }`}
                         >
-                            Hoje ({todayReminders.length})
+                            Hoje ({todayNotifications.length})
                         </button>
                         <button
                             onClick={() => setTab("unread")}
@@ -99,7 +99,7 @@ export default function ReminderDropdown() {
                                 : "text-gray-500"
                                 }`}
                         >
-                            Não lidos ({unreadReminders.length})
+                            Não lidos ({unreadNotifications.length})
                         </button>
 
                         <button
@@ -109,7 +109,7 @@ export default function ReminderDropdown() {
                                 : "text-gray-500"
                                 }`}
                         >
-                            Lidos ({readReminders.length})
+                            Lidos ({readNotifications.length})
                         </button>
 
 
@@ -117,37 +117,37 @@ export default function ReminderDropdown() {
 
                     <div className="max-h-80 overflow-y-auto">
                         {tab === "unread" && (
-                            unreadReminders.length === 0 ? (
+                            unreadNotifications.length === 0 ? (
                                 <div className="p-6 text-center text-gray-500">
                                     Nenhum lembrete não lido.
                                 </div>
                             ) : (
-                                unreadReminders.map(reminder => (
-                                    <ReminderItem key={reminder.id} reminder={reminder} />
+                                unreadNotifications.map(notification => (
+                                    <NotificationItem key={notification.id} notification={notification} />
                                 ))
                             )
                         )}
 
                         {tab === "read" && (
-                            readReminders.length === 0 ? (
+                            readNotifications.length === 0 ? (
                                 <div className="p-6 text-center text-gray-500">
                                     Nenhum lembrete lido.
                                 </div>
                             ) : (
-                                readReminders.map(reminder => (
-                                    <ReminderItem key={reminder.id} reminder={reminder} />
+                                readNotifications.map(notification => (
+                                    <NotificationItem key={notification.id} notification={notification} />
                                 ))
                             )
                         )}
 
                         {tab === "today" && (
-                            todayReminders.length === 0 ? (
+                            todayNotifications.length === 0 ? (
                                 <div className="p-6 text-center text-gray-500">
                                     Nenhum lembrete para hoje.
                                 </div>
                             ) : (
-                                todayReminders.map(reminder => (
-                                    <ReminderItem key={reminder.id} reminder={reminder} />
+                                todayNotifications.map(notifications => (
+                                    <NotificationItem key={notifications.id} notification={notifications} />
                                 ))
                             )
                         )}
@@ -156,7 +156,7 @@ export default function ReminderDropdown() {
             )}
             <TodayReminderModal
                 open={showTodayModal}
-                count={todayReminders.length}
+                count={todayNotifications.length}
                 onOpenTasks={() => {
                     setShowTodayModal(false);
                     setOpen(true); // abre dropdown

@@ -4,8 +4,8 @@ import logo from "/logo.png"
 import { UserRoles } from "@/types/UserTypes";
 import Permission from "@/shared/permissions/Permission";
 import { useEffect, useRef, useState } from "react";
-import UserDropdown from "./Reminders/userDropdown";
-import ReminderDropdown from "./Reminders/reminderDropdown";
+import UserDropdown from "./Notifications/userDropdown";
+import NotificationDropdown from "./Notifications/NotificationDropdown";
 
 export default function Header() {
   const { user, visualUser, setVisualUser, logout } = useAuth();
@@ -42,7 +42,7 @@ export default function Header() {
         <img className="max-h-15" src={logo} alt="Logo da Vasta Imoveis" />
 
         <div className="flex flex-row items-center gap-10">
-          <ReminderDropdown />
+          <NotificationDropdown />
 
           <UserDropdown dropdownRef={dropdownRef} logout={logout} openDropdown={openDropdown} setOpenDropdown={setOpenDropdown} user={user} />
 

@@ -1,10 +1,10 @@
-import { useReminder } from "@/app/providers/ReminderProvider";
+import { useNotification } from "@/app/providers/NotificationProvider";
 import { useToast } from "@/app/providers/ToastProvider";
 import { useEffect, useState } from "react";
 
 export function useLeadReminder() {
     const [openReminder, setOpenReminder] = useState(false);
-    const { createRemind, dateReminder, setDateReminder } = useReminder();
+    const { handleCreateNotification: createRemind, dateReminder, setDateReminder } = useNotification();
     const { showToast } = useToast();
     function reset() {
         setOpenReminder(false);
