@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import type { CreateLeadDTO, Lead } from "@/shared/types/LeadType";
+import { LeadOrigem, type CreateLeadDTO, type Lead } from "@/shared/types/LeadType";
 import { createLeadRequest, EMPTY_LEADS_COUNT, getLeadsStatus } from "@/services/leads/leadsService";
 import type { countStatusResponse } from "@/services/leads/types/leads";
 import { normalizeLeadStatusResponse } from "@/services/leads/helper";
@@ -52,7 +52,7 @@ export function FunnelProvider({ children }: { children: ReactNode }) {
         data: CreateLeadDTO
     ) => {
         return runLockedCreateLead(async () => {
-            const response = await createLeadRequest(data);
+            const response = await createLeadRequest({...data, origem: LeadOrigem.CRM});
             await fetchCountLeads();
 
             return response;
