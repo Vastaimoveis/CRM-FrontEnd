@@ -5,11 +5,11 @@ export function mapLoginResponseToUser(
     response: LoginResponseDTO
 ): User {
     return {
-        id: response.data.user.id,
-        nome: response.data.user.nome,
-        email: response.data.user.email,
-        telefone: response.data.user.telefone,
-        role: response.data.user.role,
-        regiao: response.data.user.regiao,
+        id: response.user.id,
+        nome: response.user.nome,
+        email: response.user.email,
+        telefone: response.user.telefone,
+        role: response.user.role,
+        regiao: response.user.regiao,
     };
 }

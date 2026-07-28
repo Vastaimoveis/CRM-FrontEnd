@@ -7,12 +7,14 @@ import useRequestLock from "@/shared/utils/useRequestLock";
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<boolean>;
   visualUser: User | null;
   setVisualUser: Dispatch<React.SetStateAction<User | null>>;
   requestUser: User | null;
   logout: () => void;
   loading: boolean;
+  erro: string;
+  ErrorSetter: (text: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,6 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     (user?.role === UserRoles.GERENTE && visualUser) ? visualUser : user
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [erro, setErro] = useState("");
 
   const runLockLogin = useRequestLock();
 
@@ -47,34 +50,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [visualUser]);
 
-  const login = useCallback(async (email: string, password: string) => {
+  function ErrorSetter(text: string) {
+    setErro(text);
+  }
+
+  const login = useCallback(async (email: string, password: string): Promise<boolean> => {
     try {
-      runLockLogin(async () => {
-        setLoading(true);
-        const response = await loginRequest({
-          email,
-          password,
-        });
+      const success =
+        runLockLogin(async () => {
+          setLoading(true);
+          const response = await loginRequest({
+            email,
+            password,
+          });
 
-        const user = mapLoginResponseToUser(response);
+          if (!response.success || !response.data) {
+            console.log(response);
+            setErro(response.text);
+            return false;
+          }
+          console.log(response.data);
+          const user = mapLoginResponseToUser(response.data);
+          
+          const token = response.data.accessToken;
+          
+          setUser(user);
+          setToken(token);
 
-        const token = response.data.accessToken;
+          localStorage.setItem("user", JSON.stringify(user));
+          localStorage.setItem(
+            "accessToken",
+            token
+          );
 
-        setUser(user);
-        setToken(token);
+          localStorage.setItem(
+            "refreshToken",
+            response.data.refreshToken
+          );
 
-        localStorage.setItem("user", JSON.stringify(user));
-        localStorage.setItem(
-          "accessToken",
-          token
-        );
 
-        localStorage.setItem(
-          "refreshToken",
-          response.data.refreshToken
-        );
-
-      })
+          return response.success
+        })
+      return success;
     } catch (error: any) {
       throw new Error(
         error?.response?.data?.text ||
@@ -113,8 +130,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 
   const value = useMemo(() => ({
-    user, token, login, logout, visualUser, setVisualUser, requestUser, loading
-  }), [user, token, login, logout, visualUser, setVisualUser, requestUser, loading])
+    user, token, login, ErrorSetter, erro, logout, visualUser, setVisualUser, requestUser, loading
+  }), [user, token, login, ErrorSetter, erro, logout, visualUser, setVisualUser, requestUser, loading])
 
   return (
     <AuthContext.Provider value={value}>

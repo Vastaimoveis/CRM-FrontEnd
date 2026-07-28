@@ -14,28 +14,30 @@ export function useLoginForm() {
   const [password, setPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
-  const { login } = useAuth();
+  const { login, erro, ErrorSetter } = useAuth();
   const navigate = useNavigate();
   const { showToast } = useToast();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    setError("");
+    ErrorSetter("");
     setLoading(true);
 
     try {
       if (mode === "login") {
 
-        await login(email, password);
-        navigate("/funil");
-
+        const success = await login(email, password);
+        if (success) { 
+          navigate("/funil")
+         } else {
+          ErrorSetter("Erro inesperado, tente novamente")
+        };
       } else {
 
         if (!validatePhone(phone)) {
-          setError("Telefone inválido");
+          ErrorSetter("Telefone inválido");
           return;
         }
 
@@ -50,7 +52,7 @@ export function useLoginForm() {
       }
 
     } catch (err: any) {
-      setError(err.message);
+      ErrorSetter(err.message);
     } finally {
       setLoading(false);
     }
@@ -73,8 +75,7 @@ export function useLoginForm() {
     setPassword,
 
     loading,
-    error,
-
+    erro,
     handleSubmit
   };
 }

@@ -19,7 +19,7 @@ export default function Login() {
     password,
     setPassword,
     loading,
-    error,
+    erro,
     handleSubmit
   } = useLoginForm();
 
@@ -51,9 +51,9 @@ export default function Login() {
             {mode === "login" ? "Entrar" : "Criar conta"}
           </h2>
 
-          {error && (
+          {erro && (
             <div className="mb-4 text-sm text-red-500 text-center">
-              {"Login não concluído"}
+              {erro}
             </div>
           )}
 

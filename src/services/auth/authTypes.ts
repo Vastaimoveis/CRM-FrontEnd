@@ -6,18 +6,15 @@ export interface LoginRequestDTO {
 }
 
 export interface LoginResponseDTO {
-    success: boolean;
-    data: {
-        accessToken: string;
-        refreshToken: string;
-        user: {
-            id: string;
-            nome: string;
-            email: string;
-            telefone: string;
-            role: UserRoles;
-            regiao: RegioesEnum;
-        }
+    accessToken: string;
+    refreshToken: string;
+    user: {
+        id: string;
+        nome: string;
+        email: string;
+        telefone: string;
+        role: UserRoles;
+        regiao: RegioesEnum;
     }
-    text: string;
+
 }
