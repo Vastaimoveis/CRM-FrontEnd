@@ -1,5 +1,4 @@
 import { NotificationType, type AppNotification } from "@/services/notification/NotificationTypes";
-import type { ApiResponse } from "@/shared/types/api";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useToast } from "./ToastProvider";
 import { useAuth } from "./AuthProvider";
@@ -33,7 +32,7 @@ interface NotificationContextType {
 const NotificationContext = createContext<NotificationContextType | null>(null);
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
-    const [dateReminder, setDateReminder] = useState<Date>(new Date);
+    const [dateReminder, setDateReminder] = useState<Date>(new Date());
     const { user } = useAuth();
     const [notifications, setNotifications] = useState<AppNotification[]>([]);
     const { showToast } = useToast();
@@ -74,62 +73,120 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         [notifications]
     );
 
-
-    const readNotifications = notifications.filter(r => r.read);
-
+    const readNotifications = useMemo(
+        () => notifications.filter(r => r.read),
+        [notifications]
+    );
 
     const handleCreateNotification = useCallback(
         async (leadId: string) => {
-            if (!dateReminder) {
-                return null;
-            }
+
             if (!userId) return null;
-            console.log("data enviada: " + format(dateReminder, "yyyy-MM-dd'T'HH:mm:ss"))
-            const response: ApiResponse<AppNotification> = await postNewNotification({ leadId: leadId, userId: userId, type: NotificationType.REMINDER, alarmAt: format(dateReminder, "yyyy-MM-dd'T'HH:mm:ss"), });
-            if (!response.success) {
-                showToast("Erro ao criar notificação", "error")
+
+            try {
+
+                const notification = await postNewNotification({
+                    leadId,
+                    userId,
+                    type: NotificationType.REMINDER,
+                    alarmAt: format(dateReminder, "yyyy-MM-dd'T'HH:mm:ss")
+                });
+
+                setNotifications(prev => [...prev, notification]);
+
+                showToast("Lembrete criado com sucesso", "success");
+
+                return notification;
+
+            } catch (e: any) {
+
+                showToast(
+                    e.message || "Erro ao criar notificação",
+                    "error"
+                );
+
                 return null;
             }
-            setNotifications(prev => [...prev, response.data]);
-            console.log(response);
-            return response.data
 
-        }, [showToast, dateReminder]
-    )
+        },
+        [userId, dateReminder, showToast]
+    );
 
-    const handleLoadNotifications = useCallback(async (userId: string) => {
-        const response = await getNotificationsByUserId(userId);
+    const handleLoadNotifications = useCallback(
+        async (userId: string) => {
 
-        if (!response.success) {
-            setNotifications([]);
-            setInitialLoaded(true);
-            return;
-        }
+            try {
 
-        setNotifications(response.data);
-        setInitialLoaded(true);
-    }, []);
+                const data = await getNotificationsByUserId(userId);
 
-    const handleReadNotification = useCallback(async (id: string, read: boolean) => {
-        try {
-            const response: ApiResponse<AppNotification> = await patchReadNotification(id, { read: read });
-            const updatedReminder = response.data
-            setNotifications(prev =>
-                prev.map(reminder =>
-                    reminder.id === updatedReminder.id
-                        ? updatedReminder
-                        : reminder
-                )
-            );
-        } catch (e) {
-            console.log(e);
-        }
+                setNotifications(data);
 
-    }, [])
+            } catch {
 
-    const handleDeleteNotification = useCallback(async (id: string) => {
-        await deleteNotification(id);
-    }, [])
+                setNotifications([]);
+
+            } finally {
+
+                setInitialLoaded(true);
+
+            }
+
+        },
+        []
+    );
+
+    const handleReadNotification = useCallback(
+        async (id: string, read: boolean) => {
+
+            try {
+
+                const updatedReminder = await patchReadNotification(id, { read });
+
+                setNotifications(prev =>
+                    prev.map(reminder =>
+                        reminder.id === updatedReminder.id
+                            ? updatedReminder
+                            : reminder
+                    )
+                );
+
+            } catch (e: any) {
+
+                showToast(
+                    e.message || "Erro ao atualizar notificação",
+                    "error"
+                );
+
+            }
+
+        },
+        [showToast]
+    );
+    const handleDeleteNotification = useCallback(
+        async (id: string) => {
+
+            try {
+
+                await deleteNotification(id);
+
+                setNotifications(prev =>
+                    prev.filter(n => n.id !== id)
+                );
+
+                showToast("Notificação removida", "success");
+
+            } catch (e: any) {
+
+                showToast(
+                    e.message || "Erro ao remover notificação",
+                    "error"
+                );
+
+            }
+
+        },
+        [showToast]
+    );
 
     useEffect(() => {
         if (!user) {
@@ -160,12 +217,12 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
             todayNotifications,
             todayLeads,
             todayReminders,
-            
+
             showTodayModal,
             setShowTodayModal,
             dateReminder,
             setDateReminder,
-            
+
             handleReadNotification,
             handleCreateNotification,
             handleLoadNotifications,

@@ -8,6 +8,7 @@ import {
 import type { countStatusResponse, LeadCorretorDTO, LeadStatusDTO, UpdateLeadDto } from "./types/leads";
 import { UserRoles, type User } from "@/shared/types/UserTypes";
 import type { LeadFilters } from "@/shared/types/filterTypes";
+import { unwrapApiResponse } from "../api/unwrap";
 
 export const EMPTY_LEADS_COUNT: countStatusResponse = {
     total: 0,
@@ -27,19 +28,21 @@ export async function getLeads(
 ): Promise<PageResponse<Lead>> {
     const response = await api.get<ApiResponse<PageResponse<Lead>>>(`/leads?page=${page}`);
 
-    return response.data.data;
+    return unwrapApiResponse(response.data);
 }
 
 export async function getOportunity(userId: string) {
     const response = await api.get<ApiResponse<Lead[]>>(`leads/oportunidades/${userId}`);
 
-    return response.data.data;
+
+    return unwrapApiResponse(response.data);
 }
 
 export async function getLeadsBySearch(search: string, page: number) {
     const response = await api.get<ApiResponse<PageResponse<Lead>>>(`/leads/search/${search}?page=${page}`);
 
-    return response.data.data;
+
+    return unwrapApiResponse(response.data);
 }
 
 export async function getLeadsByUserId(userId: string) {
@@ -49,14 +52,16 @@ export async function getLeadsByUserId(userId: string) {
 
 export async function getLeadsStatus(userId: string) {
     const response = await api.get<ApiResponse<countStatusResponse>>(`leads/dashboard/${userId}`);
-    return response.data.data;
+
+    return unwrapApiResponse(response.data);
 }
 
 export async function getLeadsFilterByStatus(status: LeadStatusDTO, page = 0) {
     const response = await api.get<ApiResponse<PageResponse<Lead>>>(
         `/leads/status/${status.statusLead}?page=${page}`);
 
-    return response.data.data;
+
+    return unwrapApiResponse(response.data);
 }
 
 export async function getAllLeadsNotEncerrado(page = 0, user: User | null) {
@@ -65,10 +70,12 @@ export async function getAllLeadsNotEncerrado(page = 0, user: User | null) {
     } else if (user.role == UserRoles.GERENTE) {
         const response = await api.get<ApiResponse<PageResponse<Lead>>>(`/leads/status?page=${page}`);
 
-        return response.data.data;
+
+        return unwrapApiResponse(response.data);
     } else {
         const response = await api.get<ApiResponse<PageResponse<Lead>>>(`/leads/status/userid/${user.id}?page=${page}`);
-        return response.data.data;
+
+        return unwrapApiResponse(response.data);
     }
 }
 
@@ -80,7 +87,8 @@ export async function getLeadById(
         ApiResponse<Lead>
     >(`/leads/${id}`);
 
-    return response.data.data;
+
+    return unwrapApiResponse(response.data);
 }
 
 export async function createLeadRequest(
@@ -90,7 +98,8 @@ export async function createLeadRequest(
     const response = await api.post<
         ApiResponse<Lead>
     >("/leads", data);
-    return response.data.data;
+
+    return unwrapApiResponse(response.data);
 }
 
 export async function updateLeadRequest(
@@ -101,7 +110,8 @@ export async function updateLeadRequest(
     const response = await api.put<
         ApiResponse<Lead>
     >(`/leads/${id}`, data);
-    return response.data.data;
+
+    return unwrapApiResponse(response.data);
 }
 
 export async function patchStatus(id: string, data: LeadStatusDTO): Promise<Lead> {
@@ -109,13 +119,15 @@ export async function patchStatus(id: string, data: LeadStatusDTO): Promise<Lead
         ApiResponse<Lead>
     >(`/leads/${id}/status`, data);
 
-    return response.data.data;
+
+    return unwrapApiResponse(response.data);
 }
 
-export async function patchCorretor(leadId: string, data: LeadCorretorDTO):Promise<Lead>{
+export async function patchCorretor(leadId: string, data: LeadCorretorDTO): Promise<Lead> {
     const response = await api.patch<
-    ApiResponse<Lead>>(`/leads/${leadId}/corretor`, data);
-    return response.data.data;
+        ApiResponse<Lead>>(`/leads/${leadId}/corretor`, data);
+
+    return unwrapApiResponse(response.data);
 }
 
 

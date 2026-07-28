@@ -1,6 +1,7 @@
 import type { ApiResponse, PageResponse } from "@/shared/types/api"
 import type { RegioesEnum, User, UserRoles } from "@/shared/types/UserTypes"
 import { api } from "../api/api"
+import { unwrapApiResponse } from "../api/unwrap"
 
 export interface CreateUserDTO {
     nome: string,
@@ -14,23 +15,27 @@ export interface CreateUserDTO {
 export async function getUserById(userId: string): Promise<User> {
     const response = await api.get<ApiResponse<User>>(`/users/${userId}`)
 
-    return response.data.data
+
+    return unwrapApiResponse(response.data);
 }
 
-export async function getAllUsers():Promise<PageResponse<User>> {
+export async function getAllUsers(): Promise<PageResponse<User>> {
     const response = await api.get<ApiResponse<PageResponse<User>>>(`/users`)
 
-    return response.data.data;
+
+    return unwrapApiResponse(response.data);;
 }
 
 export async function updateUser(user: User) {
     const response = await api.put<ApiResponse<User>>(`/users/${user.id}`, user);
 
-    return response.data.data;
+
+    return unwrapApiResponse(response.data);;
 }
 
 export async function createUser(userDto: CreateUserDTO) {
     const response = await api.post<ApiResponse<User>>(`/users`, userDto)
 
-    return response.data.data
+
+    return unwrapApiResponse(response.data);
 }
