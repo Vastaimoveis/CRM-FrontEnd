@@ -3,6 +3,7 @@ import { UserRoles, type User } from "@/shared/types/UserTypes";
 import { loginRequest } from "@/services/auth/authService";
 import { mapLoginResponseToUser } from "@/services/auth/authMapper"
 import useRequestLock from "@/shared/utils/useRequestLock";
+import { SYSTEM_ROLES } from "@/services/roles/roleTypes";
 
 interface AuthContextType {
   user: User | null;
@@ -23,7 +24,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [visualUser, setVisualUser] = useState<User | null>(null);
   const requestUser =
-    (user?.role === UserRoles.GERENTE && visualUser) ? visualUser : user
+    (user?.role.name === SYSTEM_ROLES.GERENTE && visualUser) ? visualUser : user
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
@@ -73,7 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const user = mapLoginResponseToUser(response.data);
           
           const token = response.data.accessToken;
-          
+          console.log(response.data)          
           setUser(user);
           setToken(token);
 

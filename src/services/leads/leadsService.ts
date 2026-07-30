@@ -6,9 +6,10 @@ import {
     type Lead,
 } from "@/shared/types/LeadType";
 import type { countStatusResponse, LeadCorretorDTO, LeadStatusDTO, UpdateLeadDto } from "./types/leads";
-import { UserRoles, type User } from "@/shared/types/UserTypes";
+import { type User } from "@/shared/types/UserTypes";
 import type { LeadFilters } from "@/shared/types/filterTypes";
 import { unwrapApiResponse } from "../api/unwrap";
+import { SYSTEM_ROLES } from "../roles/roleTypes";
 
 export const EMPTY_LEADS_COUNT: countStatusResponse = {
     total: 0,
@@ -67,7 +68,7 @@ export async function getLeadsFilterByStatus(status: LeadStatusDTO, page = 0) {
 export async function getAllLeadsNotEncerrado(page = 0, user: User | null) {
     if (!user) {
         return
-    } else if (user.role == UserRoles.GERENTE) {
+    } else if (user.newRole.name == SYSTEM_ROLES.GERENTE) {
         const response = await api.get<ApiResponse<PageResponse<Lead>>>(`/leads/status?page=${page}`);
 
 

@@ -15,6 +15,6 @@ export interface LoginResponseDTO {
         telefone: string;
         role: UserRoles;
         regiao: RegioesEnum;
+        new_role: string;
     }
-
 }
