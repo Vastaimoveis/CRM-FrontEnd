@@ -15,21 +15,23 @@ import { LeadsReminderPicker } from "../components/LeadsReminderPicker";
 import { useLeadReminder } from "../hooks/useLeadReminder";
 import LeadChangeUserModal from "@/shared/components/leadChangeUserModal";
 import { useUsers } from "@/app/providers/UserProvider";
+import { PermissionName } from "@/services/permission/permissionTypes";
+import { useRole } from "@/app/providers/RoleProvider";
+import { Can } from "@/shared/components/Can";
 
 export default function Leads() {
     const {
         leads,
         filters,
-        updateFilters,
         sendModal,
         totalPages,
         confirmModal,
-        setConfirmModal,
         previewType,
         searchInput,
+        editingLead,
+        setConfirmModal,
         setEditingLead,
         setPreviewType,
-        editingLead,
         handleClearFilters,
         handleSend,
         handleDelete,
@@ -39,6 +41,7 @@ export default function Leads() {
         handleStatusChanges,
         openSendModal,
         setSendModal,
+        updateFilters,
     } = useLeadsPage();
 
     const {
@@ -58,6 +61,28 @@ export default function Leads() {
         onSave,
         onSelect } = useLeadReminder();
 
+    const {
+        hasPermission,
+
+    } = useRole();
+
+    const canEdit = hasPermission(PermissionName.LEAD_EDIT);
+    const canDelete = hasPermission(PermissionName.LEAD_DELETE);
+    const canAssign = hasPermission(PermissionName.LEAD_ASSIGN);
+    const canViewNotes = hasPermission(PermissionName.NOTE_VIEW);
+
+    if (!hasPermission(PermissionName.LEAD_VIEW)) {
+        return (
+            <div className="bg-white p-6 rounded-xl shadow-sm">
+                <h1 className="text-xl font-semibold text-red-600">
+                    Acesso negado
+                </h1>
+                <p className="text-gray-500 mt-2">
+                    Você não possui permissão para visualizar os leads.
+                </p>
+            </div>
+        );
+    }
 
     return (
         <div className="bg-white p-6 rounded-xl shadow-sm">
@@ -95,46 +120,57 @@ export default function Leads() {
                         >
                             Limpar filtros
                         </button>
-
-                        <button
-                            onClick={() => setPreviewType("export")}
-                            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-800"
-                        >
-                            Exportar Excel
-                        </button>
+                        <Can permission={PermissionName.LEAD_EXPORT}>
+                            <button
+                                onClick={() => setPreviewType("export")}
+                                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-800"
+                            >
+                                Exportar Excel
+                            </button>
+                        </Can>
                     </div>
+                    <Can permission={PermissionName.LEAD_EXPORT}>
+                        {previewType && (
+                            <LeadsPreviewModal
+                                leads={leads}
+                                title={
+                                    "Pré-visualização do Export"
 
-                    {previewType && (
-                        <LeadsPreviewModal
-                            leads={leads}
-                            title={
-                                "Pré-visualização do Export"
+                                }
+                                confirmLabel={
 
-                            }
-                            confirmLabel={
+                                    "Exportar Excel"
 
-                                "Exportar Excel"
-
-                            }
-                            onConfirm={() => {
-                                exportLeadsToExcel(leads)
-                            }
-                            }
-                            onCancel={() => setPreviewType(null)}
-                        />
-                    )}
-
+                                }
+                                onConfirm={() => {
+                                    exportLeadsToExcel(leads)
+                                }
+                                }
+                                onCancel={() => setPreviewType(null)}
+                            />
+                        )}
+                    </Can>
                 </div>
 
             </div>
 
             <LeadsTable
                 leads={leads}
-                patchLeadStatus={handlePatchStatus}
-                onSend={openSendModal}
-                onDelete={handleDelete}
-                onEdit={setEditingLead}
-                onOpenNotes={openNotes}
+                patchLeadStatus={
+                    canEdit ? handlePatchStatus : undefined}
+                onSend={
+                    canAssign ?
+                        openSendModal :
+                        undefined}
+                onDelete={
+                    canDelete ?
+                        handleDelete : undefined}
+                onEdit={
+                    canEdit ?
+                        setEditingLead : undefined}
+                onOpenNotes={
+                   canViewNotes ?
+                        openNotes : undefined}
 
             />
 
@@ -167,98 +203,104 @@ export default function Leads() {
                 )
             }
 
-            {selectedLead &&
-                <Modal
-                    open={!!selectedLead}
-                    title={"Anotações de:"}
-                    onClose={closeNotes}
-                    width="w-[600px]"
-                    height="h-[80vh]"
-                >
-                    {selectedLead && (
-                        <div className="flex flex-col gap-4 h-full">
+            <Can permission={PermissionName.NOTE_CREATE}>
+                {selectedLead &&
+                    <Modal
+                        open={!!selectedLead}
+                        title={"Anotações de:"}
+                        onClose={closeNotes}
+                        width="w-[600px]"
+                        height="h-[80vh]"
+                    >
+                        {selectedLead && (
+                            <div className="flex flex-col gap-4 h-full">
 
-                            <div>
-                                <h2 className="text-2xl font-semibold">
-                                    {selectedLead.nome}
-                                </h2>
+                                <div>
+                                    <h2 className="text-2xl font-semibold">
+                                        {selectedLead.nome}
+                                    </h2>
 
-                                <p className="text-gray-500">
-                                    {selectedLead.email}
-                                </p>
+                                    <p className="text-gray-500">
+                                        {selectedLead.email}
+                                    </p>
 
-                                <p className="text-gray-500">
-                                    {selectedLead.telefone}
-                                </p>
-                            </div>
-
-                            <div>
-                                <textarea
-                                    value={newNote}
-                                    onChange={(e) => setNewNote(e.target.value)}
-                                    placeholder="Digite uma anotação..."
-                                    rows={4}
-                                    className="w-full border rounded-lg p-3 resize-none"
-                                />
-                                <LeadsReminderPicker leadId={selectedLead.id} date={dateReminder} onCancel={onCancel} open={openReminder} onSave={onSave} onSelect={onSelect} key={"Date picker reminder"} />
-
-                                <div className="flex justify-between">
-                                    <button
-                                        onClick={addNote}
-                                        disabled={saving}
-                                        className="mt-2 bg-green-600 text-white px-4 py-2 rounded-lg"
-                                    >
-                                        {saving ? "Salvando..." : "Salvar anotação"}
-                                    </button>
-                                    <button
-                                        onClick={() => setOpenReminder(true)}
-                                        className="mt-2 bg-blue-600 text-white px-4 py-2 rounded-lg"
-                                    >
-                                        Novo lembrete
-                                    </button>
+                                    <p className="text-gray-500">
+                                        {selectedLead.telefone}
+                                    </p>
                                 </div>
-                            </div>
 
-                            <div className="flex-1 overflow-y-auto border rounded-lg p-3">
-                                {noteLoading ? (
-                                    <p>Carregando notas...</p>
-                                ) : leadNotes.length > 0 ? (
-                                    leadNotes.map((note) => (
-                                        <div
-                                            key={note.id}
-                                            className="border-b pb-2 mb-2"
+                                <div>
+                                    <textarea
+                                        value={newNote}
+                                        onChange={(e) => setNewNote(e.target.value)}
+                                        placeholder="Digite uma anotação..."
+                                        rows={4}
+                                        className="w-full border rounded-lg p-3 resize-none"
+                                    />
+                                    <LeadsReminderPicker leadId={selectedLead.id} date={dateReminder} onCancel={onCancel} open={openReminder} onSave={onSave} onSelect={onSelect} key={"Date picker reminder"} />
+
+                                    <div className="flex justify-between">
+                                        <button
+                                            onClick={addNote}
+                                            disabled={saving}
+                                            className="mt-2 bg-green-600 text-white px-4 py-2 rounded-lg"
                                         >
-                                            <p>{note.note}</p>
+                                            {saving ? "Salvando..." : "Salvar anotação"}
+                                        </button>
+                                        <button
+                                            onClick={() => setOpenReminder(true)}
+                                            className="mt-2 bg-blue-600 text-white px-4 py-2 rounded-lg"
+                                        >
+                                            Novo lembrete
+                                        </button>
+                                    </div>
+                                </div>
 
-                                            <span className="text-xs text-gray-500">
-                                                {new Date(note.createdAt)
-                                                    .toLocaleString("pt-BR")}
-                                            </span>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <p>Nenhuma anotação encontrada.</p>
-                                )}
+                                <div className="flex-1 overflow-y-auto border rounded-lg p-3">
+                                    {noteLoading ? (
+                                        <p>Carregando notas...</p>
+                                    ) : leadNotes.length > 0 ? (
+                                        leadNotes.map((note) => (
+                                            <div
+                                                key={note.id}
+                                                className="border-b pb-2 mb-2"
+                                            >
+                                                <p>{note.note}</p>
+
+                                                <span className="text-xs text-gray-500">
+                                                    {new Date(note.createdAt)
+                                                        .toLocaleString("pt-BR")}
+                                                </span>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p>Nenhuma anotação encontrada.</p>
+                                    )}
+                                </div>
+
                             </div>
+                        )}
+                    </Modal>}
+            </Can>
 
-                        </div>
-                    )}
-                </Modal>}
-
-            {editingLead && <LeadEditModal
-                open={!!editingLead}
-                lead={editingLead}
-                onClose={() => setEditingLead(null)}
-                onSave={handleEditLead}
-            />}
-
-            {sendModal &&
-                <LeadChangeUserModal
-                    lead={sendModal}
-                    onClose={() => setSendModal(null)}
-                    users={users}
-                    onSave={handleSend}
+            <Can permission={PermissionName.LEAD_EDIT}>
+                {editingLead && <LeadEditModal
+                    open={!!editingLead}
+                    lead={editingLead}
+                    onClose={() => setEditingLead(null)}
+                    onSave={handleEditLead}
                 />}
+            </Can>
+
+            <Can permission={PermissionName.LEAD_ASSIGN}>
+                {sendModal &&
+                    <LeadChangeUserModal
+                        lead={sendModal}
+                        onClose={() => setSendModal(null)}
+                        users={users}
+                        onSave={handleSend}
+                    />}
+            </Can>
         </div>
     );
 }

@@ -1,8 +1,10 @@
+import type { PermissionResponseDTO } from "../permission/permissionTypes";
 
 export interface RoleResponseDTO{
     id: string,
     name: SYSTEM_ROLES, 
     description: string,
+    permissions: PermissionResponseDTO[]
 }
 
 export const SYSTEM_ROLES = {

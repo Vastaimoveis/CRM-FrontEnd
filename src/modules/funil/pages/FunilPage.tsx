@@ -4,6 +4,9 @@ import ChartSwitcher from "../components/ChartSwitcher";
 import LeadModal from "../components/LeadModal";
 import { useFunnel } from "@/app/providers/FunnelProvider";
 import { useAuth } from "@/app/providers/AuthProvider";
+import { useRole } from "@/app/providers/RoleProvider";
+import { PermissionName } from "@/services/permission/permissionTypes";
+import { Can } from "@/shared/components/Can";
 
 export default function FunilPage() {
   const [chartType, setChartType] = useState<"funnel" | "pie" | "bar">(() => {
@@ -18,11 +21,12 @@ export default function FunilPage() {
     }
 
     return "funnel";
-  }); 
+  });
 
   const [modalOpen, setModalOpen] = useState(false);
   const { createLead, countLeads, fetchCountLeads, totalLeads } = useFunnel();
   const { user } = useAuth();
+  const { hasPermission } = useRole();
 
   useEffect(() => {
     if (user?.id) {
@@ -33,6 +37,10 @@ export default function FunilPage() {
   useEffect(() => {
     localStorage.setItem("chartType", chartType);
   }, [chartType]);
+
+  if(!hasPermission(PermissionName.LEAD_VIEW)){
+    return <div>Você não tem permissão para acessar o funil.</div>;
+  }
 
   return (
     <div className="flex gap-8">
@@ -49,22 +57,29 @@ export default function FunilPage() {
         <h1 className="font-semibold text-xl">Tipos de Funil</h1>
         <ChartSwitcher type={chartType} setType={setChartType} />
 
-        <button
-          onClick={() => setModalOpen(true)}
-          className="bg-black text-white py-2 rounded-lg hover:opacity-80 transition"
-        >
-          + Novo Lead
-        </button>
+        <Can permission={PermissionName.LEAD_CREATE}>
+          <button
+            onClick={() => setModalOpen(true)}
+            className="bg-black text-white py-2 rounded-lg hover:opacity-80 transition"
+          >
+            + Novo Lead
+          </button>
+
+        </Can>
+
         <div className="font-semibold text-xl">
           <p>Total de leads:</p>
           <p>{totalLeads}</p>
         </div>
       </div>
-      <LeadModal
-        open={modalOpen}
-        createLead={createLead}
-        onClose={() => setModalOpen(false)}
-      />
+
+      <Can permission={PermissionName.LEAD_CREATE}>
+        <LeadModal
+          open={modalOpen}
+          createLead={createLead}
+          onClose={() => setModalOpen(false)}
+        />
+      </Can>
 
 
     </div>

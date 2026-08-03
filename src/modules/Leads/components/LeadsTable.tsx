@@ -1,18 +1,18 @@
 import { type Lead, LeadStatus } from "@/shared/types/LeadType";
-import Permission from "@/shared/permissions/Permission";
-import { UserRoles } from "@/shared/types/UserTypes";
 import { memo } from "react";
 import capitalizeWords from "@/shared/utils/capitalizeWords";
 import { Trash2, SquarePen, Send } from "lucide-react";
+import { PermissionName } from "@/services/permission/permissionTypes";
+import { Can } from "@/shared/components/Can";
 
 interface LeadsTableProps {
     leads: Lead[];
-    onOpenNotes: (lead: Lead) => void;
+    onOpenNotes: ((lead: Lead) => void) | undefined;
 
-    patchLeadStatus: (id: string, status: LeadStatus) => void;
-    onSend: (lead: Lead) => void;
-    onDelete: (id: string) => Promise<void>;
-    onEdit: (lead: Lead) => void;
+    patchLeadStatus: ((id: string, status: LeadStatus) => void) | undefined;
+    onSend: ((lead: Lead) => void) | undefined;
+    onDelete: ((id: string) => Promise<void>) | undefined;
+    onEdit: ((lead: Lead) => void) | undefined;
 }
 
 function LeadsTable({
@@ -57,10 +57,11 @@ function LeadsTable({
                                 value={lead.status}
                                 onChange={(e) => {
                                     const value = e.target.value as LeadStatus;
-                                    patchLeadStatus(
-                                        lead.id,
-                                        value
-                                    )
+                                    patchLeadStatus ?
+                                        patchLeadStatus(
+                                            lead.id,
+                                            value
+                                        ) : null
                                 }
                                 }
                                 className="border rounded-md px-2 py-1"
@@ -76,7 +77,9 @@ function LeadsTable({
 
                             <button
                                 className={`${lead.hasNotes ? "bg-green-700" : "bg-black"}  text-white font-semibold px-3 py-2 rounded-full`}
-                                onClick={() => onOpenNotes(lead)}
+                                onClick={() =>
+                                    onOpenNotes ?
+                                        onOpenNotes(lead) : null}
                             >
                                 {lead.hasNotes ? "Visualizar notas" : "adicionar nota"}
                             </button>
@@ -86,7 +89,9 @@ function LeadsTable({
                         </td>
                         <td className="flex justify-center py-2">
                             <button
-                                onClick={() => onEdit(lead)}
+                                onClick={() =>
+                                    onEdit ?
+                                        onEdit(lead) : null}
                                 className="p-2 rounded-lg hover:bg-blue-100 transition"
                                 title="Editar Lead"
                             >
@@ -94,10 +99,11 @@ function LeadsTable({
                                     className="text-blue-600" />
                             </button>
 
-                            <Permission allowed={[UserRoles.GERENTE]}>
+                            <Can permission={PermissionName.LEAD_ASSIGN}>
                                 <div className="flex ">
                                     <button onClick={() => {
-                                        onSend(lead)
+                                        onSend ?
+                                            onSend(lead) : null
                                     }}
                                         className="p-2 rounded-lg hover:bg-green-100 transition">
                                         <Send size={18} className="text-green-800" />
@@ -105,7 +111,10 @@ function LeadsTable({
 
 
                                     <button
-                                        onClick={() => onDelete(lead.id)}
+                                        onClick={() => {
+                                            onDelete ?
+                                                onDelete(lead.id) : null
+                                        }}
                                         className="p-2 rounded-lg hover:bg-red-100 transition"
                                         title="Excluir Lead"
                                     >
@@ -113,7 +122,7 @@ function LeadsTable({
                                             className="text-red-600" />
                                     </button>
                                 </div>
-                            </Permission>
+                            </Can>
                         </td>
                     </tr>
                 ))}

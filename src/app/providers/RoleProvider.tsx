@@ -1,44 +1,65 @@
-import { findAll } from "@/services/roles/rolesService";
-import type { RoleResponseDTO } from "@/services/roles/roleTypes";
+import { findAllRoles } from "@/services/roles/rolesService";
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useAuth } from "./AuthProvider";
+import { PermissionName } from "@/services/permission/permissionTypes";
+import type { RoleResponseDTO } from "@/services/roles/roleTypes";
 
 interface RoleContext {
     userRole: RoleResponseDTO | null;
     roles: RoleResponseDTO[];
+    loading: boolean;
+    permissions: string[];
+    hasRole: (roleName: string) => boolean;
+    hasPermission: (permission: PermissionName) => boolean;
 }
 
 const RoleContext = createContext<RoleContext | null>(null);
 
 export function RoleProvider({ children }: { children: ReactNode }) {
     const { user } = useAuth();
-    const [userRole, setUserRole] = useState<RoleResponseDTO | null>(null)
     const [roles, setRoles] = useState<RoleResponseDTO[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const permissionSet = useMemo(() => new Set<PermissionName>(user?.role?.permissions?.map((p) => p.name) ?? []), [user]);
+
+    const permissions = useMemo(() => Array.from(permissionSet), [permissionSet]);
+
     useEffect(() => {
         async function loadRoles() {
-            findAll().then((res) => setRoles(res)).finally(() => setLoading(false));
-            if (!user) return;
-            setUserRole(user.role);
+            try {
+                const response = await findAllRoles();
+                if (!response.data) return;
+                setRoles(response.data);
+            } finally {
+                setLoading(false);
+            }
         } loadRoles();
-
     },
         []);
+console.log(permissions)
 
-    const value = useMemo(() => ({
+
+    const value = useMemo(() => (
+        {
+            roles,
+            userRole: user?.role ?? null,
+            loading,
+            permissions,
+            hasRole: (roleName: string) => user?.role?.name === roleName,
+            hasPermission: (permission: PermissionName) => permissionSet.has(permission)
+        }), [
         roles,
-        userRole,
-    }), [
-        roles,
-        userRole,
-    ])
+        user,
+        loading,
+        permissions,
+
+    ]);
 
     return (
         <RoleContext.Provider
             value={value}
         >
-
+            {children}
         </RoleContext.Provider>
     )
 }
