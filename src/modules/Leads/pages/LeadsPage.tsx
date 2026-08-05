@@ -243,7 +243,7 @@ export default function Leads() {
                                         <button
                                             onClick={addNote}
                                             disabled={saving}
-                                            className="mt-2 bg-green-600 text-white px-4 py-2 rounded-lg"
+                                            className="mt-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
                                         >
                                             {saving ? "Salvando..." : "Salvar anotação"}
                                         </button>

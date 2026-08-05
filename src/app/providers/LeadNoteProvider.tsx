@@ -35,14 +35,11 @@ export function LeadNotesProvider({ children }: { children: ReactNode }) {
     const [noteLoading, setNoteLoading] = useState<boolean>(false);
     const [totalPages, setTotalPages] = useState<number>(0);
     const [page, setPage] = useState<number>(0)
-    const [selectedLead, setSelectedLead] =
-        useState<Lead | null>(null);
+    const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
 
-    const [newNote, setNewNote] =
-        useState("");
+    const [newNote, setNewNote] = useState("");
 
-    const [saving, setSaving] =
-        useState(false);
+    const [saving, setSaving] = useState(false);
 
     const runLockCreateNote = useRequestLock();
     const runPromiseFetchNote = useRequestPromise();
@@ -85,7 +82,7 @@ export function LeadNotesProvider({ children }: { children: ReactNode }) {
         );
     }, [
         selectedLead,
-        fetchLeadNotesByLead
+        fetchLeadNotesByLead,
     ]
     )
 
@@ -107,8 +104,13 @@ export function LeadNotesProvider({ children }: { children: ReactNode }) {
 
     const addNote = useCallback(async () => {
 
-        if (!selectedLead || !newNote.trim())
+        console.log(newNote)
+        console.log(selectedLead)
+
+        if (!selectedLead || !newNote.trim()) {
+            console.log("hello")
             return;
+        }
 
         setSaving(true);
 
@@ -138,6 +140,7 @@ export function LeadNotesProvider({ children }: { children: ReactNode }) {
         createLeadNote,
         fetchLeadNotesByLead,
         setNewNote,
+        newNote,
 
     ])
 

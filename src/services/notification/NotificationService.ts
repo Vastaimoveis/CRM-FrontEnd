@@ -50,7 +50,7 @@ export async function deleteNotification(
   const response = await api.delete<ApiResponse<null>>(
     `/notifications/${id}`
   );
-
+  
   if (!response.data.success) {
     throw new Error(response.data.text);
   }

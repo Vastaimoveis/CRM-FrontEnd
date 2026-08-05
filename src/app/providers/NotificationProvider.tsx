@@ -175,10 +175,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
                 showToast("Notificação removida", "success");
 
-            } catch (e: any) {
+            } catch {
 
                 showToast(
-                    e.message || "Erro ao remover notificação",
+                    "Erro ao remover notificação",
                     "error"
                 );
 

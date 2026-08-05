@@ -10,6 +10,7 @@ import AppProviders from '../providers/AppProviders'
 import { RoleGuard } from '@/services/RoleGuard'
 import { UserRoles } from '@/shared/types/UserTypes'
 import CorretoresPage from '@/modules/Corretores/pages/CorretoresPage'
+import { PermissionName } from '@/services/permission/permissionTypes'
 
 function App() {
 
@@ -69,7 +70,7 @@ function App() {
             element={
               <PrivateRoute>
                 <DashboardLayout>
-                  <RoleGuard allowed={[UserRoles.GERENTE]}>
+                  <RoleGuard permission={PermissionName.USER_VIEW}>
                     <CorretoresPage />
                   </RoleGuard>
                 </DashboardLayout>

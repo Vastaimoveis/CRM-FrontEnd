@@ -51,6 +51,7 @@ export default function LeadDatePicker({
     const isNoFilter = !startDate && !endDate;
 
     function setToday() {
+        setSelectedRange(undefined);
         const today = new Date();
 
         const value = format(
@@ -63,6 +64,7 @@ export default function LeadDatePicker({
     }
 
     function setLast7Days() {
+        setSelectedRange(undefined);
         const today = new Date();
 
         onChange(
@@ -74,6 +76,7 @@ export default function LeadDatePicker({
     }
 
     function setCurrentMonth() {
+        setSelectedRange(undefined);
         onChange(
             format(startOfMonth(new Date()), "yyyy-MM-dd"),
             format(endOfMonth(new Date()), "yyyy-MM-dd")
@@ -84,6 +87,7 @@ export default function LeadDatePicker({
     }
 
     function clearFilter() {
+        setSelectedRange(undefined);
         onChange(null, null);
         setOpen(false);
     }
@@ -148,7 +152,7 @@ export default function LeadDatePicker({
                                 onClick={clearFilter}
                                 className={`px-3 py-1 rounded  text-black 
                                     ${isNoFilter
-                                        ?"text-white bg-white"
+                                        ? "text-white bg-white"
                                         : "bg-red-500 border-red-800 text-white"
                                     }`}
                             >

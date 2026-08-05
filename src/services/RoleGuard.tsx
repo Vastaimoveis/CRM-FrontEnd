@@ -1,19 +1,16 @@
-import { Navigate } from "react-router-dom";
-import type { UserRoles } from "../shared/types/UserTypes";
-import { useAuth } from "@/app/providers/AuthProvider";
+import { useRole } from "@/app/providers/RoleProvider";
+import type { PermissionName } from "./permission/permissionTypes";
 
 interface RoleGuardProps {
-  allowed: UserRoles[];
+  permission: PermissionName;
   children: React.ReactNode;
 }
 
-export function RoleGuard({ allowed, children }: RoleGuardProps) {
-  const { user, loading } = useAuth();
-  if (loading) return null;
-
-  if (!user || !allowed.includes(user.role as UserRoles)) {
-    return <Navigate to="/funil" replace />;
-  }
+export function RoleGuard({ permission, children }: RoleGuardProps) {
+  const { hasPermission } = useRole();
+      if (!hasPermission(permission)) {
+          return null;
+      }
 
   return <>{children}</>;
 }

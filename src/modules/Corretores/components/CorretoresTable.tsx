@@ -32,7 +32,7 @@ export function UserTable({ users }: Props) {
                 <td className="px-4 py-2">{user.telefone ? user.telefone : "Não possui"}</td>
                 <td className="px-4 py-2">{user.email}</td>
                 <td className="px-4 py-2">{user.regiao}</td>
-                <td className="px-4 py-2">{user.role}</td>
+                <td className="px-4 py-2">{user.role.name}</td>
 
                 <td className="px-4 py-2">
                   <button

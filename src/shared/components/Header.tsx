@@ -6,6 +6,8 @@ import Permission from "@/shared/permissions/Permission";
 import { useEffect, useRef, useState } from "react";
 import UserDropdown from "./Notifications/userDropdown";
 import NotificationDropdown from "./Notifications/NotificationDropdown";
+import { Can } from "./Can";
+import { PermissionName } from "@/services/permission/permissionTypes";
 
 export default function Header() {
   const { user, visualUser, setVisualUser, logout } = useAuth();
@@ -68,11 +70,11 @@ export default function Header() {
           {/*<NavLink to="/requisicoes" className={navItemClass}>
             Requisições
           </NavLink>*/}
-          <Permission allowed={[UserRoles.GERENTE]}>
+          <Can permission={PermissionName.USER_VIEW}>
             <NavLink className={navItemClass} to="/corretores">
               Corretores
             </NavLink>
-          </Permission>
+          </Can>
         </div>
 
         <div className="relative">

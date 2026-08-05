@@ -1,4 +1,4 @@
-import type { LeadStatus } from "@/shared/types/LeadType";
+import type { LeadOrigem, LeadStatus } from "@/shared/types/LeadType";
 
 export interface countStatusResponse {
     total: number,
@@ -15,6 +15,7 @@ export interface UpdateLeadDto {
     email: string;
     telefone: string;
     status: LeadStatus;
+    origem: LeadOrigem;
 }
 
 export interface LeadStatusDTO{

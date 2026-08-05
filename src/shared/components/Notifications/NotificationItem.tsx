@@ -7,7 +7,7 @@ interface Props {
     notification: AppNotification;
 }
 export default function NotificationItem({ notification }: Props) {
-    const { handleReadNotification: readNotification, handleDeleteNotification: handleDelete } = useNotification();
+    const { handleReadNotification, handleDeleteNotification } = useNotification();
     let content: React.ReactNode;
 
     switch (notification.type) {
@@ -38,7 +38,7 @@ export default function NotificationItem({ notification }: Props) {
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
-                                readNotification(notification.id, true);
+                                handleReadNotification(notification.id, true);
                             }}
                             className="
                             mt-10
@@ -62,7 +62,7 @@ export default function NotificationItem({ notification }: Props) {
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
-                                handleDelete(notification.id);
+                                handleDeleteNotification(notification.id);
                             }}
                             className="
                             mt-10

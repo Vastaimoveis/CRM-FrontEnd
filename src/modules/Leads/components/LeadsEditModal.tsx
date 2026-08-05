@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { LeadStatus, type Lead } from "@/shared/types/LeadType";
+import { LeadOrigem, LeadStatus, type Lead } from "@/shared/types/LeadType";
 import type { UpdateLeadDto } from "@/services/leads/types/leads";
 import { validatePhone } from "@/shared/utils/validatePhone";
 import { formatPhone } from "@/shared/utils/formatPhone";
 import { useToast } from "@/app/providers/ToastProvider";
 import Permission from "@/shared/permissions/Permission";
 import { UserRoles } from "@/shared/types/UserTypes";
+import { Can } from "@/shared/components/Can";
+import { PermissionName } from "@/services/permission/permissionTypes";
 
 interface Props {
     lead: Lead | null;
@@ -27,6 +29,7 @@ export default function LeadEditModal({
         email: "",
         telefone: "",
         status: LeadStatus.CADASTRADO,
+        origem: LeadOrigem.CRM
     });
     const { showToast } = useToast();
 
@@ -38,6 +41,7 @@ export default function LeadEditModal({
             email: lead.email,
             telefone: lead.telefone,
             status: lead.status,
+            origem: lead.origem,
         });
     }, [lead]);
 
@@ -107,7 +111,7 @@ export default function LeadEditModal({
                         }
                         className="border rounded-lg p-2"
                     />
-                    <Permission allowed={[UserRoles.GERENTE]}>
+                    <Can permission={PermissionName.LEAD_EDIT_PHONE}>
                         <input
                             value={form.telefone}
                             onChange={(e) =>
@@ -117,7 +121,7 @@ export default function LeadEditModal({
                                 })}
                             className="border rounded-lg p-2"
                         />
-                    </Permission>
+                    </Can>
 
                     <select
                         value={form.status}

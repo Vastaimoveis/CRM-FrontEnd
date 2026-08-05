@@ -23,13 +23,28 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [visualUser, setVisualUser] = useState<User | null>(null);
-  const requestUser =
-    (user?.role.name === SYSTEM_ROLES.GERENTE && visualUser) ? visualUser : user
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
 
   const runLockLogin = useRequestLock();
+
+ const CAN_SWITCH_USER_ROLES: SYSTEM_ROLES[] = [ SYSTEM_ROLES.ADMIN, SYSTEM_ROLES.GERENTE, ];
+  const canSwitchUser = useMemo(() => {
+
+    const roleName =
+      user?.role?.name; return roleName ?
+        CAN_SWITCH_USER_ROLES
+          .includes(roleName) : false;
+  }
+    , [user]);
+
+  const requestUser = useMemo(() => {
+    if (canSwitchUser && visualUser) {
+      return visualUser;
+    }
+    return user;
+  }, [canSwitchUser, visualUser, user]);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -72,9 +87,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
           console.log(response.data);
           const user = mapLoginResponseToUser(response.data);
-          
+
           const token = response.data.accessToken;
-          console.log(response.data)          
+          console.log(response.data)
           setUser(user);
           setToken(token);
 
@@ -120,6 +135,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem("user");
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
+    localStorage.removeItem("accessToken");
     localStorage.removeItem("visualUser");
   }, [setUser, setToken, setVisualUser, localStorage]);
 

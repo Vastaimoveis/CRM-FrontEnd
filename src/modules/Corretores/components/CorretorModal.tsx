@@ -99,7 +99,7 @@ export default function CorretorModal({
                         </label>
                         <label className="flex gap-2" htmlFor="email">
                             <p className="self-center w-1/3">Função:</p>
-                            <input className="border p-2" type="text" placeholder={selectedUser.role} />
+                            <input className="border p-2" type="text" placeholder={selectedUser.role.name} />
                         </label>
                         <div className="flex gap-2 justify-around">
                             <button className="border p-2 w-full" onClick={() => setModalView("menu")}>Voltar</button>

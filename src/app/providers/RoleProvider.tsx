@@ -36,7 +36,6 @@ export function RoleProvider({ children }: { children: ReactNode }) {
         } loadRoles();
     },
         []);
-console.log(permissions)
 
 
     const value = useMemo(() => (

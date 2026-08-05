@@ -68,7 +68,7 @@ export async function getLeadsFilterByStatus(status: LeadStatusDTO, page = 0) {
 export async function getAllLeadsNotEncerrado(page = 0, user: User | null) {
     if (!user) {
         return
-    } else if (user.newRole.name == SYSTEM_ROLES.GERENTE) {
+    } else if (user.role.name == SYSTEM_ROLES.GERENTE) {
         const response = await api.get<ApiResponse<PageResponse<Lead>>>(`/leads/status?page=${page}`);
 
 

@@ -2,6 +2,7 @@ import {
     createContext,
     useCallback,
     useContext,
+    useEffect,
     useMemo,
     useState,
     type ReactNode,
@@ -127,7 +128,6 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         async (filter: LeadFilters) => {
             setLoading(true);
             try {
-
                 const response = await runFetchFilteredLeads(filter);
                 if (!response) return null;
                 if (!response.success || !response.data) {
@@ -284,6 +284,12 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         );
     }, [fetchFilteredLeads])
 
+    useEffect(() => {
+        updateFilters({userId: requestUser?.id})
+        console.log(requestUser)
+    },[
+        requestUser
+    ])
 
     const value = useMemo(() => (
         {
