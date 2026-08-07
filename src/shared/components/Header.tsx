@@ -1,8 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { useAuth } from "@/app/providers/AuthProvider";
 import logo from "/logo.png"
-import { UserRoles } from "@/types/UserTypes";
-import Permission from "@/shared/permissions/Permission";
 import { useEffect, useRef, useState } from "react";
 import UserDropdown from "./Notifications/userDropdown";
 import NotificationDropdown from "./Notifications/NotificationDropdown";

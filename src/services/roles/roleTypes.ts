@@ -7,6 +7,11 @@ export interface RoleResponseDTO{
     permissions: PermissionResponseDTO[]
 }
 
+export interface RoleRequestDTO{
+    id: string,
+    name: SYSTEM_ROLES,
+}
+
 export const SYSTEM_ROLES = {
     ADMIN: "ADMIN",
     GERENTE: "GERENTE",

@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { createUser, getAllUsers, type CreateUserDTO, updateUser as updateUserService } from "@/services/users/userService";
 import type { User } from "@/shared/types/UserTypes";
 import capitalizeWords from "@/shared/utils/capitalizeWords";
+import { useAuth } from "./AuthProvider";
 
 interface UserContextType {
     users: User[] | null;
@@ -18,8 +19,10 @@ const UserContext = createContext<UserContextType | null>(null);
 export function UserProvider({ children }: { children: ReactNode }) {
     const [users, setUsers] = useState<User[] | null>(null)
     const [loading, setLoading] = useState(true);
+    const { loadingAuth, isCorretor } = useAuth();
 
     const fetchUsers = useCallback(async () => {
+
         const data = await getAllUsers();
 
         setUsers(data.content.map((user) => (
@@ -34,8 +37,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
     )
 
     const CreateUser = useCallback(async (userDTO: CreateUserDTO) => {
-        await createUser(userDTO)
-        await fetchUsers();
+        const userCreated = await createUser(userDTO)
+        setUsers(prev => prev ? [...prev, userCreated] : [userCreated]);
     },
         [
             createUser,
@@ -44,14 +47,26 @@ export function UserProvider({ children }: { children: ReactNode }) {
     )
 
     const updateUser = useCallback(async (user: User) => {
-        await updateUserService(user);
-        await fetchUsers();
+        const userUpdated = await updateUserService(user);
+        if (!userUpdated) return;
+        setUsers(prev => {
+            if (!prev) return null;
+            return prev?.map(
+                currentUser =>
+                    currentUser.id === userUpdated.id
+                        ? userUpdated
+                        : currentUser)
+        })
     }, [
         updateUserService,
         fetchUsers
     ])
 
     useEffect(() => {
+        if(loadingAuth) return;
+
+        if(isCorretor) return;
+
         async function load() {
             try {
                 await fetchUsers();

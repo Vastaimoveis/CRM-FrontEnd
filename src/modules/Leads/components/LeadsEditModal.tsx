@@ -4,8 +4,6 @@ import type { UpdateLeadDto } from "@/services/leads/types/leads";
 import { validatePhone } from "@/shared/utils/validatePhone";
 import { formatPhone } from "@/shared/utils/formatPhone";
 import { useToast } from "@/app/providers/ToastProvider";
-import Permission from "@/shared/permissions/Permission";
-import { UserRoles } from "@/shared/types/UserTypes";
 import { Can } from "@/shared/components/Can";
 import { PermissionName } from "@/services/permission/permissionTypes";
 

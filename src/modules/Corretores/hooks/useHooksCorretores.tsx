@@ -1,21 +1,25 @@
 import { useState } from "react";
 import { formatPhone } from "@/shared/utils/formatPhone";
 import type { CreateUserDTO } from "@/services/users/userService";
-import { RegioesEnum, UserRoles } from "@/shared/types/UserTypes";
+import { RegioesEnum } from "@/shared/types/UserTypes";
+import { SYSTEM_ROLES } from "@/services/roles/roleTypes";
+import { useRole } from "@/app/providers/RoleProvider";
 
 export function useHooksCorretores() {
+    const { roles } = useRole();
+
     const [form, setForm] = useState<CreateUserDTO>({
         nome: "",
         email: "",
         telefone: "",
         password: "",
         regiao: RegioesEnum.CURITIBA,
-        role: UserRoles.CORRETOR,
+        role: roles.find((role) => role.name === SYSTEM_ROLES.CORRETOR)?.id,
     });
 
     const [loading, setLoading] = useState(false);
 
-    const handleRoleChange = (role: UserRoles) => {
+    const handleRoleChange = (role: string) => {
         setForm((prev) => ({
             ...prev,
             role,
@@ -52,7 +56,7 @@ export function useHooksCorretores() {
         if (name === "role") {
             setForm(prev => ({
                 ...prev,
-                role: value as UserRoles
+                role: value as SYSTEM_ROLES
             }))
         }
 
@@ -70,7 +74,7 @@ export function useHooksCorretores() {
             telefone: "",
             password: "",
             regiao: RegioesEnum.CURITIBA,
-            role: UserRoles.CORRETOR,
+            role: roles.find((role) => role.name === SYSTEM_ROLES.CORRETOR)?.id,
         });
     }
 

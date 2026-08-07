@@ -1,8 +1,7 @@
 import { useAuth } from "@/providers/AuthProvider";
-import type { UserRoles } from "@/types/UserTypes";
 
 interface Props {
-  allowed: UserRoles[];
+  allowed: PermissionName;
   children: React.ReactNode;
 }
 
@@ -11,7 +10,7 @@ export default function Permission({ allowed, children }: Props) {
 
   if (!user) return null;
 
-  if (!allowed.includes(user.role)) {
+  if (!allowed.includes(user.role.name)) {
     return null;
   }
 

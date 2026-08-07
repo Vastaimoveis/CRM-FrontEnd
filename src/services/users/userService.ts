@@ -1,5 +1,5 @@
 import type { ApiResponse, PageResponse } from "@/shared/types/api"
-import type { RegioesEnum, User, UserRoles } from "@/shared/types/UserTypes"
+import type { RegioesEnum, User } from "@/shared/types/UserTypes"
 import { api } from "../api/api"
 import { unwrapApiResponse } from "../api/unwrap"
 
@@ -8,8 +8,8 @@ export interface CreateUserDTO {
     telefone: string,
     email: string,
     password: string,
-    regiao: RegioesEnum
-    role: UserRoles
+    regiao: RegioesEnum,
+    role: string | undefined,
 }
 
 export async function getUserById(userId: string): Promise<User> {

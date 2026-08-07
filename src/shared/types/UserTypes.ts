@@ -36,11 +36,6 @@ export enum Permissions{
     REMINDER_EDIT = "REMINDER_EDIT"
 }
 
-export enum UserRoles{
-    CORRETOR = "CORRETOR",
-    GERENTE = "GERENTE"
-}
-
 export enum RegioesEnum{
   CURITIBA = "CURITIBA",
 }

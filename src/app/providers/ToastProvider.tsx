@@ -39,7 +39,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       <div className="fixed bottom-6 right-6 space-y-3 z-100">
         {toasts.map((toast) => (
           <div
-            key={toast.id}
+            key={null}
             className={`px-6 py-3 rounded-lg shadow-lg text-white transition-all
               ${
                 toast.type === "success"

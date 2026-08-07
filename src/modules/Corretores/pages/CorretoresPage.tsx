@@ -1,4 +1,4 @@
-import { RegioesEnum, UserRoles } from "@/shared/types/UserTypes";
+import { RegioesEnum } from "@/shared/types/UserTypes";
 import { UserTable } from "../components/CorretoresTable";
 import { useEffect, useState } from "react";
 import { useHooksCorretores } from "../hooks/useHooksCorretores";
@@ -7,15 +7,17 @@ import { useToast } from "@/app/providers/ToastProvider";
 import { useUsers } from "@/app/providers/UserProvider";
 import { Eye, EyeOff } from "lucide-react";
 import capitalizeWords from "@/shared/utils/capitalizeWords";
+import { useRole } from "@/app/providers/RoleProvider";
+import { SYSTEM_ROLES } from "@/services/roles/roleTypes";
 
 export default function CorretoresPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const { showToast } = useToast();
+    const { roles } = useRole();
     const {
         form,
         setForm,
         handleChange,
-        handleRoleChange,
         loading,
         resetForm,
         setLoading
@@ -56,6 +58,21 @@ export default function CorretoresPage() {
             setLoading(false);
         }
     }
+
+    useEffect(() => {
+        if (!roles.length)
+            return;
+        const corretorRole = roles.find(role =>
+            role.name === SYSTEM_ROLES.CORRETOR);
+        if (corretorRole && !form.role) {
+            setForm(prev =>
+            ({
+                ...prev,
+                role: corretorRole.id
+            }));
+        }
+    },
+        [roles, form.role]);
 
     return (
         <>
@@ -162,15 +179,19 @@ export default function CorretoresPage() {
                                 <label className="block text-sm font-medium mb-1">
                                     Cargo
                                 </label>
-                                <select
-                                    name="role"
-                                    value={form.role}
-                                    onChange={(e) =>
-                                        handleRoleChange(e.target.value as UserRoles)
-                                    }
-                                    className="w-full border rounded-lg px-3 py-2">
-                                    {Object.values(UserRoles).map((role) =>
-                                        <option key={role} value={role}>{role}</option>
+                                <select value={form.role}
+                                    onChange={(e) => setForm(prev =>
+                                    ({
+                                        ...prev,
+                                        role: e.target.value
+                                    })
+                                    )}
+                                    className="w-full border rounded-lg px-3 py-2" >
+                                    {roles.map(role => (
+                                        <option key={role.id}
+                                            value={role.id}>
+                                            {role.name}
+                                        </option>)
                                     )}
                                 </select>
                             </div>

@@ -4,9 +4,9 @@ import { useToast } from "@/app/providers/ToastProvider";
 import type { UpdateLeadDto } from "@/services/leads/types/leads";
 import { createLeadNote } from "@/services/leadsNote/LeadsNoteService";
 import { LeadStatus, type Lead } from "@/shared/types/LeadType";
-import { UserRoles } from "@/shared/types/UserTypes";
 import { useCallback, useEffect, useState } from "react";
 import { useDebounce } from "./useLeadDebounce";
+import { SYSTEM_ROLES } from "@/services/roles/roleTypes";
 
 export function useLeadsPage() {
     const {
@@ -35,7 +35,7 @@ export function useLeadsPage() {
 
     const [sendModal, setSendModal] = useState<Lead | null>(null)
 
-    const { user } = useAuth();
+    const { user, loadingAuth } = useAuth();
 
     const handlePatchStatus = useCallback(async (
         id: string,
@@ -168,13 +168,15 @@ export function useLeadsPage() {
     }, [user?.id, filters, fetchFilteredLeads]);
 
     useEffect(() => {
+        if(loadingAuth) return;
+
         if (!user) {
             return;
         }
-
+    
         fetchFilteredLeads({
             ...filters,
-            userId: user.role === UserRoles.GERENTE
+            userId: user.role.name !== SYSTEM_ROLES.CORRETOR
                 ? null
                 : user.id,
         });
@@ -182,6 +184,8 @@ export function useLeadsPage() {
     }, [filters, user, fetchFilteredLeads]);
 
     useEffect(() => {
+        if(loadingAuth) return;
+
         if (debouncedSearch === filters.search) return;
 
         updateFilters({
@@ -191,6 +195,7 @@ export function useLeadsPage() {
     }, [debouncedSearch, filters.search, updateFilters]);
 
     useEffect(() => {
+        if(loadingAuth) return;
         loadLeads();
     }, [loadLeads]);
 

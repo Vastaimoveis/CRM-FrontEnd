@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type Dispatch } from "react";
-import { UserRoles, type User } from "@/shared/types/UserTypes";
+import { type User } from "@/shared/types/UserTypes";
 import { loginRequest } from "@/services/auth/authService";
 import { mapLoginResponseToUser } from "@/services/auth/authMapper"
 import useRequestLock from "@/shared/utils/useRequestLock";
@@ -13,9 +13,10 @@ interface AuthContextType {
   setVisualUser: Dispatch<React.SetStateAction<User | null>>;
   requestUser: User | null;
   logout: () => void;
-  loading: boolean;
+  loadingAuth: boolean;
   erro: string;
   ErrorSetter: (text: string) => void;
+  isCorretor: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,12 +25,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [visualUser, setVisualUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loadingAuth, setLoadingAuth] = useState(true);
   const [erro, setErro] = useState("");
 
   const runLockLogin = useRequestLock();
 
- const CAN_SWITCH_USER_ROLES: SYSTEM_ROLES[] = [ SYSTEM_ROLES.ADMIN, SYSTEM_ROLES.GERENTE, ];
+  const CAN_SWITCH_USER_ROLES: SYSTEM_ROLES[] = [SYSTEM_ROLES.ADMIN, SYSTEM_ROLES.GERENTE,];
   const canSwitchUser = useMemo(() => {
 
     const roleName =
@@ -47,15 +48,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [canSwitchUser, visualUser, user]);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    const storedToken = localStorage.getItem("accessToken");
+    try {
+      const storedUser = localStorage.getItem("user");
+      const storedToken = localStorage.getItem("accessToken");
+      if (storedUser && storedToken) {
+        setUser(JSON.parse(storedUser));
+        setToken(storedToken);
 
-    if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
-      setToken(storedToken);
+      }
+    } catch {
+      localStorage.removeItem("user");
+      localStorage.removeItem("accessToken"); localStorage.removeItem("refreshToken");
+    } finally {
+      setLoadingAuth(false);
     }
-
-    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -74,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const success =
         runLockLogin(async () => {
-          setLoading(true);
+          setLoadingAuth(true);
           const response = await loginRequest({
             email,
             password,
@@ -89,7 +95,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const user = mapLoginResponseToUser(response.data);
 
           const token = response.data.accessToken;
-          console.log(response.data)
           setUser(user);
           setToken(token);
 
@@ -115,10 +120,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         "Erro ao realizar login"
       );
     } finally {
-      setLoading(false);
+      setLoadingAuth(false);
     }
   }, [
-    setLoading,
+    setLoadingAuth,
     loginRequest,
     mapLoginResponseToUser,
     setUser,
@@ -139,16 +144,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem("visualUser");
   }, [setUser, setToken, setVisualUser, localStorage]);
 
-  useEffect(() => {
-    if (location.pathname === "/login") {
-      logout();
-    }
-  }, [location.pathname, logout]);
 
+  const isCorretor = requestUser?.role.name === SYSTEM_ROLES.CORRETOR
 
   const value = useMemo(() => ({
-    user, token, login, ErrorSetter, erro, logout, visualUser, setVisualUser, requestUser, loading
-  }), [user, token, login, ErrorSetter, erro, logout, visualUser, setVisualUser, requestUser, loading])
+    user, token, login, ErrorSetter, erro, logout, visualUser, setVisualUser, requestUser, loadingAuth, isCorretor
+  }), [user, token, login, ErrorSetter, erro, logout, visualUser, setVisualUser, requestUser, loadingAuth, isCorretor])
 
   return (
     <AuthContext.Provider value={value}>

@@ -16,15 +16,19 @@ interface RoleContext {
 const RoleContext = createContext<RoleContext | null>(null);
 
 export function RoleProvider({ children }: { children: ReactNode }) {
-    const { user } = useAuth();
+    const { user, isCorretor, loadingAuth } = useAuth();
     const [roles, setRoles] = useState<RoleResponseDTO[]>([]);
     const [loading, setLoading] = useState(true);
-
     const permissionSet = useMemo(() => new Set<PermissionName>(user?.role?.permissions?.map((p) => p.name) ?? []), [user]);
 
     const permissions = useMemo(() => Array.from(permissionSet), [permissionSet]);
 
+
     useEffect(() => {
+        if(loadingAuth) return;
+
+        if(isCorretor) return;
+
         async function loadRoles() {
             try {
                 const response = await findAllRoles();

@@ -8,7 +8,6 @@ import LeadsPage from '@/modules/Leads/pages/LeadsPage'
 import OportunidadesPage from '@/modules/Oportunitys/pages/OportunidadesPage'
 import AppProviders from '../providers/AppProviders'
 import { RoleGuard } from '@/services/RoleGuard'
-import { UserRoles } from '@/shared/types/UserTypes'
 import CorretoresPage from '@/modules/Corretores/pages/CorretoresPage'
 import { PermissionName } from '@/services/permission/permissionTypes'
 

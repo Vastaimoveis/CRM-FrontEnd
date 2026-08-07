@@ -1,4 +1,5 @@
 import { useAuth } from "@/app/providers/AuthProvider";
+import { useToast } from "@/app/providers/ToastProvider";
 import type { User } from "@/shared/types/UserTypes";
 import type { Dispatch, SetStateAction } from "react";
 
@@ -20,10 +21,12 @@ export default function CorretorModal({
 }: Props) {
 
     const { setVisualUser } = useAuth();
-    
+    const { showToast } = useToast();
+
     function handleSelectUser(user: User) {
-        setVisualUser(user)
-        handleClose
+        setVisualUser(user);
+        handleClose();
+        showToast("Usuário aplicado com sucesso", "success")
     }
 
     function handleClose() {

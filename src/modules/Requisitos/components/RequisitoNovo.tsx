@@ -1,7 +1,6 @@
-import Permission from "@/shared/permissions/Permission";
-import { RegioesEnum, UserRoles, type User } from "@/shared/types/UserTypes";
+
+import { type User } from "@/shared/types/UserTypes";
 import { useState } from "react";
-import RequisitosSearchDropdown from "./RequisitoSearchDropdown";
 
 interface props {
     onSend: (corretor: User, assunto: string, message: string) => Promise<void>;
@@ -9,17 +8,11 @@ interface props {
 
 }
 
-const corretores: User[] = [
-    { id: "2103", nome: "João da Silva", email: "joao@email.com", telefone: "41 999929392", regiao: RegioesEnum.CURITIBA, role: UserRoles.CORRETOR },
-    { id: "2104", nome: "Maria Souza", email: "Maria@email.com", telefone: "41 988829392", regiao: RegioesEnum.CURITIBA, role: UserRoles.CORRETOR },
-    { id: "2105", nome: "Carlos Junior", email: "Carlos@email.com", telefone: "41 977729392", regiao: RegioesEnum.CURITIBA, role: UserRoles.CORRETOR },
-];
-
 export default function RequisitoNovo({ onSend, onClose }: props) {
     const [assunto, setAssunto] = useState<string>("");
     const [mensagem, setMensagem] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(false);
-    const [corretor, setCorretor] = useState<User | null>(null);
+    const [corretor] = useState<User | null>(null);
 
     async function handleSend() {
         if (!mensagem.trim()) return;
@@ -54,17 +47,7 @@ export default function RequisitoNovo({ onSend, onClose }: props) {
                 <div className="p-6 flex-1 overflow-y-auto space-y-4">
 
                     <div>
-                        <Permission allowed={[UserRoles.GERENTE]}>
-                            <h3 className="text-sm font-semibold mb-1"> Escolha para qual corretor enviar:</h3>
-                            <RequisitosSearchDropdown
-                                items={corretores}
-                                placeholder="Selecione um corretor"
-                                onSelect={(item) => {
-                                    console.log("Selecionado:", item)
-                                    setCorretor(item);
-                                }}
-                            />
-                        </Permission>
+                        
 
                     </div>
 

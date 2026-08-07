@@ -286,7 +286,6 @@ export function LeadProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         updateFilters({userId: requestUser?.id})
-        console.log(requestUser)
     },[
         requestUser
     ])

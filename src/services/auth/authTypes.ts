@@ -1,4 +1,5 @@
-import type { RegioesEnum, UserRoles } from "@/shared/types/UserTypes";
+import type { RegioesEnum } from "@/shared/types/UserTypes";
+import type { RoleResponseDTO } from "../roles/roleTypes";
 
 export interface LoginRequestDTO {
     email: string;
@@ -13,8 +14,7 @@ export interface LoginResponseDTO {
         nome: string;
         email: string;
         telefone: string;
-        role: UserRoles;
         regiao: RegioesEnum;
-        new_role: string;
+        role: RoleResponseDTO;
     }
 }
