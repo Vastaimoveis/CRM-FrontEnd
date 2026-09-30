@@ -61,7 +61,9 @@ export default function Header() {
           <NavLink to="/leads" className={navItemClass}>
             Leads
           </NavLink>
-
+          <NavLink to="/follow" className={navItemClass}>
+            Follow-ups
+          </NavLink>
           <NavLink to="/oportunidades" className={navItemClass}>
             Oportunidades
           </NavLink>

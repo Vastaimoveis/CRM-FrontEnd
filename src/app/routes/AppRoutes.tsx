@@ -10,6 +10,7 @@ import AppProviders from '../providers/AppProviders'
 import { RoleGuard } from '@/services/RoleGuard'
 import CorretoresPage from '@/modules/Corretores/pages/CorretoresPage'
 import { PermissionName } from '@/services/permission/permissionTypes'
+import FollowUps from '@/modules/Follow-up/pages/followUpPage'
 
 function App() {
 
@@ -41,6 +42,16 @@ function App() {
               </PrivateRoute>
             }
           />
+
+          <Route
+            path="/follow"
+            element={
+              <PrivateRoute>
+                <DashboardLayout>
+                  <FollowUps />
+                </DashboardLayout>
+              </PrivateRoute>
+            } />
 
           <Route
             path="/oportunidades"
