@@ -54,6 +54,9 @@ export default function Header() {
       {/* Linha 2 */}
       <section className="flex items-center justify-between px-8 border-t border-gray-100 h-12">
         <div className="flex gap-6 h-12 items-center">
+          <NavLink to={"/home"} className={navItemClass}>
+            Home
+          </NavLink>
           <NavLink to="/funil" className={navItemClass}>
             Funil
           </NavLink>

@@ -11,6 +11,7 @@ import { RoleGuard } from '@/services/RoleGuard'
 import CorretoresPage from '@/modules/Corretores/pages/CorretoresPage'
 import { PermissionName } from '@/services/permission/permissionTypes'
 import FollowUps from '@/modules/Follow-up/pages/followUpPage'
+import HomePage from '@/modules/Home/HomePage'
 
 function App() {
 
@@ -21,6 +22,17 @@ function App() {
           <Route path='/' element={<Login />} />
           <Route path='/login' element={<Login />} />
           <Route path="*" element={<Login />} />
+          <Route path='/home'
+            element={
+              <PrivateRoute>
+                <DashboardLayout>
+                  <HomePage />
+                </DashboardLayout>
+              </PrivateRoute>
+            }
+
+          />
+
           <Route
             path="/funil"
             element={
