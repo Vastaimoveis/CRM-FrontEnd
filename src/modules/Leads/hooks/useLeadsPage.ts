@@ -149,7 +149,6 @@ export function useLeadsPage() {
         try {
             
             await patchLeadCorretor(leadId, userId);
-            console.log(leadId, userId);
             showToast("Sucesso em alterar o corretor do lead", "success")
             setSendModal(null);
         } catch {

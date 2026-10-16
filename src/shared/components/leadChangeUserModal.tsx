@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { User } from "@/shared/types/UserTypes";
 import type { Lead } from "../types/LeadType";
 import { useUsers } from "@/app/providers/UserProvider";
+import { useAuth } from "@/app/providers/AuthProvider";
 
 interface LeadChangeUserModalProps {
     lead: Lead;
@@ -18,7 +19,8 @@ export default function LeadChangeUserModal({
 }: LeadChangeUserModalProps) {
     const [search, setSearch] = useState("");
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
-    const { getUserById } = useUsers();
+    const { getUserById, fetchUsers } = useUsers();
+    const { isCorretor } = useAuth();
     const currentUser = getUserById(lead.userId);
     const filteredUsers = useMemo(() => {
         const value = search.toLowerCase();
@@ -37,6 +39,19 @@ export default function LeadChangeUserModal({
 
         onClose();
     };
+
+        useEffect(() => {
+            if(isCorretor) return;
+    
+            async function load() {
+                try {
+                    await fetchUsers();
+                } finally {
+                }
+            }
+    
+            load();
+        }, [fetchUsers]);
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">

@@ -1,7 +1,10 @@
+
 import {
     createContext,
     useCallback,
     useContext,
+    useMemo,
+    useRef,
     useState,
     type ReactNode
 } from "react";
@@ -10,8 +13,8 @@ import type {
     FollowUp,
     CreateFollowUpRequest,
     RescheduleFollowUpRequest,
-    FollowUpStatusCount,
-} from "@/shared/types/followUpTypes"
+    FollowUpStatusCount
+} from "@/shared/types/followUpTypes";
 
 import {
     getMyCurrentFollowUps,
@@ -21,17 +24,15 @@ import {
     completeFollowUp,
     rescheduleFollowUp,
     scheduleNextFollowUp,
+    getCurrentFollowUpsByUser,
+    getMyFilteredFollowUps,
+    getAllFilteredFollowUps
 } from "@/services/followUp/FollowUpService";
 
 import type { PageResponse } from "@/shared/types/api";
-
+import type { FollowUpFilters } from "@/shared/types/filterTypes";
 
 interface FollowUpContextType {
-
-    // =========================
-    // ESTADO
-    // =========================
-
     followUps: FollowUp[];
     statusCounts: FollowUpStatusCount[];
 
@@ -39,13 +40,11 @@ interface FollowUpContextType {
     error: string | null;
 
     page: number;
+    pageSize: number;
+    first: boolean;
+    last: boolean;
     totalPages: number;
     totalElements: number;
-
-
-    // =========================
-    // BUSCAS
-    // =========================
 
     fetchMyFollowUps: (
         page?: number,
@@ -58,203 +57,255 @@ interface FollowUpContextType {
         size?: number
     ) => Promise<void>;
 
+    fetchFollowUpsByUser: (
+        userId: string,
+        page?: number,
+        size?: number
+    ) => Promise<void>;
+
+    fetchMyFilteredFollowUps: (
+        filters?: FollowUpFilters,
+        page?: number,
+        size?: number
+    ) => Promise<void>;
+
+    fetchAllFilteredFollowUps: (
+        filters?: FollowUpFilters,
+        page?: number,
+        size?: number
+    ) => Promise<void>;
+
     fetchStatusCounts: () => Promise<void>;
-
-
-    // =========================
-    // AÇÕES
-    // =========================
 
     create: (
         leadId: string,
         data: CreateFollowUpRequest
     ) => Promise<FollowUp>;
 
-    complete: (
-        id: string
-    ) => Promise<FollowUp>;
+    complete: (id: string) => Promise<FollowUp>;
 
     reschedule: (
-        id: string,
         data: RescheduleFollowUpRequest
     ) => Promise<FollowUp>;
 
     scheduleNext: (
         id: string,
-        data: RescheduleFollowUpRequest
+        data: CreateFollowUpRequest
     ) => Promise<FollowUp>;
-
-
-    // =========================
-    // UTILITÁRIOS
-    // =========================
 
     clearError: () => void;
 }
 
-
-const FollowUpContext = createContext<FollowUpContextType | undefined>(
-    undefined
-);
-
+const FollowUpContext = createContext<
+    FollowUpContextType | undefined
+>(undefined);
 
 interface FollowUpProviderProps {
     children: ReactNode;
 }
 
+function getErrorMessage(
+    error: unknown,
+    fallback: string
+): string {
+    return error instanceof Error
+        ? error.message
+        : fallback;
+}
 
 export function FollowUpProvider({
-    children,
+    children
 }: FollowUpProviderProps) {
 
     const [followUps, setFollowUps] = useState<FollowUp[]>([]);
-    const [statusCounts, setStatusCounts] = useState<FollowUpStatusCount[]>([]);
+    const [statusCounts, setStatusCounts] =
+        useState<FollowUpStatusCount[]>([]);
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const [page, setPage] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [first, setFirst] = useState(true);
+    const [last, setLast] = useState(true);
     const [totalPages, setTotalPages] = useState(0);
     const [totalElements, setTotalElements] = useState(0);
 
-
-    // ======================================================
-    // LIMPAR ERRO
-    // ======================================================
+    // Controle compartilhado por todas as buscas paginadas.
+    const requestIdRef = useRef(0);
 
     const clearError = useCallback(() => {
         setError(null);
     }, []);
 
+    const updateFollowUpsPage = useCallback(
+        (response: PageResponse<FollowUp>) => {
 
-    // ======================================================
-    // BUSCAR FOLLOW-UPS DO USUÁRIO
-    // ======================================================
+            setFollowUps(response.content);
 
-    const fetchMyFollowUps = useCallback(
+            setPage(response.number);
+            setPageSize(response.size);
+
+            setFirst(response.first);
+            setLast(response.last);
+
+            setTotalPages(response.totalPages);
+            setTotalElements(response.totalElements);
+        },
+        []
+    );
+
+    // Executa qualquer consulta paginada e ignora respostas antigas.
+    const runPageRequest = useCallback(
         async (
-            pageNumber = 0,
-            size = 10
-        ) => {
+            request: () => Promise<PageResponse<FollowUp>>,
+            fallbackMessage: string
+        ): Promise<void> => {
+
+            const requestId = ++requestIdRef.current;
 
             setLoading(true);
             setError(null);
 
             try {
 
-                const response: PageResponse<FollowUp> =
-                    await getMyCurrentFollowUps(
-                        pageNumber,
-                        size
-                    );
+                const response = await request();
 
-                setFollowUps(response.content);
+                if (requestId !== requestIdRef.current) return;
 
-                setPage(response.number);
-                setTotalPages(response.totalPages);
-                setTotalElements(response.totalElements);
+                updateFollowUpsPage(response);
 
             } catch (err) {
 
-                const message =
-                    err instanceof Error
-                        ? err.message
-                        : "Erro ao buscar Follow-ups";
+                if (requestId !== requestIdRef.current) return;
 
-                setError(message);
+                setError(getErrorMessage(err, fallbackMessage));
 
             } finally {
 
-                setLoading(false);
-
+                if (requestId === requestIdRef.current) {
+                    setLoading(false);
+                }
             }
         },
-        []
+        [updateFollowUpsPage]
     );
 
+    const fetchMyFollowUps = useCallback(
+        async (
+            pageNumber = 0,
+            size = 10
+        ): Promise<void> => {
 
-    // ======================================================
-    // BUSCAR FOLLOW-UPS DE UM LEAD
-    // ======================================================
+            await runPageRequest(
+                () => getMyCurrentFollowUps(pageNumber, size),
+                "Erro ao buscar Follow-ups"
+            );
+        },
+        [runPageRequest]
+    );
 
     const fetchFollowUpsByLead = useCallback(
         async (
             leadId: string,
             pageNumber = 0,
             size = 10
-        ) => {
+        ): Promise<void> => {
 
-            setLoading(true);
-            setError(null);
-
-            try {
-
-                const response: PageResponse<FollowUp> =
-                    await getFollowUpsByLead(
-                        leadId,
-                        pageNumber,
-                        size
-                    );
-
-                setFollowUps(response.content);
-
-                setPage(response.number);
-                setTotalPages(response.totalPages);
-                setTotalElements(response.totalElements);
-
-            } catch (err) {
-
-                const message =
-                    err instanceof Error
-                        ? err.message
-                        : "Erro ao buscar histórico de Follow-ups";
-
-                setError(message);
-
-            } finally {
-
-                setLoading(false);
-
-            }
+            await runPageRequest(
+                () => getFollowUpsByLead(
+                    leadId,
+                    pageNumber,
+                    size
+                ),
+                "Erro ao buscar histórico de Follow-ups"
+            );
         },
-        []
+        [runPageRequest]
     );
 
+    const fetchFollowUpsByUser = useCallback(
+        async (
+            userId: string,
+            pageNumber = 0,
+            size = 10
+        ): Promise<void> => {
 
-    // ======================================================
-    // CONTAGEM POR STATUS
-    // ======================================================
-
-    const fetchStatusCounts = useCallback(
-        async () => {
-
-            try {
-
-                setError(null);
-
-                const response =
-                    await getMyCurrentFollowUpCountByStatus();
-
-                setStatusCounts(response);
-
-            } catch (err) {
-
-                const message =
-                    err instanceof Error
-                        ? err.message
-                        : "Erro ao buscar contagem dos Follow-ups";
-
-                setError(message);
-
-            }
+            await runPageRequest(
+                () => getCurrentFollowUpsByUser(
+                    userId,
+                    pageNumber,
+                    size
+                ),
+                "Erro ao buscar Follow-ups do corretor"
+            );
         },
-        []
+        [runPageRequest]
     );
 
+    const fetchMyFilteredFollowUps = useCallback(
+        async (
+            filters: FollowUpFilters = {},
+            pageNumber = 0,
+            size = 10
+        ): Promise<void> => {
 
-    // ======================================================
-    // CRIAR FOLLOW-UP
-    // ======================================================
+            // Nunca encaminha userId ao filtro pessoal.
+            const { userId: _userId, ...myFilters } = filters;
+            void _userId;
+
+            await runPageRequest(
+                () => getMyFilteredFollowUps(
+                    myFilters,
+                    pageNumber,
+                    size
+                ),
+                "Erro ao filtrar seus Follow-ups"
+            );
+        },
+        [runPageRequest]
+    );
+
+    const fetchAllFilteredFollowUps = useCallback(
+        async (
+            filters: FollowUpFilters = {},
+            pageNumber = 0,
+            size = 10
+        ): Promise<void> => {
+
+            await runPageRequest(
+                () => getAllFilteredFollowUps(
+                    filters,
+                    pageNumber,
+                    size
+                ),
+                "Erro ao filtrar os Follow-ups"
+            );
+        },
+        [runPageRequest]
+    );
+
+    const fetchStatusCounts = useCallback(async (): Promise<void> => {
+
+        try {
+
+            const response =
+                await getMyCurrentFollowUpCountByStatus();
+
+            setStatusCounts(response);
+
+        } catch (err) {
+
+            const message = getErrorMessage(
+                err,
+                "Erro ao buscar contagem dos Follow-ups"
+            );
+
+            console.error("Erro no fetchStatusCounts:", err);
+            setError(message);
+        }
+
+    }, []);
 
     const create = useCallback(
         async (
@@ -266,22 +317,14 @@ export function FollowUpProvider({
 
             try {
 
-                const followUp =
-                    await createFollowUp(
-                        leadId,
-                        data
-                    );
-
-                return followUp;
+                return await createFollowUp(leadId, data);
 
             } catch (err) {
 
-                const message =
-                    err instanceof Error
-                        ? err.message
-                        : "Erro ao criar Follow-up";
-
-                setError(message);
+                setError(getErrorMessage(
+                    err,
+                    "Erro ao criar Follow-up"
+                ));
 
                 throw err;
             }
@@ -289,33 +332,21 @@ export function FollowUpProvider({
         []
     );
 
-
-    // ======================================================
-    // CONCLUIR FOLLOW-UP
-    // ======================================================
-
     const complete = useCallback(
-        async (
-            id: string
-        ): Promise<FollowUp> => {
+        async (id: string): Promise<FollowUp> => {
 
             setError(null);
 
             try {
 
-                const followUp =
-                    await completeFollowUp(id);
-
-                return followUp;
+                return await completeFollowUp(id);
 
             } catch (err) {
 
-                const message =
-                    err instanceof Error
-                        ? err.message
-                        : "Erro ao concluir Follow-up";
-
-                setError(message);
+                setError(getErrorMessage(
+                    err,
+                    "Erro ao concluir Follow-up"
+                ));
 
                 throw err;
             }
@@ -323,14 +354,8 @@ export function FollowUpProvider({
         []
     );
 
-
-    // ======================================================
-    // REAGENDAR
-    // ======================================================
-
     const reschedule = useCallback(
         async (
-            id: string,
             data: RescheduleFollowUpRequest
         ): Promise<FollowUp> => {
 
@@ -338,60 +363,39 @@ export function FollowUpProvider({
 
             try {
 
-                const followUp =
-                    await rescheduleFollowUp(
-                        id,
-                        data
-                    );
-
-                return followUp;
+                return await rescheduleFollowUp(data);
 
             } catch (err) {
 
-                const message =
-                    err instanceof Error
-                        ? err.message
-                        : "Erro ao reagendar Follow-up";
-
-                setError(message);
+                setError(getErrorMessage(
+                    err,
+                    "Erro ao reagendar Follow-up"
+                ));
 
                 throw err;
             }
         },
         []
     );
-
-
-    // ======================================================
-    // PRÓXIMO FOLLOW-UP
-    // ======================================================
 
     const scheduleNext = useCallback(
         async (
             id: string,
-            data: RescheduleFollowUpRequest
+            data: CreateFollowUpRequest
         ): Promise<FollowUp> => {
 
             setError(null);
 
             try {
 
-                const followUp =
-                    await scheduleNextFollowUp(
-                        id,
-                        data
-                    );
-
-                return followUp;
+                return await scheduleNextFollowUp(id, data);
 
             } catch (err) {
 
-                const message =
-                    err instanceof Error
-                        ? err.message
-                        : "Erro ao agendar próximo Follow-up";
-
-                setError(message);
+                setError(getErrorMessage(
+                    err,
+                    "Erro ao agendar próximo Follow-up"
+                ));
 
                 throw err;
             }
@@ -399,43 +403,68 @@ export function FollowUpProvider({
         []
     );
 
+    const value = useMemo<FollowUpContextType>(() => ({
+
+        followUps,
+        statusCounts,
+
+        loading,
+        error,
+
+        page,
+        pageSize,
+        first,
+        last,
+        totalPages,
+        totalElements,
+
+        fetchMyFollowUps,
+        fetchFollowUpsByLead,
+        fetchFollowUpsByUser,
+
+        fetchMyFilteredFollowUps,
+        fetchAllFilteredFollowUps,
+        fetchStatusCounts,
+
+        create,
+        complete,
+        reschedule,
+        scheduleNext,
+
+        clearError
+
+    }), [
+        followUps,
+        statusCounts,
+        loading,
+        error,
+        page,
+        pageSize,
+        first,
+        last,
+        totalPages,
+        totalElements,
+        fetchMyFollowUps,
+        fetchFollowUpsByLead,
+        fetchFollowUpsByUser,
+        fetchMyFilteredFollowUps,
+        fetchAllFilteredFollowUps,
+        fetchStatusCounts,
+        create,
+        complete,
+        reschedule,
+        scheduleNext,
+        clearError
+    ]);
 
     return (
-        <FollowUpContext.Provider
-            value={{
-                followUps,
-                statusCounts,
-
-                loading,
-                error,
-
-                page,
-                totalPages,
-                totalElements,
-
-                fetchMyFollowUps,
-                fetchFollowUpsByLead,
-                fetchStatusCounts,
-
-                create,
-                complete,
-                reschedule,
-                scheduleNext,
-
-                clearError,
-            }}
-        >
+        <FollowUpContext.Provider value={value}>
             {children}
         </FollowUpContext.Provider>
     );
 }
 
-
-// ======================================================
-// HOOK
-// ======================================================
-
-export function useFollowUp() {
+export function useFollowUp(): FollowUpContextType {
 
     const context = useContext(FollowUpContext);
 

@@ -1,195 +1,347 @@
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+
 import FollowAlerta from "../followAlerta";
 import FollowSummaryBoard from "../followSummary/followSummaryBoard";
-import FollowTableBoard from "../followTable/followTableBoard";
 import FollowNextBoard from "../followNexts/followNextsBoard";
 import FollowRankingBoard from "../followRanking/followRankingBoard";
-import FollowUps from "../../pages/followUpPage";
-import { FollowUpTab, type followUpLead, type typeTabs, } from "../../hooks/types";
-import { LeadStatus } from "@/shared/types/LeadType";
+import FollowBoard from "../followBoard/followBoard";
 
-const followUps: followUpLead[] = [
-    {
-        id: "1",
-        cliente: "Eduardo",
-        telefone: "(41) 99836-9955",
-        status: LeadStatus.AGUARDANDO,
-        etapa: "3 / 6",
-        ultimoContato: "18/09/2026 10:14",
-        proximoContato: "20/09/2026",
-        diasAtraso: 5,
-    },
-    {
-        id: "2",
-        cliente: "Raquel",
-        telefone: "(54) 99623-2274",
-        status: LeadStatus.ATENDIMENTO,
-        etapa: "2 / 6",
-        ultimoContato: "17/09/2026 14:32",
-        proximoContato: "21/09/2026",
-        diasAtraso: 3,
-    },
-    {
-        id: "3",
-        cliente: "Andreia",
-        telefone: "(41) 99903-7318",
-        status: LeadStatus.AGUARDANDO,
-        etapa: "4 / 6",
-        ultimoContato: "15/09/2026 16:21",
-        proximoContato: "19/09/2026",
-        diasAtraso: 5,
-    },
-    {
-        id: "4",
-        cliente: "Fatima",
-        telefone: "(41) 98733-4653",
-        status: LeadStatus.VISITA,
-        etapa: "2 / 6",
-        ultimoContato: "18/09/2026 09:15",
-        proximoContato: "21/09/2026",
-        diasAtraso: 3,
-    },
-    {
-        id: "5",
-        cliente: "Carlos Henrique",
-        telefone: "(41) 99122-3344",
-        status: LeadStatus.NEGOCIACAO,
-        etapa: "3 / 6",
-        ultimoContato: "19/09/2026 11:03",
-        proximoContato: "22/09/2026",
-        diasAtraso: 2,
-    },
-    {
-        id: "6",
-        cliente: "Juliana",
-        telefone: "(41) 98877-1122",
-        status: LeadStatus.ATENDIMENTO,
-        etapa: "1 / 6",
-        ultimoContato: "21/09/2026 13:47",
-        proximoContato: "23/09/2026",
-        diasAtraso: 1,
-    },
-    {
-        id: "7",
-        cliente: "Eduardo Novo Mundo",
-        telefone: "(42) 99836-9955",
-        status: LeadStatus.AGUARDANDO,
-        etapa: "2 / 6",
-        ultimoContato: "18/09/2026 08:55",
-        proximoContato: "20/09/2026",
-        diasAtraso: 5,
-    },
-    {
-        id: "8",
-        cliente: "Mariana",
-        telefone: "(41) 99711-5566",
-        status: LeadStatus.CADASTRADO,
-        etapa: "1 / 6",
-        ultimoContato: "22/09/2026 09:32",
-        proximoContato: "24/09/2026",
-        diasAtraso: 0,
-    },
-    {
-        id: "9",
-        cliente: "Rodrigo",
-        telefone: "(41) 98644-7788",
-        status: LeadStatus.ATENDIMENTO,
-        etapa: "2 / 6",
-        ultimoContato: "21/09/2026 15:10",
-        proximoContato: "24/09/2026",
-        diasAtraso: 0,
-    },
-    {
-        id: "10",
-        cliente: "Vanessa",
-        telefone: "(41) 99988-7666",
-        status: LeadStatus.AGUARDANDO,
-        etapa: "3 / 6",
-        ultimoContato: "22/09/2026 18:20",
-        proximoContato: "24/09/2026",
-        diasAtraso: 0,
-    },
-];
+import {
+    FollowUpStatus,
+    type FollowUp
+} from "@/shared/types/followUpTypes";
 
-const tabs: typeTabs[] = [
-    { id: FollowUpTab.ATRASADO, label: "Atrasados", count: 7 },
-    { id: FollowUpTab.HOJE, label: "Hoje", count: 12 },
-    { id: FollowUpTab.PROXIMOS, label: "Próximos", count: 18 },
-    { id: FollowUpTab.CONCLUIDOS, label: "Concluídos", count: 45 },
-];
+import type { FollowUpFilters } from "@/shared/types/filterTypes";
 
+import { useFollowUp } from "@/app/providers/FollowUpProvider";
+import { useUsers } from "@/app/providers/UserProvider";
+import { useAuth } from "@/app/providers/AuthProvider";
+
+import { useDebounce } from "../../hooks/useDebounce";
+import { SYSTEM_ROLES } from "@/services/roles/roleTypes";
+
+import FollowModal, {
+    type FollowModalMode,
+    type FollowModalData
+} from "../followBoard/followCreateModal/FollowCreateModal";
+
+interface ActiveFollowModal {
+    followUp: FollowUp;
+    mode: FollowModalMode;
+}
+
+const PAGE_SIZE = 10;
 
 export default function FollowMainPage() {
-    const [activeTab, setActiveTab] =
-        useState<FollowUpTab>(FollowUpTab.ATRASADO);
 
-    function handleActiveTab(tab: FollowUpTab) {
-        setActiveTab(tab);
+    const { user } = useAuth();
+
+    const {
+        followUps,
+        statusCounts,
+        loading,
+
+        page,
+        pageSize,
+        totalPages,
+        totalElements,
+
+        scheduleNext,
+
+        fetchMyFilteredFollowUps,
+        fetchAllFilteredFollowUps,
+        fetchStatusCounts
+    } = useFollowUp();
+
+    const {
+        corretores,
+        loadCorretores
+    } = useUsers();
+
+    const isManager =
+        user?.role.name === SYSTEM_ROLES.ADMIN ||
+        user?.role.name === SYSTEM_ROLES.GERENTE;
+
+    const [filters, setFilters] = useState<FollowUpFilters>({
+        status: FollowUpStatus.PENDENTE
+    });
+
+    const [currentPage, setCurrentPage] = useState(0);
+
+    const debouncedSearch = useDebounce(
+        filters.search ?? "",
+        400
+    );
+
+    const [activeModal, setActiveModal] =
+        useState<ActiveFollowModal | null>(null);
+
+    const [modalLoading, setModalLoading] = useState(false);
+
+    // BUSCA CENTRALIZADA
+
+    const refreshFollowUps = useCallback(async () => {
+
+        if (!user) return;
+
+        const requestFilters: FollowUpFilters = {
+            ...filters,
+            search: debouncedSearch
+        };
+
+        if (isManager) {
+
+            await fetchAllFilteredFollowUps(
+                requestFilters,
+                currentPage,
+                PAGE_SIZE
+            );
+
+        } else {
+
+            const { userId: _userId, ...myFilters } = requestFilters;
+            void _userId;
+
+            await fetchMyFilteredFollowUps(
+                myFilters,
+                currentPage,
+                PAGE_SIZE
+            );
+        }
+
+    }, [
+        user,
+        filters,
+        debouncedSearch,
+        currentPage,
+        isManager,
+        fetchMyFilteredFollowUps,
+        fetchAllFilteredFollowUps
+    ]);
+
+    // BUSCA AUTOMÁTICA
+
+    useEffect(() => {
+
+        if (!user) return;
+
+        if ((filters.search ?? "") !== debouncedSearch) {
+            return;
+        }
+
+        void refreshFollowUps();
+
+    }, [
+        user,
+        filters.search,
+        debouncedSearch,
+        refreshFollowUps
+    ]);
+
+    // INDICADORES PESSOAIS
+
+    useEffect(() => {
+
+        if (!user) return;
+
+        void fetchStatusCounts();
+
+    }, [user, fetchStatusCounts]);
+
+    // CORRETORES: SOMENTE PERFIS AUTORIZADOS
+
+    useEffect(() => {
+
+        if (!user || !isManager) return;
+
+        void loadCorretores();
+
+    }, [user, isManager, loadCorretores]);
+
+    // FILTROS
+
+    function handleFiltersChange(newFilters: FollowUpFilters) {
+
+        setCurrentPage(0);
+        setFilters(newFilters);
     }
-    const [selectedCorretor, setSelectedCorretor] =
-        useState("todos");
 
-    function handleSelectedCorretor(nome: string) {
-        setSelectedCorretor(nome);
+    function handleActiveTab(tab: FollowUpStatus) {
+
+        handleFiltersChange({
+            ...filters,
+            status: tab
+        });
     }
 
-    const [selectedRows, setSelectedRows] =
-        useState<string[]>([]);
+    function handlePageChange(nextPage: number) {
 
-    const toggleRow = (id: string) => {
-        setSelectedRows((prev) =>
-            prev.includes(id)
-                ? prev.filter((item) => item !== id)
-                : [...prev, id]
-        );
-    };
+        setCurrentPage(nextPage);
+    }
 
-    const toggleAllRows = () => {
-        setSelectedRows((prev) =>
-            prev.length === FollowUps.length
-                ? []
-                : followUps.map((item) => item.id)
-        );
-    };
+    // MODAL
 
+    function handleOpenNextFollowUp(followUp: FollowUp) {
+
+        setActiveModal({
+            followUp,
+            mode: "next"
+        });
+    }
+
+    function handleOpenReschedule(followUp: FollowUp) {
+
+        setActiveModal({
+            followUp,
+            mode: "reschedule"
+        });
+    }
+
+    function handleOpenCancel(followUp: FollowUp) {
+
+        setActiveModal({
+            followUp,
+            mode: "cancel"
+        });
+    }
+
+    function handleCloseModal() {
+
+        if (modalLoading) return;
+
+        setActiveModal(null);
+    }
+
+    // CONFIRMAÇÃO
+
+    async function handleConfirmModal(data: FollowModalData) {
+
+        if (!activeModal || modalLoading) return;
+
+        const { followUp, mode } = activeModal;
+
+        setModalLoading(true);
+
+        try {
+
+            switch (mode) {
+
+                case "next": {
+
+                    await scheduleNext(followUp.id, {
+                        antigoId: followUp.id,
+                        observacao: data.observacao
+                    });
+
+                    break;
+                }
+
+                case "reschedule": {
+
+                    if (!data.proximoContato) {
+                        throw new Error(
+                            "Informe a nova data do contato."
+                        );
+                    }
+
+                    // PENDENTE:
+                    // Converter FollowModalData para o formato real
+                    // de RescheduleFollowUpRequest e chamar reschedule().
+                    //
+                    // Não criar propriedades sem verificar o DTO.
+
+                    throw new Error(
+                        "Integração do reagendamento pendente."
+                    );
+                }
+
+                case "cancel": {
+
+                    // PENDENTE:
+                    // Conectar ao serviço de cancelamento quando
+                    // a operação estiver implementada no backend.
+
+                    throw new Error(
+                        "Cancelamento ainda não implementado."
+                    );
+                }
+            }
+
+            // A operação principal foi concluída.
+            setActiveModal(null);
+
+            // Recarrega a tabela e os indicadores.
+            await Promise.all([
+                refreshFollowUps(),
+                fetchStatusCounts()
+            ]);
+
+        } finally {
+
+            setModalLoading(false);
+        }
+    }
 
     return (
-        <main className="min-h-screen w-full bg-slate-50 p-4 text-slate-900 sm:p-5">
 
-            <FollowAlerta handleActiveTab={handleActiveTab} Atrasados={7} />
+        <main className="
+            min-h-screen w-full
+            bg-slate-50 p-4
+            text-slate-900 sm:p-5
+        ">
 
-            {/* Conteúdo principal */}
-            <div className="grid grid-cols-1 items-start gap-5 2xl:grid-cols-[minmax(0,1fr)_344px]">
+            <FollowAlerta
+                handleActiveTab={handleActiveTab}
+                Atrasados={statusCounts}
+            />
 
-                {/* Coluna esquerda */}
+            <div className="
+                grid grid-cols-1 items-start gap-5
+                2xl:grid-cols-[minmax(0,1fr)_344px]
+            ">
 
-                {/* Tabela */}
-                <FollowTableBoard
-                    tabs={tabs}
-                    selectedCorretor={selectedCorretor}
-                    handleSelectedCorretor={handleSelectedCorretor}
-                    handleActiveTab={handleActiveTab}
-                    activeTab={activeTab}
+                <FollowBoard
+                    filters={filters}
+                    handleFiltersChange={handleFiltersChange}
+
+                    onScheduleNext={handleOpenNextFollowUp}
+                    onReschedule={handleOpenReschedule}
+                    onCancel={handleOpenCancel}
+
+                    statusCounts={statusCounts}
+                    corretores={corretores}
                     followUps={followUps}
-                    selectedRows={selectedRows}
-                    toggleAllRows={toggleAllRows}
-                    toggleRow={toggleRow}
+                    loading={loading}
+
+                    page={page}
+                    pageSize={pageSize}
+                    totalPages={totalPages}
+                    totalElements={totalElements}
+
+                    onPageChange={handlePageChange}
                 />
 
-                {/* Coluna direita */}
                 <aside className="flex min-w-0 flex-col gap-5">
 
-                    {/* Resumo */}
                     <FollowSummaryBoard />
 
-                    {/* Próximos follow-ups */}
                     <FollowNextBoard />
 
-                    {/* Ranking */}
                     <FollowRankingBoard />
+
                 </aside>
+
             </div>
+
+            <FollowModal
+                followUp={activeModal?.followUp ?? null}
+                mode={activeModal?.mode ?? "next"}
+                loading={modalLoading}
+                onClose={handleCloseModal}
+                onConfirm={handleConfirmModal}
+            />
+
         </main>
-    )
+    );
 }

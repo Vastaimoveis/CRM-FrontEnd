@@ -1,12 +1,23 @@
+import { LeadStatus } from "./LeadType";
+
 export enum FollowUpStatus {
+    ATRASADO = "ATRASADO",
     PENDENTE = "PENDENTE",
     CONCLUIDO = "CONCLUIDO",
     REAGENDADO = "REAGENDADO",
 }
 
+export interface LeadSummary {
+        Id: String,
+        nome: String,
+        telefone: String,
+        userId: String,
+        status: LeadStatus
+}
+
 export interface FollowUp {
     id: string;
-    leadId: string;
+    lead: LeadSummary;
 
     followUpAtual: number;
     followUpTotal: number;
@@ -25,9 +36,8 @@ export interface FollowUp {
 }
 
 export interface CreateFollowUpRequest {
-    followUpTotal: number;
-    proximoContato: string;
-    observacao?: string | null;
+    antigoId: string;
+    observacao: string;
 }
 
 export interface FollowUpStatusCount {
@@ -36,6 +46,7 @@ export interface FollowUpStatusCount {
 }
 
 export interface RescheduleFollowUpRequest {
+    id: string;
     proximoContato: string;
     observacao: string | null;
 }

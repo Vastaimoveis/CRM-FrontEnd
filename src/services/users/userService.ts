@@ -12,6 +12,29 @@ export interface CreateUserDTO {
     role: string | undefined,
 }
 
+
+export interface CorretorResponse {
+    id: string;
+    nome: string;
+    role: string;
+}
+
+export async function getCorretores(): Promise<CorretorResponse[]> {
+
+    const response = await api.get<PageResponse<CorretorResponse>>(
+        "/users",
+        {
+            params: {
+                size: 100
+            }
+        }
+    );
+
+    return response.data.content.filter(
+        (user) => user.role === "CORRETOR"
+    );
+}
+
 export async function getUserById(userId: string): Promise<User> {
     const response = await api.get<ApiResponse<User>>(`/users/${userId}`)
 

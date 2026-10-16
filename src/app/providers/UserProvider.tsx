@@ -1,14 +1,17 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { createUser, getAllUsers, type CreateUserDTO, updateUser as updateUserService } from "@/services/users/userService";
+import { createUser, getAllUsers, type CreateUserDTO, updateUser as updateUserService, getCorretores } from "@/services/users/userService";
 import type { User } from "@/shared/types/UserTypes";
 import capitalizeWords from "@/shared/utils/capitalizeWords";
 import { useAuth } from "./AuthProvider";
+import type { FollowUpCorretorOption } from "@/modules/Follow-up/components/followBoard/FollowFilter/FollowFilter";
 
 interface UserContextType {
     users: User[] | null;
     setUsers: React.Dispatch<React.SetStateAction<User[] | null>>;
+    corretores: FollowUpCorretorOption[];
     loading: boolean;
     fetchUsers: () => Promise<void>;
+    loadCorretores: () => Promise<void>;
     CreateUser: (userDTO: CreateUserDTO) => Promise<void>;
     updateUser: (user: User) => Promise<void>;
     getUserById: (id: string) => User | null;
@@ -20,6 +23,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const [users, setUsers] = useState<User[] | null>(null)
     const [loading, setLoading] = useState(true);
     const { loadingAuth, isCorretor } = useAuth();
+    const [corretores, setCorretores] =
+        useState<FollowUpCorretorOption[]>([]);
 
     const fetchUsers = useCallback(async () => {
 
@@ -29,6 +34,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
             {
                 ...user, nome: capitalizeWords(user.nome)
             })));
+
+
     }, [
         getAllUsers,
         setUsers,
@@ -45,6 +52,33 @@ export function UserProvider({ children }: { children: ReactNode }) {
             fetchUsers
         ]
     )
+
+    const loadCorretores = useCallback(
+        async () => {
+
+            try {
+
+                const response = await getCorretores();
+
+                const options: FollowUpCorretorOption[] =
+                    response.map((corretor) => ({
+                        id: corretor.id,
+                        nome: corretor.nome
+                    }));
+
+                setCorretores(options);
+
+            } catch (err) {
+
+                console.error(
+                    "Erro ao carregar corretores:",
+                    err
+                );
+
+            } 
+        }, [getCorretores])
+
+
 
     const updateUser = useCallback(async (user: User) => {
         const userUpdated = await updateUserService(user);
@@ -63,9 +97,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
     ])
 
     useEffect(() => {
-        if(loadingAuth) return;
+        if (loadingAuth) return;
 
-        if(isCorretor) return;
+        if (isCorretor) return;
 
         async function load() {
             try {
@@ -86,6 +120,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
     const value = useMemo(() => ({
         CreateUser,
+        corretores,
+        loadCorretores,
         getUserById,
         fetchUsers,
         setUsers,
@@ -94,6 +130,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
         loading
     }), [
         CreateUser,
+        corretores,
+        loadCorretores,
         getUserById,
         fetchUsers,
         setUsers,

@@ -6,6 +6,7 @@ import { LeadProvider } from "./LeadProvider";
 import { ToastProvider } from "./ToastProvider";
 import { UserProvider } from "./UserProvider";
 import { RoleProvider } from "./RoleProvider";
+import { FollowUpProvider } from "./FollowUpProvider";
 
 export default function AppProviders({
     children,
@@ -18,9 +19,11 @@ export default function AppProviders({
                         <RoleProvider>
                             <LeadProvider>
                                 <LeadNotesProvider>
-                                    <NotificationProvider>
-                                        {children}
-                                    </NotificationProvider>
+                                    <FollowUpProvider>
+                                        <NotificationProvider>
+                                            {children}
+                                        </NotificationProvider>
+                                    </FollowUpProvider>
                                 </LeadNotesProvider>
                             </LeadProvider>
                         </RoleProvider>

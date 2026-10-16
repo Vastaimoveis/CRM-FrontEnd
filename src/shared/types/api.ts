@@ -8,14 +8,17 @@ export interface ApiResponse<T> {
 export interface PageResponse<T> {
     content: T[];
 
+    number: number;
+    size: number;
+
     totalElements: number;
     totalPages: number;
 
-    size: number;
-    number: number;
-
     first: boolean;
     last: boolean;
+
+    numberOfElements: number;
+    empty: boolean;
 }
 
 export interface ApiErrorResponse {
