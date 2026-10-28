@@ -1,9 +1,23 @@
-import { CalendarDays, CheckCircle2, ChevronDown, Clock3 } from "lucide-react"
-import FollowSummaryCard from "./followSummaryCard"
+import { CalendarDays, CheckCircle2, ChevronDown, Clock3 } from "lucide-react";
+import FollowSummaryCard from "./followSummaryCard";
 
-export default function FollowSummaryBoard() {
+import {
+    FollowUpStatus,
+    type FollowUpStatusCount
+} from "@/shared/types/followUpTypes";
 
+interface Props {
+    statusCounts: FollowUpStatusCount[];
+    todayCount: number;
+}
 
+export default function FollowSummaryBoard({
+    statusCounts,
+    todayCount
+}: Props) {
+
+    const getCount = (status: FollowUpStatus): number =>
+        statusCounts.find(item => item.status === status)?.quantidade ?? 0;
 
     return (
         <section className="rounded-xl border border-slate-200 bg-white p-4">
@@ -20,35 +34,36 @@ export default function FollowSummaryBoard() {
                     <ChevronDown size={14} />
                 </button>
             </div>
+
             <div className="grid grid-cols-2 gap-3">
                 <FollowSummaryCard
                     icon={<Clock3 size={25} />}
-                    value={7}
+                    value={getCount(FollowUpStatus.ATRASADO)}
                     label="Atrasados"
                     color="red"
                 />
 
                 <FollowSummaryCard
                     icon={<CalendarDays size={25} />}
-                    value={12}
+                    value={todayCount}
                     label="Para hoje"
                     color="amber"
                 />
 
                 <FollowSummaryCard
                     icon={<CalendarDays size={25} />}
-                    value={18}
-                    label="Próximos"
+                    value={getCount(FollowUpStatus.PENDENTE)}
+                    label="Pendentes"
                     color="blue"
                 />
 
                 <FollowSummaryCard
                     icon={<CheckCircle2 size={25} />}
-                    value={45}
+                    value={getCount(FollowUpStatus.CONCLUIDO)}
                     label="Concluídos"
                     color="green"
                 />
             </div>
         </section>
-    )
+    );
 }

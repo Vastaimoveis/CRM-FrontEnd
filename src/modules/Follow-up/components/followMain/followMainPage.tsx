@@ -28,6 +28,7 @@ export default function FollowMainPage() {
         statusCounts,
         statusCountsLoaded,
         loading,
+        todayCount,
 
         page,
         pageSize,
@@ -123,6 +124,14 @@ export default function FollowMainPage() {
         debouncedSearch,
         refreshFollowUps
     ]);
+    
+    useEffect(() => {
+
+        if (!user) return;
+
+        void fetchStatusCounts();
+
+    }, [user, fetchStatusCounts]);
 
     // INDICADORES PESSOAIS
 
@@ -250,7 +259,7 @@ export default function FollowMainPage() {
 
                 <aside className="flex min-w-0 flex-col gap-5">
 
-                    <FollowSummaryBoard />
+                    <FollowSummaryBoard statusCounts={statusCounts} todayCount={todayCount} />
 
 
                 </aside>

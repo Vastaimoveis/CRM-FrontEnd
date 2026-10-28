@@ -21,7 +21,7 @@ export default function FollowSummaryCard({
 
     return (
         <div
-            className={`flex min-h-[76px] items-center gap-3 rounded-xl p-3 ${colors[color]}`}
+            className={`flex min-h-19 items-center gap-3 rounded-xl p-3 ${colors[color]}`}
         >
             <div className="shrink-0">{icon}</div>
 
