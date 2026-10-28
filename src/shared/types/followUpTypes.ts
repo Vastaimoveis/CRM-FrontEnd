@@ -5,6 +5,7 @@ export enum FollowUpStatus {
     PENDENTE = "PENDENTE",
     CONCLUIDO = "CONCLUIDO",
     REAGENDADO = "REAGENDADO",
+    CANCELADO = "CANCELADO",
 }
 
 export interface LeadSummary {
@@ -49,4 +50,9 @@ export interface RescheduleFollowUpRequest {
     id: string;
     proximoContato: string;
     observacao: string | null;
+}
+
+export interface FollowUpSummary {
+    statusCounts: FollowUpStatusCount[];
+    todayCount: number;
 }

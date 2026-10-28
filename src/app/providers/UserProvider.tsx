@@ -2,7 +2,6 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { createUser, getAllUsers, type CreateUserDTO, updateUser as updateUserService, getCorretores } from "@/services/users/userService";
 import type { User } from "@/shared/types/UserTypes";
 import capitalizeWords from "@/shared/utils/capitalizeWords";
-import { useAuth } from "./AuthProvider";
 import type { FollowUpCorretorOption } from "@/modules/Follow-up/components/followBoard/FollowFilter/FollowFilter";
 
 interface UserContextType {
@@ -22,7 +21,6 @@ const UserContext = createContext<UserContextType | null>(null);
 export function UserProvider({ children }: { children: ReactNode }) {
     const [users, setUsers] = useState<User[] | null>(null)
     const [loading, setLoading] = useState(true);
-    const { loadingAuth, isCorretor } = useAuth();
     const [corretores, setCorretores] =
         useState<FollowUpCorretorOption[]>([]);
 
@@ -36,49 +34,38 @@ export function UserProvider({ children }: { children: ReactNode }) {
             })));
 
 
-    }, [
-        getAllUsers,
-        setUsers,
-
-    ]
+    }, []
     )
 
     const CreateUser = useCallback(async (userDTO: CreateUserDTO) => {
         const userCreated = await createUser(userDTO)
         setUsers(prev => prev ? [...prev, userCreated] : [userCreated]);
     },
-        [
-            createUser,
-            fetchUsers
-        ]
+        []
     )
 
-    const loadCorretores = useCallback(
-        async () => {
+    const loadCorretores = useCallback(async () => {
+        try {
+            const response = await getCorretores();
 
-            try {
+            const options: FollowUpCorretorOption[] = response.map(
+                corretor => ({
+                    id: corretor.id,
+                    nome: capitalizeWords(corretor.nome)
+                })
+            );
 
-                const response = await getCorretores();
+            setCorretores(options);
 
-                const options: FollowUpCorretorOption[] =
-                    response.map((corretor) => ({
-                        id: corretor.id,
-                        nome: corretor.nome
-                    }));
+        } catch (error) {
+            console.error(
+                "[UserProvider] Erro ao carregar corretores:",
+                error
+            );
 
-                setCorretores(options);
-
-            } catch (err) {
-
-                console.error(
-                    "Erro ao carregar corretores:",
-                    err
-                );
-
-            } 
-        }, [getCorretores])
-
-
+            throw error;
+        }
+    }, []);
 
     const updateUser = useCallback(async (user: User) => {
         const userUpdated = await updateUserService(user);
@@ -96,27 +83,34 @@ export function UserProvider({ children }: { children: ReactNode }) {
         fetchUsers
     ])
 
-    useEffect(() => {
-        if (loadingAuth) return;
-
-        if (isCorretor) return;
-
-        async function load() {
-            try {
-                await fetchUsers();
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        load();
-    }, [fetchUsers]);
 
     const getUserById = useCallback(
         (id: string) =>
             users?.find(user => user.id === id) ?? null,
         [users]
     );
+
+
+    useEffect(() => {
+        async function load() {
+            setLoading(true);
+
+            try {
+                await fetchUsers();
+            } catch (error) {
+                console.error(
+                    "[UserProvider] Erro ao carregar usuários:",
+                    error
+                );
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        void load();
+
+    }, [fetchUsers]);
+
 
     const value = useMemo(() => ({
         CreateUser,
@@ -151,8 +145,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
 export function useUsers() {
     const context = useContext(UserContext);
+
     if (!context) {
-        throw new Error("useFunnel deve ser usado dentro de FunnelProvider")
+        throw new Error(
+            "useUsers deve ser usado dentro de UserProvider"
+        );
     }
 
     return context;

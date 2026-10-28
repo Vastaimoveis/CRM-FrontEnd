@@ -27,6 +27,7 @@ const countStyles: Record<FollowUpStatus, string> = {
     [FollowUpStatus.PENDENTE]: "bg-amber-400 text-slate-900",
     [FollowUpStatus.REAGENDADO]: "bg-slate-500 text-white",
     [FollowUpStatus.CONCLUIDO]: "bg-emerald-600 text-white",
+    [FollowUpStatus.CANCELADO]: ""
 };
 
 const STATUS_TABS = [

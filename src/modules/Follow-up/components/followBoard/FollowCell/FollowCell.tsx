@@ -4,6 +4,7 @@ import FollowActionsDropdown from "../FollowActionsDropdown/FollowActionsDropDow
 
 interface Props {
     followUp: FollowUp;
+    showFilters: boolean;
     statusStyles: Record<FollowUpStatus, string>;
     onReschedule: (followUp: FollowUp) => void;
     onCancel: (followUp: FollowUp) => void;
@@ -23,7 +24,7 @@ function calcularDiasParaContato(data: string): number {
     );
 }
 
-export default function FollowCell({ followUp, statusStyles, onScheduleNext, onReschedule, onCancel }: Props) {
+export default function FollowCell({ followUp, showFilters, statusStyles, onScheduleNext, onReschedule, onCancel }: Props) {
 
     const diasRestantes = calcularDiasParaContato(
         followUp.proximoContato
@@ -59,36 +60,39 @@ export default function FollowCell({ followUp, statusStyles, onScheduleNext, onR
                 {followUp.followUpAtual}/{followUp.followUpTotal}
             </td>
 
-            <td className="whitespace-nowrap px-3 py-4 text-slate-600">
-                <span className="block">
-                    {followUp.ultimoContato
-                        ? new Date(followUp.ultimoContato).toLocaleString("pt-BR", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                        })
-                        : "Primeiro Contato"}
-                </span>
-                <span className="mt-1 block text-xs">
-                    {followUp.ultimoContato?.split(" ")[1]}
-                </span>
-            </td>
-
-            <td
-                className={`whitespace-nowrap px-3 py-4 ${followUp.diasEmAtraso > 0
-                    ? "text-red-600"
-                    : "text-slate-700"
-                    }`}
-            >
-                {new Date(followUp.proximoContato).toLocaleDateString("pt-BR")}
-            </td>
+            {showFilters &&
+                <td className="whitespace-nowrap px-3 py-4 text-slate-600">
+                    <span className="block">
+                        {followUp.ultimoContato
+                            ? new Date(followUp.ultimoContato).toLocaleString("pt-BR", {
+                                day: "2-digit",
+                                month: "2-digit",
+                                year: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                            })
+                            : "Primeiro Contato"}
+                    </span>
+                    <span className="mt-1 block text-xs">
+                        {followUp.ultimoContato?.split(" ")[1]}
+                    </span>
+                </td>
+            }
+            {showFilters &&
+                <td
+                    className={`whitespace-nowrap px-3 py-4 ${followUp.diasEmAtraso > 0
+                        ? "text-red-600"
+                        : "text-slate-700"
+                        }`}
+                >
+                    {new Date(followUp.proximoContato).toLocaleDateString("pt-BR")}
+                </td>
+            }
 
             <td className="px-3 py-4">
 
                 <span
-                    className={`inline-flex min-w-[100px] justify-center rounded-lg px-3 py-2 font-semibold ${diasRestantes < 0
+                    className={`inline-flex min-w-25 justify-center rounded-lg px-3 py-2 font-semibold ${diasRestantes < 0
                         ? "bg-red-100 text-red-700"
                         : diasRestantes === 0
                             ? "bg-amber-100 text-amber-700"
@@ -105,7 +109,7 @@ export default function FollowCell({ followUp, statusStyles, onScheduleNext, onR
 
             <td className="px-3 py-4">
                 <div className="flex followUps-center gap-2">
-                    <td className="px-4 py-3">
+                    <div className="px-4 py-3">
                         <div className="flex items-center justify-end gap-2">
 
                             <button
@@ -123,7 +127,7 @@ export default function FollowCell({ followUp, statusStyles, onScheduleNext, onR
                             />
 
                         </div>
-                    </td>
+                    </div>
                 </div>
             </td>
         </tr>

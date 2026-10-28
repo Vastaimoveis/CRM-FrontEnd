@@ -1,16 +1,9 @@
+import { useCallback, useEffect, useRef, useState } from "react";
 
-import { useCallback, useEffect, useState } from "react";
-
-import FollowAlerta from "../followAlerta";
 import FollowSummaryBoard from "../followSummary/followSummaryBoard";
-import FollowNextBoard from "../followNexts/followNextsBoard";
-import FollowRankingBoard from "../followRanking/followRankingBoard";
 import FollowBoard from "../followBoard/followBoard";
 
-import {
-    FollowUpStatus,
-    type FollowUp
-} from "@/shared/types/followUpTypes";
+import { FollowUpStatus } from "@/shared/types/followUpTypes";
 
 import type { FollowUpFilters } from "@/shared/types/filterTypes";
 
@@ -21,15 +14,8 @@ import { useAuth } from "@/app/providers/AuthProvider";
 import { useDebounce } from "../../hooks/useDebounce";
 import { SYSTEM_ROLES } from "@/services/roles/roleTypes";
 
-import FollowModal, {
-    type FollowModalMode,
-    type FollowModalData
-} from "../followBoard/followCreateModal/FollowCreateModal";
-
-interface ActiveFollowModal {
-    followUp: FollowUp;
-    mode: FollowModalMode;
-}
+import { useFollowModal } from "../../hooks/useFollowModal";
+import FollowModal from "../followBoard/followCreateModal/FollowCreateModal";
 
 const PAGE_SIZE = 10;
 
@@ -40,6 +26,7 @@ export default function FollowMainPage() {
     const {
         followUps,
         statusCounts,
+        statusCountsLoaded,
         loading,
 
         page,
@@ -47,12 +34,11 @@ export default function FollowMainPage() {
         totalPages,
         totalElements,
 
-        scheduleNext,
-
         fetchMyFilteredFollowUps,
         fetchAllFilteredFollowUps,
-        fetchStatusCounts
+        fetchStatusCounts,
     } = useFollowUp();
+
 
     const {
         corretores,
@@ -67,6 +53,8 @@ export default function FollowMainPage() {
         status: FollowUpStatus.PENDENTE
     });
 
+    const initialTabResolved = useRef(false);
+
     const [currentPage, setCurrentPage] = useState(0);
 
     const debouncedSearch = useDebounce(
@@ -74,10 +62,6 @@ export default function FollowMainPage() {
         400
     );
 
-    const [activeModal, setActiveModal] =
-        useState<ActiveFollowModal | null>(null);
-
-    const [modalLoading, setModalLoading] = useState(false);
 
     // BUSCA CENTRALIZADA
 
@@ -130,6 +114,7 @@ export default function FollowMainPage() {
             return;
         }
 
+
         void refreshFollowUps();
 
     }, [
@@ -143,12 +128,19 @@ export default function FollowMainPage() {
 
     useEffect(() => {
 
-        if (!user) return;
+        if (!user?.id || !initialTabResolved.current) return;
 
-        void fetchStatusCounts();
+        if ((filters.search ?? "") !== debouncedSearch) return;
 
-    }, [user, fetchStatusCounts]);
+        void refreshFollowUps();
 
+    }, [
+        user?.id,
+        filters.search,
+        debouncedSearch,
+        refreshFollowUps,
+        statusCountsLoaded
+    ]);
     // CORRETORES: SOMENTE PERFIS AUTORIZADOS
 
     useEffect(() => {
@@ -159,6 +151,29 @@ export default function FollowMainPage() {
 
     }, [user, isManager, loadCorretores]);
 
+    useEffect(() => {
+
+        if (!statusCountsLoaded || initialTabResolved.current) return;
+
+        const hasOverdue = statusCounts.some(
+            item =>
+                item.status === FollowUpStatus.ATRASADO &&
+                item.quantidade > 0
+        );
+
+        initialTabResolved.current = true;
+
+        setFilters(prev => ({
+            ...prev,
+            status: hasOverdue
+                ? FollowUpStatus.ATRASADO
+                : FollowUpStatus.PENDENTE
+        }));
+
+        setCurrentPage(0);
+
+    }, [statusCountsLoaded, statusCounts]);
+
     // FILTROS
 
     function handleFiltersChange(newFilters: FollowUpFilters) {
@@ -167,135 +182,46 @@ export default function FollowMainPage() {
         setFilters(newFilters);
     }
 
-    function handleActiveTab(tab: FollowUpStatus) {
-
-        handleFiltersChange({
-            ...filters,
-            status: tab
-        });
-    }
-
     function handlePageChange(nextPage: number) {
 
         setCurrentPage(nextPage);
     }
 
-    // MODAL
 
-    function handleOpenNextFollowUp(followUp: FollowUp) {
+    const handleSuccess = useCallback(async () => {
 
-        setActiveModal({
-            followUp,
-            mode: "next"
-        });
-    }
+        await Promise.all([
+            refreshFollowUps(),
+            fetchStatusCounts()
+        ]);
 
-    function handleOpenReschedule(followUp: FollowUp) {
+    }, [
+        refreshFollowUps,
+        fetchStatusCounts
+    ]);
 
-        setActiveModal({
-            followUp,
-            mode: "reschedule"
-        });
-    }
+    const {
+        activeModal,
+        modalLoading,
 
-    function handleOpenCancel(followUp: FollowUp) {
+        handleOpenNextFollowUp,
+        handleOpenReschedule,
+        handleOpenCancel,
 
-        setActiveModal({
-            followUp,
-            mode: "cancel"
-        });
-    }
+        handleCloseModal,
+        handleConfirmModal
 
-    function handleCloseModal() {
-
-        if (modalLoading) return;
-
-        setActiveModal(null);
-    }
-
-    // CONFIRMAÇÃO
-
-    async function handleConfirmModal(data: FollowModalData) {
-
-        if (!activeModal || modalLoading) return;
-
-        const { followUp, mode } = activeModal;
-
-        setModalLoading(true);
-
-        try {
-
-            switch (mode) {
-
-                case "next": {
-
-                    await scheduleNext(followUp.id, {
-                        antigoId: followUp.id,
-                        observacao: data.observacao
-                    });
-
-                    break;
-                }
-
-                case "reschedule": {
-
-                    if (!data.proximoContato) {
-                        throw new Error(
-                            "Informe a nova data do contato."
-                        );
-                    }
-
-                    // PENDENTE:
-                    // Converter FollowModalData para o formato real
-                    // de RescheduleFollowUpRequest e chamar reschedule().
-                    //
-                    // Não criar propriedades sem verificar o DTO.
-
-                    throw new Error(
-                        "Integração do reagendamento pendente."
-                    );
-                }
-
-                case "cancel": {
-
-                    // PENDENTE:
-                    // Conectar ao serviço de cancelamento quando
-                    // a operação estiver implementada no backend.
-
-                    throw new Error(
-                        "Cancelamento ainda não implementado."
-                    );
-                }
-            }
-
-            // A operação principal foi concluída.
-            setActiveModal(null);
-
-            // Recarrega a tabela e os indicadores.
-            await Promise.all([
-                refreshFollowUps(),
-                fetchStatusCounts()
-            ]);
-
-        } finally {
-
-            setModalLoading(false);
-        }
-    }
+    } = useFollowModal({
+        onSuccess: handleSuccess
+    });
 
     return (
 
         <main className="
             min-h-screen w-full
-            bg-slate-50 p-4
-            text-slate-900 sm:p-5
+            bg-slate-50 
+            text-slate-900
         ">
-
-            <FollowAlerta
-                handleActiveTab={handleActiveTab}
-                Atrasados={statusCounts}
-            />
-
             <div className="
                 grid grid-cols-1 items-start gap-5
                 2xl:grid-cols-[minmax(0,1fr)_344px]
@@ -326,9 +252,6 @@ export default function FollowMainPage() {
 
                     <FollowSummaryBoard />
 
-                    <FollowNextBoard />
-
-                    <FollowRankingBoard />
 
                 </aside>
 

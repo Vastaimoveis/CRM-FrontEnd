@@ -26,18 +26,24 @@ import {
     scheduleNextFollowUp,
     getCurrentFollowUpsByUser,
     getMyFilteredFollowUps,
-    getAllFilteredFollowUps
+    getAllFilteredFollowUps,
+    cancelFollowUp,
+    getAllCurrentFollowUpCountByStatus
 } from "@/services/followUp/FollowUpService";
 
 import type { PageResponse } from "@/shared/types/api";
 import type { FollowUpFilters } from "@/shared/types/filterTypes";
+import { SYSTEM_ROLES } from "@/services/roles/roleTypes";
+import { useAuth } from "./AuthProvider";
 
 interface FollowUpContextType {
     followUps: FollowUp[];
     statusCounts: FollowUpStatusCount[];
-
+    statusCountsLoaded: boolean;
     loading: boolean;
     error: string | null;
+
+    todayCount: number;
 
     page: number;
     pageSize: number;
@@ -92,6 +98,9 @@ interface FollowUpContextType {
         id: string,
         data: CreateFollowUpRequest
     ) => Promise<FollowUp>;
+    cancel: (id: string) => Promise<FollowUp>;
+
+    refreshFollowUpData: () => Promise<void>;
 
     clearError: () => void;
 }
@@ -130,7 +139,13 @@ export function FollowUpProvider({
     const [last, setLast] = useState(true);
     const [totalPages, setTotalPages] = useState(0);
     const [totalElements, setTotalElements] = useState(0);
+    const [statusCountsLoaded, setStatusCountsLoaded] = useState(false);
+    const [todayCount, setTodayCount] = useState<number>(0);
+    const { user } = useAuth();
 
+    const canViewAll =
+        user?.role.name === SYSTEM_ROLES.ADMIN ||
+        user?.role.name === SYSTEM_ROLES.GERENTE;
     // Controle compartilhado por todas as buscas paginadas.
     const requestIdRef = useRef(0);
 
@@ -287,25 +302,31 @@ export function FollowUpProvider({
 
     const fetchStatusCounts = useCallback(async (): Promise<void> => {
 
+        if (!user?.id) return;
+
+        setStatusCountsLoaded(false);
+
         try {
 
-            const response =
-                await getMyCurrentFollowUpCountByStatus();
+            const response = canViewAll
+                ? await getAllCurrentFollowUpCountByStatus()
+                : await getMyCurrentFollowUpCountByStatus();
 
-            setStatusCounts(response);
+            setStatusCounts(response.statusCounts ?? []);
+            setTodayCount(response.todayCount ?? 0);
+
+            setStatusCountsLoaded(true);
 
         } catch (err) {
 
-            const message = getErrorMessage(
-                err,
-                "Erro ao buscar contagem dos Follow-ups"
-            );
+            console.error("Erro ao buscar indicadores:", err);
 
-            console.error("Erro no fetchStatusCounts:", err);
-            setError(message);
+            setStatusCounts([]);
+            setTodayCount(0);
         }
 
-    }, []);
+    }, [user?.id, canViewAll]);
+
 
     const create = useCallback(
         async (
@@ -402,14 +423,33 @@ export function FollowUpProvider({
         },
         []
     );
+    const cancel = useCallback(async (id: string): Promise<FollowUp> => {
+        setError(null);
+
+        try {
+            return await cancelFollowUp(id);
+        } catch (error) {
+            setError("Não foi possível cancelar o ciclo de Follow-ups.");
+            throw error;
+        }
+    }, []);
+
+    const refreshFollowUpData = useCallback(async () => {
+        await Promise.all([
+            fetchMyFollowUps(),
+            fetchStatusCounts()
+        ]);
+    }, [fetchMyFollowUps, fetchStatusCounts]);
 
     const value = useMemo<FollowUpContextType>(() => ({
 
         followUps,
         statusCounts,
+        statusCountsLoaded,
 
         loading,
         error,
+        cancel,
 
         page,
         pageSize,
@@ -426,24 +466,30 @@ export function FollowUpProvider({
         fetchAllFilteredFollowUps,
         fetchStatusCounts,
 
+        todayCount,
+
         create,
         complete,
         reschedule,
         scheduleNext,
+        refreshFollowUpData,
 
         clearError
 
     }), [
         followUps,
         statusCounts,
+        statusCountsLoaded,
         loading,
         error,
+        cancel,
         page,
         pageSize,
         first,
         last,
         totalPages,
         totalElements,
+        todayCount,
         fetchMyFollowUps,
         fetchFollowUpsByLead,
         fetchFollowUpsByUser,
@@ -454,6 +500,7 @@ export function FollowUpProvider({
         complete,
         reschedule,
         scheduleNext,
+        refreshFollowUpData,
         clearError
     ]);
 

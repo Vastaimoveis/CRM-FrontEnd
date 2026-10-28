@@ -36,6 +36,7 @@ export interface CreateLeadDTO {
   telefone: string;
   status: LeadStatus;
   origem: LeadOrigem
+  userId?: string;
 }
 
 export const STATUS_COLORS: Record<LeadStatus, string> = {

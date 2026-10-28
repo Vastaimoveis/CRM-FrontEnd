@@ -36,7 +36,7 @@ export default function HomeCard({
 
                     {icon && (
                         <span className="text-sky-600">
-                            {icon}
+                           
                         </span>
                     )}
 

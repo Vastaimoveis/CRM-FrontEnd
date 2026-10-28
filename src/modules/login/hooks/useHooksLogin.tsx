@@ -30,7 +30,7 @@ export function useLoginForm() {
 
         const success = await login(email, password);
         if (success) { 
-          navigate("/funil")
+          navigate("/home")
          } else {
           ErrorSetter("Erro inesperado, tente novamente")
         };

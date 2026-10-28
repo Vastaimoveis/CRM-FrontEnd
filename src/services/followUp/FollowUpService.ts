@@ -6,6 +6,7 @@ import type {
     CreateFollowUpRequest,
     RescheduleFollowUpRequest,
     FollowUpStatusCount,
+    FollowUpSummary,
 } from "@/shared/types/followUpTypes";
 
 import type { ApiResponse, PageResponse } from "@/shared/types/api";
@@ -209,20 +210,18 @@ export async function getMyCurrentFollowUps(
 // ======================================================
 // CONTAGEM POR STATUS — USUÁRIO AUTENTICADO
 // ======================================================
-
 export async function getMyCurrentFollowUpCountByStatus():
-    Promise<FollowUpStatusCount[]> {
+    Promise<FollowUpSummary> {
 
-    const response = await api.get(
+    const response = await api.get<
+        ApiResponse<FollowUpSummary>
+    >(
         "/follow-ups/current/me/count-by-status"
     );
 
-    const result = unwrapApiResponse<FollowUpStatusCount[]>(
-        response.data
-    );
-
-    return result;
+    return unwrapApiResponse(response.data);
 }
+
 export async function getCurrentFollowUpsByUser(
     userId: string,
     page = 0,
@@ -315,6 +314,27 @@ export async function getAllFilteredFollowUps(
             )
         }
     );
+
+    return unwrapApiResponse(response.data);
+}
+
+export async function cancelFollowUp(
+    id: string
+): Promise<FollowUp> {
+
+    const response = await api.post<ApiResponse<FollowUp>>(
+        `/follow-ups/${id}/cancel`
+    );
+
+    return unwrapApiResponse(response.data);
+}
+
+export async function getAllCurrentFollowUpCountByStatus():
+    Promise<FollowUpSummary> {
+
+    const response = await api.get<
+        ApiResponse<FollowUpSummary>
+    >("/follow-ups/current/count-by-status");
 
     return unwrapApiResponse(response.data);
 }
