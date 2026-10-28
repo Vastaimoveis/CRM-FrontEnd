@@ -114,7 +114,7 @@ export default function FollowActionsDropdown({
                         right: position.right
                     }}
                     className="
-            z-[9999]
+            z-9999
             w-52 rounded-xl
             border border-slate-200
             bg-white p-1.5 shadow-xl

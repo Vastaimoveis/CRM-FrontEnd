@@ -1,87 +1,135 @@
-import { Info } from "lucide-react";
-import FollowCell from "../FollowCell/FollowCell";
-import type { FollowUp, FollowUpStatus } from "@/shared/types/followUpTypes";
 
-interface Props{
-        statusStyles: Record<FollowUpStatus, string>;
-        followUps: FollowUp[];
+import { ArrowUpRight, Info } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+import FollowCell from "../FollowCell/FollowCell";
+
+import type {
+    FollowUp,
+    FollowUpStatus
+} from "@/shared/types/followUpTypes";
+
+interface Props {
+    followUps: FollowUp[];
+
+    showFilters: boolean;
+
+    statusStyles: Record<FollowUpStatus, string>;
+
+    onScheduleNext: (followUp: FollowUp) => void;
+    onReschedule: (followUp: FollowUp) => void;
+    onCancel: (followUp: FollowUp) => void;
 }
 
-export default function FollowTable({followUps,statusStyles}:Props){
+export default function FollowTable({
+    followUps,
+    showFilters,
+    onScheduleNext,
+    onReschedule,
+    onCancel
+}: Props) {
+
+    const navigate = useNavigate();
+
     return (
-        <div className="w-full ">
-                <table className="w-full min-w-[1050px] border-collapse text-left text-sm">
+        <div className="w-full overflow-x-auto">
 
-                    <thead className="bg-white">
-                        <tr className="border-b border-slate-200 text-slate-700">
-                            <th className="px-3 py-5 font-medium">Cliente</th>
-                            <th className="px-3 py-5 font-medium">Telefone</th>
-                            <th className="px-3 py-5 font-medium">Status</th>
+            <table className="
+                w-full min-w-200
+                table-auto border-collapse
+                text-left text-sm
+            ">
 
-                            <th className="px-3 py-5 font-medium">
-                                <div className="relative inline-flex items-center gap-1 group">
-                                    <span className="cursor-help">
-                                        Follow-up
-                                    </span>
+                <thead className="bg-white">
 
-                                    <Info
-                                        size={14}
-                                        className="text-slate-400 cursor-help"
-                                    />
+                    <tr className="border-b border-slate-200 text-slate-700">
 
-                                    <div
-                                        className="
-                                            absolute
-                                            left-1/2
-                                            top-full
-                                            z-[999]
-                                            mt-2
-                                            -translate-x-1/2
-                                            whitespace-nowrap
-                                            rounded-md
-                                            bg-slate-900
-                                            px-3
-                                            py-2
-                                            text-xs
-                                            font-normal
-                                            text-white
-                                            shadow-lg
-                                            opacity-0
-                                            invisible
-                                            pointer-events-none
-                                            transition-opacity
-                                            duration-200
-                                            group-hover:visible
-                                            group-hover:opacity-100
-                                        "
-                                    >
-                                        Data do último contato realizado
-                                    </div>
-                                </div>
-                            </th>
+                        <th className="px-3 py-5 font-medium">
+                            Cliente
+                        </th>
 
-                            <th className="px-3 py-5 font-medium">
-                                Último contato
-                            </th>
+                        <th className="px-3 py-5 font-medium">
+                            Telefone
+                        </th>
 
-                            <th className="px-3 py-5 font-medium">
-                                Próximo contato
-                            </th>
+                        <th className="px-3 py-5 font-medium">
+                            Status
+                        </th>
 
-                            <th className="px-3 py-5 font-medium">
-                                Dias em atraso
-                            </th>
+                        <th className="px-3 py-5 font-medium">
+                            <span className="inline-flex items-center gap-1">
+                                Follow-up
+                                <Info size={14} className="text-slate-400" />
+                            </span>
+                        </th>
 
-                            <th className="px-3 py-5 font-medium">Ação</th>
+                        {showFilters && (
+                            <>
+                                <th className="px-3 py-5 font-medium">
+                                    Último contato
+                                </th>
+
+                                <th className="px-3 py-5 font-medium">
+                                    Próximo contato
+                                </th>
+                            </>
+                        )}
+
+                        <th className="px-3 py-5 font-medium">
+                            Próxima ação
+                        </th>
+
+                        <th className="px-3 py-5 text-right font-medium">
+                            {showFilters ? (
+                                "Ação"
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={() => navigate("/follow")}
+                                    className="
+                                        inline-flex items-center gap-1
+                                        whitespace-nowrap font-semibold
+                                        text-sky-600 hover:text-sky-800
+                                    "
+                                >
+                                    Ver todos
+                                    <ArrowUpRight size={15} />
+                                </button>
+                            )}
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {followUps.map(item => (
+                        <FollowCell
+                            key={item.id}
+                            followUp={item}
+                            showFilters={showFilters}
+                            onScheduleNext={onScheduleNext}
+                            onReschedule={onReschedule}
+                            onCancel={onCancel}
+                        />
+                    ))}
+
+                    {!followUps.length && (
+                        <tr>
+                            <td
+                                colSpan={showFilters ? 8 : 6}
+                                className="px-4 py-10 text-center text-slate-500"
+                            >
+                                Nenhum Follow-up encontrado.
+                            </td>
                         </tr>
-                    </thead>
+                    )}
 
-                    <tbody>
-                        {followUps.map((item) => (
-                             <FollowCell followUp={item} statusStyles={statusStyles} />     
-                                      ))}
-                    </tbody>
-                </table>
-            </div>
-    )
+                </tbody>
+
+            </table>
+
+        </div>
+    );
 }
