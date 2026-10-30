@@ -110,7 +110,7 @@ export default function FollowFilter({
                                 }
                             `}
                         >
-                            <span>{status}</span>
+                            <span>{status == FollowUpStatus.PENDENTE? "ATUALIZADO" : status}</span>
 
                             <span
                                 className={`

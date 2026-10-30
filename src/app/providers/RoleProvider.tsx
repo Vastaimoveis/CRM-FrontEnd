@@ -9,6 +9,7 @@ interface RoleContext {
     roles: RoleResponseDTO[];
     loading: boolean;
     permissions: string[];
+    loadRoles: () => Promise<void>
     hasRole: (roleName: string) => boolean;
     hasPermission: (permission: PermissionName) => boolean;
 }
@@ -23,21 +24,25 @@ export function RoleProvider({ children }: { children: ReactNode }) {
 
     const permissions = useMemo(() => Array.from(permissionSet), [permissionSet]);
 
+    async function loadRoles() {
+        setLoading(true);
+        try {
+            const response = await findAllRoles();
+            console.log(response);
+            if (!response.data) return;
+            setRoles(response.data)
+        } catch (e) {
+            console.log(e)
+        } finally {
+            setLoading(false)
+        }
+    }
 
     useEffect(() => {
-        if(loadingAuth) return;
+        if (loadingAuth) return;
 
-        if(isCorretor) return;
-
-        async function loadRoles() {
-            try {
-                const response = await findAllRoles();
-                if (!response.data) return;
-                setRoles(response.data);
-            } finally {
-                setLoading(false);
-            }
-        } loadRoles();
+        if (isCorretor) return;
+        loadRoles();
     },
         []);
 
@@ -48,12 +53,14 @@ export function RoleProvider({ children }: { children: ReactNode }) {
             userRole: user?.role ?? null,
             loading,
             permissions,
+            loadRoles,
             hasRole: (roleName: string) => user?.role?.name === roleName,
             hasPermission: (permission: PermissionName) => permissionSet.has(permission)
         }), [
         roles,
         user,
         loading,
+        loadRoles,
         permissions,
 
     ]);

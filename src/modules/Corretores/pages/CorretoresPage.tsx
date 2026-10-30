@@ -13,7 +13,7 @@ import { SYSTEM_ROLES } from "@/services/roles/roleTypes";
 export default function CorretoresPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const { showToast } = useToast();
-    const { roles } = useRole();
+    const { roles, loadRoles } = useRole();
     const {
         form,
         setForm,
@@ -27,6 +27,7 @@ export default function CorretoresPage() {
     const [showPassword, setShowPassword] = useState(false);
     useEffect(() => {
         fetchUsers();
+        loadRoles();
     }, [])
 
     function handleClose() {

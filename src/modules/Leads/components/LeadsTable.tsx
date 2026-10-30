@@ -4,11 +4,12 @@ import capitalizeWords from "@/shared/utils/capitalizeWords";
 import { Trash2, SquarePen, Send } from "lucide-react";
 import { PermissionName } from "@/services/permission/permissionTypes";
 import { Can } from "@/shared/components/Can";
+import Loading from "@/services/Loading/loading";
 
 interface LeadsTableProps {
     leads: Lead[];
     onOpenNotes: ((lead: Lead) => void) | undefined;
-
+    loading: boolean;
     patchLeadStatus: ((id: string, status: LeadStatus) => void) | undefined;
     onSend: ((lead: Lead) => void) | undefined;
     onDelete: ((id: string) => Promise<void>) | undefined;
@@ -18,15 +19,20 @@ interface LeadsTableProps {
 function LeadsTable({
     leads,
     onOpenNotes,
+    loading,
     patchLeadStatus,
     onSend,
     onEdit,
     onDelete
 }: LeadsTableProps) {
 
+    if (loading) {
+        return <Loading message="Buscando leads..." />;
+    }
+
     if (!leads.length) {
         return (
-            <div className="text-center py-6 text-gray-400">
+            <div className="py-6 text-center text-gray-400">
                 Nenhum lead encontrado.
             </div>
         );

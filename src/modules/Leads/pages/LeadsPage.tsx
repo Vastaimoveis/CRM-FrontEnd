@@ -18,6 +18,7 @@ import { useUsers } from "@/app/providers/UserProvider";
 import { PermissionName } from "@/services/permission/permissionTypes";
 import { useRole } from "@/app/providers/RoleProvider";
 import { Can } from "@/shared/components/Can";
+import { useLeads } from "@/app/providers/LeadProvider";
 
 export default function Leads() {
     const {
@@ -43,6 +44,8 @@ export default function Leads() {
         setSendModal,
         updateFilters,
     } = useLeadsPage();
+
+    const {loading} = useLeads();
 
     const {
         leadNotes,
@@ -156,6 +159,7 @@ export default function Leads() {
 
             <LeadsTable
                 leads={leads}
+                loading={loading}
                 patchLeadStatus={
                     canEdit ? handlePatchStatus : undefined}
                 onSend={
