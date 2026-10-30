@@ -266,8 +266,14 @@ export function FollowUpProvider({
         ): Promise<void> => {
 
             // Nunca encaminha userId ao filtro pessoal.
-            const { userId: _userId, ...myFilters } = filters;
+            const {
+                userId: _userId,
+                tab: _tab,
+                ...myFilters
+            } = filters;
+
             void _userId;
+            void _tab;
 
             await runPageRequest(
                 () => getMyFilteredFollowUps(
@@ -288,9 +294,12 @@ export function FollowUpProvider({
             size = 10
         ): Promise<void> => {
 
+            const { tab: _tab, ...apiFilters } = filters;
+            void _tab;
+
             await runPageRequest(
                 () => getAllFilteredFollowUps(
-                    filters,
+                    apiFilters,
                     pageNumber,
                     size
                 ),

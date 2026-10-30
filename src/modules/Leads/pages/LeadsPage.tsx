@@ -19,6 +19,7 @@ import { PermissionName } from "@/services/permission/permissionTypes";
 import { useRole } from "@/app/providers/RoleProvider";
 import { Can } from "@/shared/components/Can";
 import { useLeads } from "@/app/providers/LeadProvider";
+import TableLoadingOverlay from "@/shared/components/TableLoadingOverlay/TableLoadingOverlay";
 
 export default function Leads() {
     const {
@@ -45,7 +46,7 @@ export default function Leads() {
         updateFilters,
     } = useLeadsPage();
 
-    const {loading} = useLeads();
+    const { loading } = useLeads();
 
     const {
         leadNotes,
@@ -156,43 +157,49 @@ export default function Leads() {
                 </div>
 
             </div>
-
-            <LeadsTable
-                leads={leads}
+            <TableLoadingOverlay
                 loading={loading}
-                patchLeadStatus={
-                    canEdit ? handlePatchStatus : undefined}
-                onSend={
-                    canAssign ?
-                        openSendModal :
-                        undefined}
-                onDelete={
-                    canDelete ?
-                        handleDelete : undefined}
-                onEdit={
-                    canEdit ?
-                        setEditingLead : undefined}
-                onOpenNotes={
-                   canViewNotes ?
-                        openNotes : undefined}
+                message="Buscando follow-ups..."
+                minHeight="min-h-[300px]"
+            >
 
-            />
+                <LeadsTable
+                    leads={leads}
+                    loading={loading}
+                    patchLeadStatus={
+                        canEdit ? handlePatchStatus : undefined}
+                    onSend={
+                        canAssign ?
+                            openSendModal :
+                            undefined}
+                    onDelete={
+                        canDelete ?
+                            handleDelete : undefined}
+                    onEdit={
+                        canEdit ?
+                            setEditingLead : undefined}
+                    onOpenNotes={
+                        canViewNotes ?
+                            openNotes : undefined}
 
-            <LeadsPagination
-                currentPage={filters.page + 1}
-                totalPages={totalPages}
-                onPrev={() =>
-                    updateFilters({
-                        page: Math.max(0, filters.page - 1)
-                    })
-                }
+                />
 
-                onNext={() =>
-                    updateFilters({
-                        page: filters.page + 1
-                    })
-                }
-            />
+                <LeadsPagination
+                    currentPage={filters.page + 1}
+                    totalPages={totalPages}
+                    onPrev={() =>
+                        updateFilters({
+                            page: Math.max(0, filters.page - 1)
+                        })
+                    }
+
+                    onNext={() =>
+                        updateFilters({
+                            page: filters.page + 1
+                        })
+                    }
+                />
+            </TableLoadingOverlay>
 
             {
                 confirmModal && (

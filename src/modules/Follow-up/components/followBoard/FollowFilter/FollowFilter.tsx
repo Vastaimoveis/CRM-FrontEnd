@@ -1,13 +1,24 @@
+
+import { buildFollowUpTabFilters } from "@/modules/Follow-up/hooks/followUpTabFilter";
 import { PermissionName } from "@/services/permission/permissionTypes";
 import { Can } from "@/shared/components/Can";
-import type { FollowUpFilters } from "@/shared/types/filterTypes";
+
+import type {
+    FollowUpFilters,
+    FollowUpTab
+} from "@/shared/types/filterTypes";
 
 import {
     FollowUpStatus,
     type FollowUpStatusCount
 } from "@/shared/types/followUpTypes";
 
-import { CalendarDays, ChevronDown, Search } from "lucide-react";
+
+import {
+    CalendarDays,
+    ChevronDown,
+    Search
+} from "lucide-react";
 
 export interface FollowUpCorretorOption {
     id: string;
@@ -17,6 +28,7 @@ export interface FollowUpCorretorOption {
 interface Props {
     tabs: FollowUpStatusCount[];
     filters: FollowUpFilters;
+    todayCount: number;
     corretores: FollowUpCorretorOption[];
 
     onFiltersChange: (filters: FollowUpFilters) => void;
@@ -30,19 +42,64 @@ const countStyles: Record<FollowUpStatus, string> = {
     [FollowUpStatus.CANCELADO]: ""
 };
 
-const STATUS_TABS = [
+const STATUS_TABS: FollowUpTab[] = [
+    "TODOS",
     FollowUpStatus.ATRASADO,
+    "HOJE",
     FollowUpStatus.PENDENTE,
     FollowUpStatus.REAGENDADO,
-    FollowUpStatus.CONCLUIDO,
+    FollowUpStatus.CONCLUIDO
 ];
 
 export default function FollowFilter({
     tabs,
     filters,
+    todayCount,
     corretores,
     onFiltersChange
 }: Props) {
+
+    // Quando o usuário altera as datas manualmente,
+    // nenhuma aba predefinida precisa ficar selecionada.
+    const activeTab =
+        filters.tab ??
+        (
+            filters.startDate || filters.endDate
+                ? null
+                : filters.status ?? "TODOS"
+        );
+
+    function getStatusCount(status: FollowUpStatus): number {
+        return tabs.find(
+            tab => tab.status === status
+        )?.quantidade ?? 0;
+    }
+
+    function getTabCount(tab: FollowUpTab): number | null {
+
+        if (tab === "TODOS") {
+            return null;
+        }
+
+        if (tab === "HOJE") {
+            return todayCount;
+        }
+
+        if (tab === FollowUpStatus.PENDENTE) {
+            return Math.max(
+                0,
+                getStatusCount(FollowUpStatus.PENDENTE) - todayCount
+            );
+        }
+
+        return getStatusCount(tab);
+    }
+
+    function handleTabChange(tab: FollowUpTab) {
+        onFiltersChange(
+            buildFollowUpTabFilters(tab, filters)
+        );
+    }
 
     function updateFilter<K extends keyof FollowUpFilters>(
         key: K,
@@ -50,105 +107,127 @@ export default function FollowFilter({
     ) {
         onFiltersChange({
             ...filters,
-            [key]: value
+            [key]: value,
+
+            // Datas personalizadas deixam de representar
+            // necessariamente a aba anteriormente selecionada.
+            ...(
+                key === "startDate" || key === "endDate"
+                    ? { tab: undefined }
+                    : {}
+            )
         });
     }
 
-    function getStatusCount(status: FollowUpStatus): number {
-        return tabs.find(
-            (tab) => tab.status === status
-        )?.quantidade ?? 0;
+    function handleClearFilters() {
+        onFiltersChange(
+            buildFollowUpTabFilters(FollowUpStatus.PENDENTE)
+        );
     }
 
     return (
-        <div className="
-            flex flex-col gap-4
-            border-b border-slate-200
-            p-3 sm:p-4
-        ">
+        <div
+            className="
+                flex flex-col gap-4
+                border-b border-slate-200
+                p-3 sm:p-4
+            "
+        >
 
             {/* ABAS DE STATUS */}
 
             <div className="grid grid-cols-2 gap-1 sm:flex sm:flex-wrap">
 
-                <button
-                    type="button"
-                    onClick={() => updateFilter("status", null)}
-                    className={`
-                        flex items-center justify-center
-                        rounded-lg border-b-2
-                        px-3 py-3 text-sm transition
-                        sm:px-4
+                {STATUS_TABS.map(tab => {
 
-                        ${!filters.status
-                            ? "border-red-600 bg-red-50 text-red-700"
-                            : "border-transparent text-slate-600 hover:bg-slate-50"
-                        }
-                    `}
-                >
-                    Todos
-                </button>
+                    const active = activeTab === tab;
+                    const quantidade = getTabCount(tab);
 
-                {STATUS_TABS.map((status) => {
+                    const label =
+                        tab === "TODOS"
+                            ? "Todos"
+                            : tab === "HOJE"
+                                ? "Hoje"
+                                : tab === FollowUpStatus.PENDENTE
+                                    ? "Atualizados"
+                                    : tab;
 
-                    const active = filters.status === status;
+                    const badgeStyle =
+                        tab === "HOJE"
+                            ? "bg-sky-600 text-white"
+                            : tab === "TODOS"
+                                ? ""
+                                : countStyles[tab];
 
                     return (
                         <button
-                            key={status}
+                            key={tab}
                             type="button"
-                            onClick={() => updateFilter("status", status)}
+                            onClick={() => handleTabChange(tab)}
+                            aria-pressed={active}
                             className={`
                                 flex items-center justify-center gap-2
                                 rounded-lg border-b-2
                                 px-3 py-3 text-sm transition
                                 sm:px-4
 
-                                ${active
-                                    ? "border-red-600 bg-red-50 text-red-700"
-                                    : "border-transparent text-slate-600 hover:bg-slate-50"
+                                ${
+                                    active
+                                        ? "border-red-600 bg-red-50 text-red-700"
+                                        : "border-transparent text-slate-600 hover:bg-slate-50"
                                 }
                             `}
                         >
-                            <span>{status == FollowUpStatus.PENDENTE? "ATUALIZADO" : status}</span>
+                            <span>{label}</span>
 
-                            <span
-                                className={`
-                                    rounded-full px-2 py-0.5
-                                    text-xs font-semibold
-                                    ${countStyles[status]}
-                                `}
-                            >
-                                {getStatusCount(status)}
-                            </span>
+                            {quantidade !== null && (
+                                <span
+                                    className={`
+                                        rounded-full px-2 py-0.5
+                                        text-xs font-semibold
+                                        ${badgeStyle}
+                                    `}
+                                >
+                                    {quantidade}
+                                </span>
+                            )}
+
                         </button>
                     );
                 })}
+
             </div>
 
             {/* FILTROS ADICIONAIS */}
 
-            <div className="
-                flex flex-col gap-3
-                xl:flex-row xl:items-center
-                xl:justify-between
-            ">
+            <div
+                className="
+                    flex flex-col gap-3
+                    xl:flex-row xl:items-center
+                    xl:justify-between
+                "
+            >
 
                 {/* PESQUISA */}
 
-                <label className="
-                    flex w-full items-center gap-2
-                    rounded-lg border border-slate-200
-                    bg-white px-3
-                    focus-within:border-sky-500
-                    xl:max-w-xs
-                ">
-                    <Search size={18} className="shrink-0 text-slate-500" />
+                <label
+                    className="
+                        flex w-full items-center gap-2
+                        rounded-lg border border-slate-200
+                        bg-white px-3
+                        focus-within:border-sky-500
+                        xl:max-w-xs
+                    "
+                >
+                    <Search
+                        size={18}
+                        className="shrink-0 text-slate-500"
+                    />
 
                     <input
                         type="text"
                         value={filters.search ?? ""}
-                        onChange={(e) =>
+                        onChange={e =>
                             updateFilter("search", e.target.value)
                         }
                         placeholder="Buscar lead..."
@@ -173,7 +252,7 @@ export default function FollowFilter({
 
                             <select
                                 value={filters.userId ?? ""}
-                                onChange={(e) =>
+                                onChange={e =>
                                     updateFilter(
                                         "userId",
                                         e.target.value || null
@@ -192,7 +271,7 @@ export default function FollowFilter({
                                     Todos os corretores
                                 </option>
 
-                                {corretores.map((corretor) => (
+                                {corretores.map(corretor => (
                                     <option
                                         key={corretor.id}
                                         value={corretor.id}
@@ -217,13 +296,14 @@ export default function FollowFilter({
 
                     {/* DATA INICIAL */}
 
-                    <label className="
-                        flex items-center gap-2
-                        rounded-lg border border-slate-200
-                        bg-white px-3
-                        focus-within:border-sky-500
-                    ">
-
+                    <label
+                        className="
+                            flex items-center gap-2
+                            rounded-lg border border-slate-200
+                            bg-white px-3
+                            focus-within:border-sky-500
+                        "
+                    >
                         <CalendarDays
                             size={18}
                             className="shrink-0 text-slate-500"
@@ -234,7 +314,7 @@ export default function FollowFilter({
                             aria-label="Data inicial"
                             value={filters.startDate ?? ""}
                             max={filters.endDate ?? undefined}
-                            onChange={(e) =>
+                            onChange={e =>
                                 updateFilter(
                                     "startDate",
                                     e.target.value || null
@@ -245,18 +325,18 @@ export default function FollowFilter({
                                 py-3 text-sm outline-none
                             "
                         />
-
                     </label>
 
                     {/* DATA FINAL */}
 
-                    <label className="
-                        flex items-center gap-2
-                        rounded-lg border border-slate-200
-                        bg-white px-3
-                        focus-within:border-sky-500
-                    ">
-
+                    <label
+                        className="
+                            flex items-center gap-2
+                            rounded-lg border border-slate-200
+                            bg-white px-3
+                            focus-within:border-sky-500
+                        "
+                    >
                         <CalendarDays
                             size={18}
                             className="shrink-0 text-slate-500"
@@ -267,7 +347,7 @@ export default function FollowFilter({
                             aria-label="Data final"
                             value={filters.endDate ?? ""}
                             min={filters.startDate ?? undefined}
-                            onChange={(e) =>
+                            onChange={e =>
                                 updateFilter(
                                     "endDate",
                                     e.target.value || null
@@ -278,16 +358,13 @@ export default function FollowFilter({
                                 py-3 text-sm outline-none
                             "
                         />
-
                     </label>
 
                     {/* LIMPAR FILTROS */}
 
                     <button
                         type="button"
-                        onClick={() => onFiltersChange({
-                            status: FollowUpStatus.PENDENTE
-                        })}
+                        onClick={handleClearFilters}
                         className="
                             rounded-lg border border-slate-200
                             px-4 py-3 text-sm

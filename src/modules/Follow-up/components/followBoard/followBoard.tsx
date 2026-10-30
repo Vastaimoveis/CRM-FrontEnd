@@ -6,7 +6,7 @@ import FollowTable from "./FollowTable/FollowTable";
 
 interface Props {
     statusCounts?: FollowUpStatusCount[];
-
+    todayCount: number;
     filters?: FollowUpFilters;
 
     corretores?: FollowUpCorretorOption[];
@@ -34,6 +34,7 @@ export default function FollowBoard({
     filters = {},
     handleFiltersChange,
     statusCounts = [],
+    todayCount = 0,
     corretores = [],
     showFilters = true,
     followUps,
@@ -67,6 +68,7 @@ export default function FollowBoard({
             {showFilters && handleFiltersChange && (
                 <FollowFilter
                     tabs={statusCounts}
+                    todayCount={todayCount}
                     filters={filters}
                     corretores={corretores}
                     onFiltersChange={handleFiltersChange}
