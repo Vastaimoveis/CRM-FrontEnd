@@ -11,10 +11,10 @@ import type {
 
 interface Props {
     followUps: FollowUp[];
-
     showFilters: boolean;
-
     statusStyles: Record<FollowUpStatus, string>;
+
+    loading: boolean;
 
     onScheduleNext: (followUp: FollowUp) => void;
     onReschedule: (followUp: FollowUp) => void;

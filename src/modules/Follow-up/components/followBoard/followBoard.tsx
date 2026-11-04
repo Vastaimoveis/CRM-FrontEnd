@@ -1,18 +1,28 @@
-import type { FollowUp, FollowUpStatus, FollowUpStatusCount } from "@/shared/types/followUpTypes";
-import FollowFilter, { type FollowUpCorretorOption } from "./FollowFilter/FollowFilter";
+import type {
+    FollowUp,
+    FollowUpStatus,
+    FollowUpStatusCount
+} from "@/shared/types/followUpTypes";
+
+import FollowFilter, {
+    type FollowUpCorretorOption
+} from "./FollowFilter/FollowFilter";
+
 import FollowRodape from "./FollowRodape/FollowRodape";
-import type { FollowUpFilters } from "@/shared/types/filterTypes";
 import FollowTable from "./FollowTable/FollowTable";
+
+import type { FollowUpFilters } from "@/shared/types/filterTypes";
+
+import FollowTableSkeleton from "@/shared/components/FollowTableSkeleton/FollowTableSkeleton";
 
 interface Props {
     statusCounts?: FollowUpStatusCount[];
     todayCount: number;
     filters?: FollowUpFilters;
-
     corretores?: FollowUpCorretorOption[];
 
-
     showFilters?: boolean;
+
     onScheduleNext: (followUp: FollowUp) => void;
     handleFiltersChange?: (filters: FollowUpFilters) => void;
 
@@ -30,6 +40,7 @@ interface Props {
 
     onPageChange: (page: number) => void;
 }
+
 export default function FollowBoard({
     filters = {},
     handleFiltersChange,
@@ -48,7 +59,6 @@ export default function FollowBoard({
     onPageChange,
     onReschedule,
     onCancel
-
 }: Props) {
 
     const statusStyles: Record<FollowUpStatus, string> = {
@@ -59,12 +69,13 @@ export default function FollowBoard({
         CANCELADO: "bg-black text-white"
     };
 
-    
     return (
-        <section className="min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white">
+        <section className="
+            min-w-0 overflow-hidden
+            rounded-xl border border-slate-200 bg-white
+        ">
 
-            {/* Abas e filtros */}
-
+            {/* Filtros */}
             {showFilters && handleFiltersChange && (
                 <FollowFilter
                     tabs={statusCounts}
@@ -75,19 +86,34 @@ export default function FollowBoard({
                 />
             )}
 
-
+            {/* Tabela / Loading */}
             <div className="w-full overflow-x-auto">
-                <FollowTable
-                    followUps={followUps}
-                    showFilters={showFilters}
-                    statusStyles={statusStyles}
-                    onScheduleNext={onScheduleNext}
-                    onReschedule={onReschedule}
-                    onCancel={onCancel}
-                />
+
+                {loading ? (
+                    <FollowTableSkeleton />
+                ) : followUps.length > 0 ? (
+                    <FollowTable
+                        followUps={followUps}
+                        showFilters={showFilters}
+                        statusStyles={statusStyles}
+                        onScheduleNext={onScheduleNext}
+                        onReschedule={onReschedule}
+                        onCancel={onCancel}
+                        loading={loading}
+                    />
+                ) : (
+                    <div className="
+                        px-4 py-10 text-center
+                        text-sm text-slate-500
+                    ">
+                        Nenhum follow-up encontrado.
+                    </div>
+                )}
+
             </div>
-            {/* Rodapé da tabela */}
-            {showFilters &&
+
+            {/* Rodapé */}
+            {showFilters && (
                 <FollowRodape
                     page={page}
                     pageSize={pageSize}
@@ -96,7 +122,8 @@ export default function FollowBoard({
                     totalElements={totalElements}
                     onPageChange={onPageChange}
                 />
-            }
+            )}
+
         </section>
-    )
+    );
 }
