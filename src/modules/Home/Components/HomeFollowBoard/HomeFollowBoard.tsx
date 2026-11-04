@@ -18,6 +18,7 @@ export default function HomeFollowBoard() {
     const {
         followUps,
         loading,
+        todayCount,
         page,
         pageSize,
         totalPages,
@@ -94,7 +95,7 @@ export default function HomeFollowBoard() {
 
             <FollowBoard
                 showFilters={false}
-
+                todayCount={todayCount}
                 followUps={followUps}
                 loading={loading}
 
