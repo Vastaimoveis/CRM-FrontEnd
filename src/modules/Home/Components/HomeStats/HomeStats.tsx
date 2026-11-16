@@ -2,7 +2,7 @@
 import HomeStatCard from "../HomeStatCard/HomeStatCard";
 import HomeFollowToday from "../HomeFollowToday/HomeFollowToday";
 
-import { useFollowUp } from "@/app/providers/FollowUpProvider";
+import { useFollowUp } from "@/app/providers/FollowUp/FollowUpProvider";
 import { FollowUpStatus } from "@/shared/types/followUpTypes";
 
 export interface statItem {

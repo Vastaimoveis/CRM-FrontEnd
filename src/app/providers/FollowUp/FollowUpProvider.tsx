@@ -34,7 +34,7 @@ import {
 import type { PageResponse } from "@/shared/types/api";
 import type { FollowUpFilters } from "@/shared/types/filterTypes";
 import { SYSTEM_ROLES } from "@/services/roles/roleTypes";
-import { useAuth } from "./AuthProvider";
+import { useAuth } from "../Auth/AuthProvider";
 
 interface FollowUpContextType {
     followUps: FollowUp[];
@@ -147,7 +147,7 @@ export function FollowUpProvider({
         user?.role.name === SYSTEM_ROLES.ADMIN ||
         user?.role.name === SYSTEM_ROLES.GERENTE;
     // Controle compartilhado por todas as buscas paginadas.
-    const requestIdRef = useRef(0);
+    const isPageRequestInProgress = useRef(false);
 
     const clearError = useCallback(() => {
         setError(null);
@@ -171,13 +171,17 @@ export function FollowUpProvider({
     );
 
     // Executa qualquer consulta paginada e ignora respostas antigas.
+
     const runPageRequest = useCallback(
         async (
             request: () => Promise<PageResponse<FollowUp>>,
             fallbackMessage: string
         ): Promise<void> => {
 
-            const requestId = ++requestIdRef.current;
+            // Impede uma nova chamada enquanto outra estiver executando.
+            if (isPageRequestInProgress.current) return;
+
+            isPageRequestInProgress.current = true;
 
             setLoading(true);
             setError(null);
@@ -186,25 +190,22 @@ export function FollowUpProvider({
 
                 const response = await request();
 
-                if (requestId !== requestIdRef.current) return;
-
                 updateFollowUpsPage(response);
 
             } catch (err) {
-
-                if (requestId !== requestIdRef.current) return;
 
                 setError(getErrorMessage(err, fallbackMessage));
 
             } finally {
 
-                if (requestId === requestIdRef.current) {
-                    setLoading(false);
-                }
+                isPageRequestInProgress.current = false;
+                setLoading(false);
+
             }
         },
         [updateFollowUpsPage]
     );
+
 
     const fetchMyFollowUps = useCallback(
         async (
@@ -393,7 +394,10 @@ export function FollowUpProvider({
 
             try {
 
-                return await rescheduleFollowUp(data);
+                return await rescheduleFollowUp({
+                    ...data,
+                    proximoContato: `${data.proximoContato}T00:00:00`
+                });
 
             } catch (err) {
 

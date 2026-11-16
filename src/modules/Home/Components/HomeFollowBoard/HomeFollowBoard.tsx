@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { useFollowUp } from "@/app/providers/FollowUpProvider";
-import { useAuth } from "@/app/providers/AuthProvider";
+import { useFollowUp } from "@/app/providers/FollowUp/FollowUpProvider";
+import { useAuth } from "@/app/providers/Auth/AuthProvider";
 
 import FollowBoard from "@/modules/Follow-up/components/followBoard/followBoard";
 

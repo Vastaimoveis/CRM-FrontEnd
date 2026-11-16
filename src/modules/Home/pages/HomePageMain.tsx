@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react";
 
-import { useFunnel } from "@/app/providers/FunnelProvider";
+import { useFunnel } from "@/app/providers/Funnel/FunnelProvider";
 import { PermissionName } from "@/services/permission/permissionTypes";
 import { Can } from "@/shared/components/Can";
 
@@ -10,8 +10,10 @@ import HomeFunnel from "../Components/HomeFunnel/HomeFunnel";
 import HomeHeader from "../Components/HomeHeader/HomeHeader";
 import HomeStats from "../Components/HomeStats/HomeStats";
 import LeadModal from "@/modules/funil/components/LeadModal";
-import { useAuth } from "@/app/providers/AuthProvider";
-import { useFollowUp } from "@/app/providers/FollowUpProvider";
+import { useAuth } from "@/app/providers/Auth/AuthProvider";
+import { useFollowUp } from "@/app/providers/FollowUp/FollowUpProvider";
+import { useLeads } from "@/app/providers/Lead/LeadProvider";
+import HomeLeadsByBroker from "../Components/HomeLeadsByBroker/HomeLeadsByBroker";
 
 // Utilize o caminho real do LeadModal no seu projeto
 
@@ -21,6 +23,12 @@ export default function HomeMainPage() {
         countLeads,
         createLead
     } = useFunnel();
+
+    const {
+        fetchLeadsPorCorretor,
+        leadsPorCorretor,
+        loadingLeadsPorCorretor,
+    } = useLeads();
 
     const { user } = useAuth();
     const { fetchStatusCounts } = useFollowUp();
@@ -33,6 +41,14 @@ export default function HomeMainPage() {
         void fetchStatusCounts();
 
     }, [user, fetchStatusCounts]);
+
+
+    useEffect(() => {
+        if (!user) return;
+
+        void fetchStatusCounts();
+        void fetchLeadsPorCorretor();
+    }, [user, fetchStatusCounts, fetchLeadsPorCorretor]);
 
     const handleOpenModal = () => {
         setModalOpen(true);
@@ -67,12 +83,20 @@ export default function HomeMainPage() {
 
                 <section
                     className="
-                        grid grid-cols-1
-                        items-start gap-5
-                        xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]
+                        flex gap-2
+                        justify-between
                     "
                 >
-                    <HomeFollowBoard />
+                    <div className="w-1/2">
+                        <HomeFollowBoard />
+                    </div>
+
+                    <Can permission={PermissionName.LEAD_ASSIGN}>
+                        <HomeLeadsByBroker
+                            data={leadsPorCorretor}
+                            loading={loadingLeadsPorCorretor}
+                        />
+                    </Can>
 
                     <div className="flex min-w-0 flex-col gap-5">
                         {countLeads && (
@@ -80,6 +104,8 @@ export default function HomeMainPage() {
                         )}
                     </div>
                 </section>
+
+
 
                 {/* MODAL DE CRIAÇÃO */}
 

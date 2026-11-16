@@ -1,4 +1,4 @@
-import { useFollowUp } from "@/app/providers/FollowUpProvider";
+import { useFollowUp } from "@/app/providers/FollowUp/FollowUpProvider";
 import { FollowUpStatus } from "@/shared/types/followUpTypes";
 import { AlertCircle } from "lucide-react";
 

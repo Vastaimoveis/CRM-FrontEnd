@@ -1,8 +1,8 @@
-import { useLeads } from "@/app/providers/LeadProvider";
+import { useLeads } from "@/app/providers/Lead/LeadProvider";
 import { LeadStatus, type Lead } from "@/shared/types/LeadType";
 import { useEffect, useMemo } from "react";
 import PipelineColumn from "../components/PipelineColumn";
-import { useLeadNotes } from "@/app/providers/LeadNoteProvider";
+import { useLeadNotes } from "@/app/providers/LeadNote/LeadNoteProvider";
 import Modal from "@/shared/components/leadNotesModal";
 
 export default function OportunidadesPage() {

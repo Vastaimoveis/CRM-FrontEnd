@@ -1,4 +1,4 @@
-import { useRole } from "@/app/providers/RoleProvider";
+import { useRole } from "@/app/providers/Role/RoleProvider";
 import type { PermissionName } from "./permission/permissionTypes";
 
 interface RoleGuardProps {

@@ -3,11 +3,11 @@ import { UserTable } from "../components/CorretoresTable";
 import { useEffect, useState } from "react";
 import { useHooksCorretores } from "../hooks/useHooksCorretores";
 import { validatePhone } from "@/shared/utils/validatePhone";
-import { useToast } from "@/app/providers/ToastProvider";
-import { useUsers } from "@/app/providers/UserProvider";
+import { useToast } from "@/app/providers/Toast/ToastProvider";
+import { useUsers } from "@/app/providers/User/UserProvider";
 import { Eye, EyeOff } from "lucide-react";
 import capitalizeWords from "@/shared/utils/capitalizeWords";
-import { useRole } from "@/app/providers/RoleProvider";
+import { useRole } from "@/app/providers/Role/RoleProvider";
 import { SYSTEM_ROLES } from "@/services/roles/roleTypes";
 
 export default function CorretoresPage() {

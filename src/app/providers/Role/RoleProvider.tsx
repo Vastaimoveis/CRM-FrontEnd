@@ -1,6 +1,6 @@
 import { findAllRoles } from "@/services/roles/rolesService";
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { useAuth } from "./AuthProvider";
+import { useAuth } from "../Auth/AuthProvider";
 import { PermissionName } from "@/services/permission/permissionTypes";
 import type { RoleResponseDTO } from "@/services/roles/roleTypes";
 

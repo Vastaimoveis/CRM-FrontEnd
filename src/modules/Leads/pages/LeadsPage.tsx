@@ -6,7 +6,7 @@ import LeadsTable from "../components/LeadsTable";
 import { exportLeadsToExcel } from "../utils/exportLeadsToExcel";
 import LeadsPreviewModal from "../components/LeadsPreviewModal";
 import LeadsConfirmModal from "../components/LeadsConfirmModal";
-import { useLeadNotes } from "@/app/providers/LeadNoteProvider";
+import { useLeadNotes } from "@/app/providers/LeadNote/LeadNoteProvider";
 import Modal from "@/shared/components/leadNotesModal";
 import LeadDatePicker from "../components/LeadsDatePicker";
 import LeadEditModal from "../components/LeadsEditModal";
@@ -14,11 +14,11 @@ import { useLeadsPage } from "../hooks/useLeadsPage";
 import { LeadsReminderPicker } from "../components/LeadsReminderPicker";
 import { useLeadReminder } from "../hooks/useLeadReminder";
 import LeadChangeUserModal from "@/shared/components/leadChangeUserModal";
-import { useUsers } from "@/app/providers/UserProvider";
+import { useUsers } from "@/app/providers/User/UserProvider";
 import { PermissionName } from "@/services/permission/permissionTypes";
-import { useRole } from "@/app/providers/RoleProvider";
+import { useRole } from "@/app/providers/Role/RoleProvider";
 import { Can } from "@/shared/components/Can";
-import { useLeads } from "@/app/providers/LeadProvider";
+import { useLeads } from "@/app/providers/Lead/LeadProvider";
 import TableLoadingOverlay from "@/shared/components/TableLoadingOverlay/TableLoadingOverlay";
 
 export default function Leads() {

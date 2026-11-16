@@ -1,10 +1,9 @@
 export interface ApiResponse<T> {
     success: boolean;
     data: T | null;
-    errorCode?: string;
-    text: string;
+    message: string;
+    errorCode?: string | null;
 }
-
 export interface PageResponse<T> {
     content: T[];
 

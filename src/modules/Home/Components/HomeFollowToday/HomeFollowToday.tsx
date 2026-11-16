@@ -1,4 +1,4 @@
-import { useFollowUp } from "@/app/providers/FollowUpProvider";
+import { useFollowUp } from "@/app/providers/FollowUp/FollowUpProvider";
 
 export default function HomeFollowToday() {
 

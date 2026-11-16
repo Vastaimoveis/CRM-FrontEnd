@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import type { User } from "@/shared/types/UserTypes";
 import type { Lead } from "../types/LeadType";
-import { useUsers } from "@/app/providers/UserProvider";
-import { useAuth } from "@/app/providers/AuthProvider";
+import { useUsers } from "@/app/providers/User/UserProvider";
+import { useAuth } from "@/app/providers/Auth/AuthProvider";
 
 interface LeadChangeUserModalProps {
     lead: Lead;

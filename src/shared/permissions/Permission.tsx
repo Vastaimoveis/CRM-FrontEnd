@@ -1,4 +1,4 @@
-import { useAuth } from "@/providers/AuthProvider";
+import { useAuth } from "@/app/providers/Auth/AuthProvider";
 
 interface Props {
   allowed: PermissionName;

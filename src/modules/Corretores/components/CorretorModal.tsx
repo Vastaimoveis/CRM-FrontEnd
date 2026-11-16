@@ -1,5 +1,5 @@
-import { useAuth } from "@/app/providers/AuthProvider";
-import { useToast } from "@/app/providers/ToastProvider";
+import { useAuth } from "@/app/providers/Auth/AuthProvider";
+import { useToast } from "@/app/providers/Toast/ToastProvider";
 import type { User } from "@/shared/types/UserTypes";
 import type { Dispatch, SetStateAction } from "react";
 

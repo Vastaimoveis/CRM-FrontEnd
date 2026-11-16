@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/app/providers/AuthProvider";
-import { useToast } from "@/app/providers/ToastProvider";
+import { useAuth } from "@/app/providers/Auth/AuthProvider";
+import { useToast } from "@/app/providers/Toast/ToastProvider";
 import { validatePhone } from "@/shared/utils/validatePhone";
 
 export function useLoginForm() {

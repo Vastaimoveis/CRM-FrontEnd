@@ -2,10 +2,10 @@
 
 import { useRef, useState } from "react";
 import { useOutsideClick } from "../hooks/useOutsideClick";
-import { useLeadNotes } from "@/app/providers/LeadNoteProvider";
+import { useLeadNotes } from "@/app/providers/LeadNote/LeadNoteProvider";
 import { useNotesHook } from "../hooks/useLeadsNotes";
 import type { LeadNoteRequest } from "@/shared/types/LeadNotesType";
-import { useToast } from "@/app/providers/ToastProvider";
+import { useToast } from "@/app/providers/Toast/ToastProvider";
 
 interface LeadsNotesModalProps {
   leadId: string;

@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { useAuth } from "@/app/providers/AuthProvider";
+import { useAuth } from "@/app/providers/Auth/AuthProvider";
 import logo from "/logo.png"
 import { useEffect, useRef, useState } from "react";
 import UserDropdown from "./Notifications/userDropdown";
@@ -76,6 +76,11 @@ export default function Header() {
           <Can permission={PermissionName.USER_VIEW}>
             <NavLink className={navItemClass} to="/corretores">
               Corretores
+            </NavLink>
+          </Can>
+          <Can permission={PermissionName.SCRIPT_VIEW}>
+            <NavLink className={navItemClass} to="/scripts">
+              Scripts
             </NavLink>
           </Can>
         </div>

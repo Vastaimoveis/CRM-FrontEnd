@@ -52,6 +52,6 @@ export async function deleteNotification(
   );
   
   if (!response.data.success) {
-    throw new Error(response.data.text);
+    throw new Error(response.data.message);
   }
 }

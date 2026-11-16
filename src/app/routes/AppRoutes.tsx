@@ -12,6 +12,7 @@ import CorretoresPage from '@/modules/Corretores/pages/CorretoresPage'
 import { PermissionName } from '@/services/permission/permissionTypes'
 import FollowUps from '@/modules/Follow-up/pages/followUpPage'
 import HomePage from '@/modules/Home/HomePage'
+import ScriptPage from '@/modules/Scripts/ScriptPage'
 
 function App() {
 
@@ -99,6 +100,20 @@ function App() {
               </PrivateRoute>
             }
           />
+
+          <Route
+            path="/scripts"
+            element={
+              <PrivateRoute>
+                <DashboardLayout>
+                  <RoleGuard permission={PermissionName.SCRIPT_VIEW}>
+                    <ScriptPage />
+                  </RoleGuard>
+                </DashboardLayout>
+              </PrivateRoute>
+            }
+          />
+
 
         </Routes>
       </AppProviders>

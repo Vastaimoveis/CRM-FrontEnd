@@ -1,10 +1,10 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 
-import { useToast } from "@/app/providers/ToastProvider";
-import { useLeadNotes } from "@/app/providers/LeadNoteProvider";
-import { useRole } from "@/app/providers/RoleProvider";
-import { useUsers } from "@/app/providers/UserProvider";
+import { useToast } from "@/app/providers/Toast/ToastProvider";
+import { useLeadNotes } from "@/app/providers/LeadNote/LeadNoteProvider";
+import { useRole } from "@/app/providers/Role/RoleProvider";
+import { useUsers } from "@/app/providers/User/UserProvider";
 
 import { useHooksFunnel } from "../hooks/useHooksFunnel";
 
@@ -19,6 +19,7 @@ import { Can } from "@/shared/components/Can";
 
 import { validatePhone } from "@/shared/utils/validatePhone";
 import capitalizeWords from "@/shared/utils/capitalizeWords";
+import { normalizeApiError } from "@/shared/utils/NormalizeApiError";
 
 interface Props {
   open: boolean;
@@ -116,11 +117,34 @@ export default function LeadModal({
 
       showToast("Lead criado com sucesso", "success");
 
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Erro ao criar Lead:", error);
 
-      showToast("Erro ao criar Lead", "error");
+      const apiError = normalizeApiError(error);
 
+      switch (apiError.errorCode) {
+        case "LEAD_EMAIL_DUPLICATE":
+          showToast("Este e-mail já está cadastrado.", "error");
+          break;
+
+        case "LEAD_PHONE_DUPLICATE":
+          showToast("Este telefone já está cadastrado.", "error");
+          break;
+
+        case "LEAD_ASSIGN_FORBIDDEN":
+          showToast(apiError.message, "error");
+          break;
+
+        case "LEAD_CORRETOR_NOT_FOUND":
+        case "LEAD_USER_NOT_CORRETOR":
+          showToast(apiError.message, "error");
+          break;
+
+        default:
+          showToast(apiError.message, "error");
+          break;
+
+      }
     } finally {
       setLoading(false);
     }

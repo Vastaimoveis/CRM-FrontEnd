@@ -4,6 +4,7 @@ import {
     LeadStatus,
     type CreateLeadDTO,
     type Lead,
+    type LeadPorCorretor,
 } from "@/shared/types/LeadType";
 import type { countStatusResponse, LeadCorretorDTO, LeadStatusDTO, UpdateLeadDto } from "./types/leads";
 import { type User } from "@/shared/types/UserTypes";
@@ -32,26 +33,29 @@ export async function getLeads(
     return unwrapApiResponse(response.data);
 }
 
-export async function getOportunity(userId: string) {
+export async function getOportunity(userId: string): Promise<Lead[]> {
     const response = await api.get<ApiResponse<Lead[]>>(`leads/oportunidades/${userId}`);
 
 
     return unwrapApiResponse(response.data);
 }
 
-export async function getLeadsBySearch(search: string, page: number) {
+export async function getLeadsBySearch(search: string, page: number): Promise<PageResponse<Lead>> {
     const response = await api.get<ApiResponse<PageResponse<Lead>>>(`/leads/search/${search}?page=${page}`);
 
 
     return unwrapApiResponse(response.data);
 }
 
-export async function getLeadsByUserId(userId: string) {
-    const response = await api.get<ApiResponse<Lead[]>>(`/leads/all/${userId}`)
-    return response.data.data
+export async function getLeadsByUserId(userId: string): Promise<Lead[]> {
+    const response = await api.get<ApiResponse<Lead[]>>(
+        `/leads/all/${userId}`
+    );
+
+    return unwrapApiResponse(response.data);
 }
 
-export async function getLeadsStatus(userId: string) {
+export async function getLeadsStatus(userId: string): Promise<countStatusResponse> {
     const response = await api.get<ApiResponse<countStatusResponse>>(`leads/dashboard/${userId}`);
 
     return unwrapApiResponse(response.data);
@@ -65,19 +69,20 @@ export async function getLeadsFilterByStatus(status: LeadStatusDTO, page = 0) {
     return unwrapApiResponse(response.data);
 }
 
-export async function getAllLeadsNotEncerrado(page = 0, user: User | null) {
-    if (!user) {
-        return
-    } else if (user.role.name == SYSTEM_ROLES.GERENTE) {
-        const response = await api.get<ApiResponse<PageResponse<Lead>>>(`/leads/status?page=${page}`);
+export async function getAllLeadsNotEncerrado(
+    page = 0,
+    user: User | null
+): Promise<PageResponse<Lead> | null> {
+    if (!user) return null;
 
+    const endpoint =
+        user.role.name === SYSTEM_ROLES.GERENTE
+            ? `/leads/status?page=${page}`
+            : `/leads/status/userid/${user.id}?page=${page}`;
 
-        return unwrapApiResponse(response.data);
-    } else {
-        const response = await api.get<ApiResponse<PageResponse<Lead>>>(`/leads/status/userid/${user.id}?page=${page}`);
+    const response = await api.get<ApiResponse<PageResponse<Lead>>>(endpoint);
 
-        return unwrapApiResponse(response.data);
-    }
+    return unwrapApiResponse(response.data);
 }
 
 export async function getLeadById(
@@ -134,28 +139,34 @@ export async function patchCorretor(leadId: string, data: LeadCorretorDTO): Prom
 
 export async function getFilteredLeads(
     filter: LeadFilters
-): Promise<ApiResponse<PageResponse<Lead>> | ApiResponse<null>> {
-
+): Promise<PageResponse<Lead>> {
     const params = new URLSearchParams();
 
-    if (filter.userId) params.append("userid", filter.userId)
+    if (filter.userId) params.append("userid", filter.userId);
     if (filter.search) params.append("search", filter.search.toString());
     if (filter.status) params.append("status", filter.status);
     if (filter.startDate) params.append("startDate", filter.startDate);
     if (filter.endDate) params.append("endDate", filter.endDate);
 
     params.append("page", String(filter.page));
+
     const response = await api.get<ApiResponse<PageResponse<Lead>>>(
         `/leads/filter?${params.toString()}`
     );
 
-    return response.data;
+    return unwrapApiResponse(response.data);
 }
 
-export async function editLead(id: string, data: UpdateLeadDto) {
-    const altered = await api.put<ApiResponse<Lead>>(`/leads/${id}`, data)
+export async function editLead(
+    id: string,
+    data: UpdateLeadDto
+): Promise<Lead> {
+    const response = await api.put<ApiResponse<Lead>>(
+        `/leads/${id}`,
+        data
+    );
 
-    return altered.data.data
+    return unwrapApiResponse(response.data);
 }
 
 export async function deleteLeadRequest(
@@ -163,4 +174,12 @@ export async function deleteLeadRequest(
 ): Promise<void> {
 
     await api.delete(`/leads/${id}`);
+}
+
+export async function getLeadsPorCorretor(): Promise<LeadPorCorretor[]> {
+    const response = await api.get<
+        ApiResponse<LeadPorCorretor[]>
+    >("/leads/por-corretor");
+
+    return unwrapApiResponse(response.data);
 }

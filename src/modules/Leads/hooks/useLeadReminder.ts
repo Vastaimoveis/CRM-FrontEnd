@@ -1,5 +1,5 @@
-import { useNotification } from "@/app/providers/NotificationProvider";
-import { useToast } from "@/app/providers/ToastProvider";
+import { useNotification } from "@/app/providers/Notification/NotificationProvider";
+import { useToast } from "@/app/providers/Toast/ToastProvider";
 import { useEffect, useState } from "react";
 
 export function useLeadReminder() {

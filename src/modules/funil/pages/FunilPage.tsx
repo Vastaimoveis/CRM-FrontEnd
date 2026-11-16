@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import CustomChart from "../components/FunnelChart";
 import ChartSwitcher from "../components/ChartSwitcher";
 import LeadModal from "../components/LeadModal";
-import { useFunnel } from "@/app/providers/FunnelProvider";
-import { useAuth } from "@/app/providers/AuthProvider";
-import { useRole } from "@/app/providers/RoleProvider";
+import { useFunnel } from "@/app/providers/Funnel/FunnelProvider";
+import { useAuth } from "@/app/providers/Auth/AuthProvider";
+import { useRole } from "@/app/providers/Role/RoleProvider";
 import { PermissionName } from "@/services/permission/permissionTypes";
 import { Can } from "@/shared/components/Can";
 

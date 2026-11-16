@@ -12,7 +12,7 @@ interface LeadsTableProps {
     loading: boolean;
     patchLeadStatus: ((id: string, status: LeadStatus) => void) | undefined;
     onSend: ((lead: Lead) => void) | undefined;
-    onDelete: ((id: string) => Promise<void>) | undefined;
+    onDelete: ((id: string) => void) | undefined;
     onEdit: ((lead: Lead) => void) | undefined;
 }
 

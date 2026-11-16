@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
-import { useAuth } from "@/app/providers/AuthProvider";
+import { useAuth } from "@/app/providers/Auth/AuthProvider";
 import type { JSX } from "react";
 
 export function PrivateRoute({ children }: { children: JSX.Element }) {

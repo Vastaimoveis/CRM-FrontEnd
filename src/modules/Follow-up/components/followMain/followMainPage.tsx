@@ -11,9 +11,9 @@ import FollowBoard from "../followBoard/followBoard";
 
 import type { FollowUpFilters } from "@/shared/types/filterTypes";
 
-import { useFollowUp } from "@/app/providers/FollowUpProvider";
-import { useUsers } from "@/app/providers/UserProvider";
-import { useAuth } from "@/app/providers/AuthProvider";
+import { useFollowUp } from "@/app/providers/FollowUp/FollowUpProvider";
+import { useUsers } from "@/app/providers/User/UserProvider";
+import { useAuth } from "@/app/providers/Auth/AuthProvider";
 
 import { useDebounce } from "../../hooks/useDebounce";
 import { SYSTEM_ROLES } from "@/services/roles/roleTypes";

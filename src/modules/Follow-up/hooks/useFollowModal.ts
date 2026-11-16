@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 
-import { useFollowUp } from "@/app/providers/FollowUpProvider";
+import { useFollowUp } from "@/app/providers/FollowUp/FollowUpProvider";
 
 import type { FollowUp } from "@/shared/types/followUpTypes";
 

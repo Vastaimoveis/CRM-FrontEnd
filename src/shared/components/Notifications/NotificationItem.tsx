@@ -1,4 +1,4 @@
-import { useNotification } from "@/app/providers/NotificationProvider";
+import { useNotification } from "@/app/providers/Notification/NotificationProvider";
 import { NotificationType, type AppNotification } from "@/services/notification/NotificationTypes";
 import NotificationReminder from "./components/NotificationReminder";
 import NotificationPublicLead from "./components/NotificationPublicLead";

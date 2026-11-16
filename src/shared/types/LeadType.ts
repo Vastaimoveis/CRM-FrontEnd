@@ -30,6 +30,13 @@ export interface Lead {
   origem: LeadOrigem;
 }
 
+export interface LeadPorCorretor {
+  corretorId: string;
+  corretorNome: string;
+  quantidade: number;
+}
+
+
 export interface CreateLeadDTO {
   nome: string;
   email: string;

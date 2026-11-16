@@ -1,6 +1,6 @@
 import { Bell, BellRing } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useNotification } from "@/app/providers/NotificationProvider";
+import { useNotification } from "@/app/providers/Notification/NotificationProvider";
 import NotificationItem from "./NotificationItem";
 import TodayReminderModal from "./todayNotificationModal";
 

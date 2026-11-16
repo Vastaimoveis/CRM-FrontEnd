@@ -7,16 +7,17 @@ import {
     useState,
     type ReactNode,
 } from "react";
-import type { Lead } from "@/shared/types/LeadType";
+import type { Lead, LeadPorCorretor } from "@/shared/types/LeadType";
 import { LeadStatus } from "@/shared/types/LeadType";
-import { useAuth } from "./AuthProvider";
+import { useAuth } from "../Auth/AuthProvider";
 import type { UpdateLeadDto } from "@/services/leads/types/leads";
-import { useToast } from "./ToastProvider";
-import { useFunnel } from "./FunnelProvider";
+import { useToast } from "../Toast/ToastProvider";
+import { useFunnel } from "../Funnel/FunnelProvider";
 import { getApiErrorMessage } from "@/shared/utils/getApiErrorResponse";
 import type { LeadFilters } from "@/shared/types/filterTypes";
-import { useLeadQueries } from "./hooks/leads/useLeadsQueries";
-import { useLeadMutations } from "./hooks/leads/useLeadsMutation";
+import { useLeadQueries } from "../hooks/leads/useLeadsQueries";
+import { useLeadMutations } from "../hooks/leads/useLeadsMutation";
+import { getLeadsPorCorretor } from "@/services/leads/leadsService";
 
 
 export interface LeadContextType {
@@ -27,7 +28,10 @@ export interface LeadContextType {
     setFilters: React.Dispatch<React.SetStateAction<LeadFilters>>
     totalPages: number;
     opportunities: Lead[];
+    leadsPorCorretor: LeadPorCorretor[];
+    loadingLeadsPorCorretor: boolean;
 
+    fetchLeadsPorCorretor: () => Promise<void>;
     fetchFilteredLeads: (filters: LeadFilters) => Promise<void | null>;
 
     updateFilters: (partial: Partial<LeadFilters>) => void;
@@ -45,8 +49,8 @@ export interface LeadContextType {
 
     patchLeadCorretor: (id: string, userId: string) => Promise<Lead | null>
 
-    deleteLead: (id: string) => Promise<void>;
-    handleEdit: (id: string, data: UpdateLeadDto) => Promise<void>;
+    deleteLead: (id: string) => Promise<boolean>;
+    handleEdit: (id: string, data: UpdateLeadDto) => Promise<boolean>;
     handleDateChange(start: string | null, end: string | null): void
 }
 
@@ -70,7 +74,11 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         userId: null
     }
     );
+    const [leadsPorCorretor, setLeadsPorCorretor] =
+        useState<LeadPorCorretor[]>([]);
 
+    const [loadingLeadsPorCorretor, setLoadingLeadsPorCorretor] =
+        useState(false);
     const updateFilters = useCallback(
         (partial: Partial<LeadFilters>) => {
             setFilters((prev) => ({
@@ -83,7 +91,6 @@ export function LeadProvider({ children }: { children: ReactNode }) {
 
     const handleError = useCallback(
         (error: unknown) => {
-
             showToast(
                 getApiErrorMessage(error),
                 "error"
@@ -92,7 +99,7 @@ export function LeadProvider({ children }: { children: ReactNode }) {
             console.error(error);
         },
         [showToast]
-    )
+    );
 
     const {
         runFetchFilteredLeads,
@@ -121,35 +128,27 @@ export function LeadProvider({ children }: { children: ReactNode }) {
             setLoading(false);
         }
     },
-        [handleError, requestUser]
+        [handleError, runFetchOportunidade, requestUser]
     )
 
     const fetchFilteredLeads = useCallback(
         async (filter: LeadFilters) => {
             setLoading(true);
+
             try {
                 const response = await runFetchFilteredLeads(filter);
-                if (!response) return null;
-                if (!response.success || !response.data) {
-                    showToast("Erro ao buscar os leads filtrados", "error")
-                    return;
-                }
 
-                setTotalPages(response.data.totalPages);
-                setLeads(response.data.content);
+                if (!response) return;
+
+                setTotalPages(response.totalPages);
+                setLeads(response.content);
             } catch (error: unknown) {
-                const message =
-                    error instanceof Error
-                        ? error.message
-                        : "Erro ao buscar leads";
-
-                handleError(message);
-
+                handleError(error);
             } finally {
                 setLoading(false);
             }
         },
-        [requestUser, handleError, showToast]
+        [runFetchFilteredLeads, handleError]
     );
 
     const updateLeadStatus = useCallback(
@@ -172,92 +171,92 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         [
             filters,
             fetchFilteredLeads,
+            runUpdateLeadStatus,
             fetchCountLeads,
             handleError
         ]
     )
 
     const patchLeadStatus = useCallback(
-        async (id: string, status: LeadStatus
-        ) => {
+        async (id: string, status: LeadStatus) => {
             try {
-                const patched =
-                    await runPatchLeadStatus(id, status);
-                if (!patched) return null;
-                if (status === LeadStatus.ENCERRADO) {
-                    setLeads(prev =>
-                        prev.filter(
-                            lead => lead.id !== id
-                        )
-                    );
-                } else {
+                const patched = await runPatchLeadStatus(id, status);
 
+                if (!patched) return null;
+
+                if (status === LeadStatus.ENCERRADO) {
+                    setLeads(prev => prev.filter(lead => lead.id !== id));
+                } else {
                     setLeads(prev =>
                         prev.map(lead =>
-                            lead.id === id
-                                ? patched
-                                : lead
+                            lead.id === id ? patched : lead
                         )
                     );
-
                 }
+
+                await fetchCountLeads();
+
                 return patched;
-
-            } catch (error) {
-
+            } catch (error: unknown) {
                 handleError(error);
-
                 return null;
-
             }
         },
-        [fetchCountLeads, handleError]
-    )
+        [runPatchLeadStatus, fetchCountLeads, handleError]
+    );
+
+    const fetchLeadsPorCorretor = useCallback(async () => {
+        setLoadingLeadsPorCorretor(true);
+
+        try {
+            const response = await getLeadsPorCorretor();
+
+            setLeadsPorCorretor(response);
+        } catch (error) {
+            handleError(error);
+        } finally {
+            setLoadingLeadsPorCorretor(false);
+        }
+    }, [handleError]);
 
     const patchLeadCorretor = useCallback(
-        async (leadId: string, userId: string
-        ) => {
+        async (leadId: string, userId: string) => {
             try {
-                const patched =
-                    await runPatchLeadCorretor(leadId, userId);
+                const patched = await runPatchLeadCorretor(leadId, userId);
+
                 setLeads(prev =>
                     prev.map(lead =>
-                        lead.id === leadId
-                            ? patched
-                            : lead
+                        lead.id === leadId ? patched : lead
                     )
                 );
 
                 return patched;
-
-            } catch (error) {
-
+            } catch (error: unknown) {
                 handleError(error);
-
                 return null;
-
             }
         },
-        [fetchCountLeads, handleError]
-    )
+        [runPatchLeadCorretor, handleError]
+    );
 
-    const deleteLead = useCallback(
-        async (id: string) => {
-            try {
-                await runDeleteLead(id);
-                setLeads(prev =>
-                    prev.filter(
-                        lead => lead.id !== id
-                    )
-                );
-            } catch (error) {
-                handleError(error);
+    const deleteLead = useCallback(async (
+        id: string
+    ): Promise<boolean> => {
+        try {
+            await runDeleteLead(id);
 
-            }
-        },
-        [fetchCountLeads, handleError]
-    )
+            setLeads(prev =>
+                prev.filter(lead => lead.id !== id)
+            );
 
+            await fetchCountLeads();
+
+            return true;
+        } catch (error) {
+            handleError(error);
+            return false;
+        }
+    }, [runDeleteLead, fetchCountLeads, handleError]);
     const handleDateChange = useCallback(
         (start: string | null,
             end: string | null
@@ -273,21 +272,31 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         [updateFilters]
     )
 
-    const handleEdit = useCallback(async (id: string, data: UpdateLeadDto) => {
-        const updatedLead = await runHandleEdit(id, data);
-        setLeads(prev =>
-            prev.map(lead =>
-                lead.id === id
-                    ? { ...lead, ...updatedLead }
-                    : lead
-            )
-        );
-    }, [fetchFilteredLeads])
+    const handleEdit = useCallback(async (
+        id: string,
+        data: UpdateLeadDto
+    ): Promise<boolean> => {
+        try {
+            const updatedLead = await runHandleEdit(id, data);
+
+            setLeads(prev =>
+                prev.map(lead =>
+                    lead.id === id ? updatedLead : lead
+                )
+            );
+
+            return true;
+        } catch (error) {
+            handleError(error);
+            return false;
+        }
+    }, [runHandleEdit, handleError]);
 
     useEffect(() => {
-        updateFilters({userId: requestUser?.id})
-    },[
-        requestUser
+        updateFilters({ userId: requestUser?.id })
+    }, [
+        requestUser,
+        updateFilters
     ])
 
     const value = useMemo(() => (
@@ -300,6 +309,9 @@ export function LeadProvider({ children }: { children: ReactNode }) {
             setFilters,
             totalPages,
             loading,
+            leadsPorCorretor,
+            loadingLeadsPorCorretor,
+            fetchLeadsPorCorretor,
             updateFilters,
             updateLeadStatus,
             handleDateChange,
@@ -321,6 +333,10 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         patchLeadCorretor,
         handleEdit,
         deleteLead,
+
+        leadsPorCorretor,
+        loadingLeadsPorCorretor,
+        fetchLeadsPorCorretor,
 
         fetchOportunidade,
         fetchFilteredLeads,

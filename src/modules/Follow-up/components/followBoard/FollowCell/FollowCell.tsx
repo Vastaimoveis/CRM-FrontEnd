@@ -82,61 +82,59 @@ export default function FollowCell({
         diasRestantes === null
             ? "Sem agendamento"
             : isAtrasado
-                ? `${Math.abs(diasRestantes)} ${
-                    Math.abs(diasRestantes) === 1 ? "dia" : "dias"
+                ? `${Math.abs(diasRestantes)} ${Math.abs(diasRestantes) === 1 ? "dia" : "dias"
                 } de atraso`
                 : isHoje
                     ? "Hoje"
-                    : `Faltam ${diasRestantes} ${
-                        diasRestantes === 1 ? "dia" : "dias"
+                    : `Faltam ${diasRestantes} ${diasRestantes === 1 ? "dia" : "dias"
                     }`;
 
     return (
         <tr className="border-b border-slate-100 transition hover:bg-slate-50">
 
-            <td className="whitespace-nowrap px-3 py-4 font-medium">
+            <td className="whitespace-nowrap px-2 py-4 font-medium">
                 {followUp.lead.nome}
             </td>
 
-            <td className="whitespace-nowrap px-3 py-4 text-slate-600">
+            <td className="whitespace-nowrap px-2 py-4 text-slate-600">
                 {followUp.lead.telefone}
             </td>
 
-            <td className="px-3 py-4">
+            <td className="px-0 py-4">
                 <span className="
                     whitespace-nowrap rounded-lg
-                    bg-slate-100 px-3 py-1.5
+                    bg-slate-100 px-2 py-1.5
                     text-xs font-semibold text-slate-700
                 ">
                     {followUp.lead.status}
                 </span>
             </td>
 
-            <td className="whitespace-nowrap px-3 py-4 text-center">
-                {followUp.followUpAtual}/{followUp.followUpTotal}
-            </td>
-
             {showFilters && (
                 <>
-                    <td className="whitespace-nowrap px-3 py-4 text-slate-600">
+
+                    <td className="whitespace-nowrap px-2 py-4 text-center">
+                        {followUp.followUpAtual}/{followUp.followUpTotal}
+                    </td>
+
+                    <td className="whitespace-nowrap px-2 py-4 text-slate-600">
                         {followUp.ultimoContato
                             ? formatarData(followUp.ultimoContato, true)
                             : "Primeiro contato"}
                     </td>
 
-                    <td className={`whitespace-nowrap px-3 py-4 ${
-                        isAtrasado ? "text-red-600" : "text-slate-700"
-                    }`}>
+                    <td className={`whitespace-nowrap px-2 py-4 ${isAtrasado ? "text-red-600" : "text-slate-700"
+                        }`}>
                         {formatarData(followUp.proximoContato)}
                     </td>
                 </>
             )}
 
-            <td className="px-3 py-4">
+            <td className="px-2 py-4">
                 <span className={`
                     inline-flex min-w-25 justify-center
                     whitespace-nowrap rounded-lg
-                    px-3 py-2 text-xs font-semibold
+                    px-2 py-2 text-xs font-semibold
 
                     ${diasRestantes === null
                         ? "bg-slate-100 text-slate-600"
@@ -151,8 +149,8 @@ export default function FollowCell({
                 </span>
             </td>
 
-            <td className="whitespace-nowrap px-3 py-4">
-                <div className="flex items-center justify-end gap-2">
+            <td className="whitespace-nowrap px-2  w-10 py-4">
+                <div className="flex items-center justify-end gap-1">
 
                     <button
                         type="button"
@@ -160,7 +158,7 @@ export default function FollowCell({
                         className="
                             flex items-center gap-2
                             whitespace-nowrap rounded-lg
-                            bg-black px-3 py-2.5
+                            bg-black px-2 py-2.5
                             text-xs font-medium text-white
                             transition hover:bg-slate-800
                         "

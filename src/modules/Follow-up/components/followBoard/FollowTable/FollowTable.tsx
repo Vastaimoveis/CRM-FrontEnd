@@ -35,7 +35,7 @@ export default function FollowTable({
         <div className="w-full overflow-x-auto">
 
             <table className="
-                w-full min-w-200
+                w-full min-w-100
                 table-auto border-collapse
                 text-left text-sm
             ">
@@ -56,6 +56,8 @@ export default function FollowTable({
                             Status
                         </th>
 
+                        {showFilters && (
+                            <>
                         <th className="px-3 py-5 font-medium">
                             <span className="inline-flex items-center gap-1">
                                 Follow-up
@@ -63,8 +65,6 @@ export default function FollowTable({
                             </span>
                         </th>
 
-                        {showFilters && (
-                            <>
                                 <th className="px-3 py-5 font-medium">
                                     Último contato
                                 </th>

@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import type { LeadNoteRequest, LeadNotes } from "@/shared/types/LeadNotesType";
-import { useToast } from "@/app/providers/ToastProvider";
+import { useToast } from "@/app/providers/Toast/ToastProvider";
 import { api } from "@/services/api/api";
 
 export function useNotesHook(leadId: string) {

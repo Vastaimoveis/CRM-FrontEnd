@@ -1,3 +1,4 @@
+
 import { useCallback, useRef } from "react";
 
 export default function useRequestLatest() {
@@ -8,13 +9,22 @@ export default function useRequestLatest() {
     ): Promise<T | null> => {
         const id = ++requestId.current;
 
-        const result = await fn();
+        try {
+            const result = await fn();
 
-        if (id !== requestId.current) {
-            return null
+            if (id !== requestId.current) {
+                return null;
+            }
+
+            return result;
+
+        } catch (error) {
+            if (id !== requestId.current) {
+                return null;
+            }
+
+            throw error;
         }
-
-        return result;
     }, []);
 
     return run;

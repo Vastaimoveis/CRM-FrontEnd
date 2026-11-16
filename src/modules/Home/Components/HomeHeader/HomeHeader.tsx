@@ -1,5 +1,5 @@
 
-import { useAuth } from "@/app/providers/AuthProvider";
+import { useAuth } from "@/app/providers/Auth/AuthProvider";
 import { PermissionName } from "@/services/permission/permissionTypes";
 
 import AlertaAtrasados from "@/shared/components/AlertAtrasados/AlertAtrasados";

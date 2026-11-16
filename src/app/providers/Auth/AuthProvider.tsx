@@ -72,9 +72,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [visualUser]);
 
-  function ErrorSetter(text: string) {
+const ErrorSetter = useCallback((text: string) => {
     setErro(text);
-  }
+}, []);
 
   const login = useCallback(async (email: string, password: string): Promise<boolean> => {
     try {
@@ -88,7 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           if (!response.success || !response.data) {
             console.log(response);
-            setErro(response.text);
+            setErro(response.message);
             return false;
           }
           console.log(response.data);
@@ -124,13 +124,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [
     setLoadingAuth,
-    loginRequest,
-    mapLoginResponseToUser,
     setUser,
     setToken,
-    localStorage,
-    Error,
-  ])
+])
 
   const logout = useCallback(() => {
     setUser(null);
@@ -140,16 +136,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem("user");
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
-    localStorage.removeItem("accessToken");
     localStorage.removeItem("visualUser");
-  }, [setUser, setToken, setVisualUser, localStorage]);
+  }, []);
 
 
-  const isCorretor = requestUser?.role.name === SYSTEM_ROLES.CORRETOR
+  const isCorretor = requestUser?.role?.name === SYSTEM_ROLES.CORRETOR
 
   const value = useMemo(() => ({
     user, token, login, ErrorSetter, erro, logout, visualUser, setVisualUser, requestUser, loadingAuth, isCorretor
-  }), [user, token, login, ErrorSetter, erro, logout, visualUser, setVisualUser, requestUser, loadingAuth, isCorretor])
+  }), 
+  [user, token, login, ErrorSetter, erro, logout, visualUser, setVisualUser, requestUser, loadingAuth, isCorretor])
 
   return (
     <AuthContext.Provider value={value}>

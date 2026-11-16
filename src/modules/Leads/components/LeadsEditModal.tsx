@@ -3,7 +3,7 @@ import { LeadOrigem, LeadStatus, type Lead } from "@/shared/types/LeadType";
 import type { UpdateLeadDto } from "@/services/leads/types/leads";
 import { validatePhone } from "@/shared/utils/validatePhone";
 import { formatPhone } from "@/shared/utils/formatPhone";
-import { useToast } from "@/app/providers/ToastProvider";
+import { useToast } from "@/app/providers/Toast/ToastProvider";
 import { Can } from "@/shared/components/Can";
 import { PermissionName } from "@/services/permission/permissionTypes";
 
@@ -12,7 +12,7 @@ interface Props {
     open: boolean;
     loading?: boolean;
     onClose: () => void;
-    onSave: (id: string, data: UpdateLeadDto) => Promise<void>;
+    onSave: (id: string, data: UpdateLeadDto) => Promise<boolean>;
 }
 
 export default function LeadEditModal({
@@ -47,10 +47,6 @@ export default function LeadEditModal({
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         if (!open || !lead) { return null };
-        if (form.nome.trim().length < 3) {
-            alert("Nome deve possuir pelo menos 3 caracteres");
-            return;
-        }
 
         if (form.nome.trim().length < 3) {
             showToast(
@@ -76,8 +72,11 @@ export default function LeadEditModal({
             return;
         }
 
-        await onSave(lead.id, form);
         showToast("Lead alterado com sucesso", "success")
+        const saved = await onSave(lead.id, form);
+
+        if (!saved) return;
+
         onClose();
     }
 

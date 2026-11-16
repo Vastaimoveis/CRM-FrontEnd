@@ -1,10 +1,11 @@
 import { NotificationType, type AppNotification } from "@/services/notification/NotificationTypes";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { useToast } from "./ToastProvider";
-import { useAuth } from "./AuthProvider";
+
 import { format } from "date-fns"
 import { isSameDay } from "date-fns";
 import { deleteNotification, getNotificationsByUserId, patchReadNotification, postNewNotification } from "@/services/notification/NotificationService";
+import { useAuth } from "../Auth/AuthProvider";
+import { useToast } from "../Toast/ToastProvider";
 
 interface NotificationContextType {
     notifications: AppNotification[];

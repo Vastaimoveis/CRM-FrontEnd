@@ -1,6 +1,7 @@
-import { useAuth } from "@/app/providers/AuthProvider";
-import { useLeads } from "@/app/providers/LeadProvider";
-import { useToast } from "@/app/providers/ToastProvider";
+
+import { useAuth } from "@/app/providers/Auth/AuthProvider";
+import { useLeads } from "@/app/providers/Lead/LeadProvider";
+import { useToast } from "@/app/providers/Toast/ToastProvider";
 import type { UpdateLeadDto } from "@/services/leads/types/leads";
 import { createLeadNote } from "@/services/leadsNote/LeadsNoteService";
 import { LeadStatus, type Lead } from "@/shared/types/LeadType";
@@ -20,11 +21,13 @@ export function useLeadsPage() {
         handleEdit,
         totalPages,
     } = useLeads();
+
     const [previewType, setPreviewType] = useState<"export" | "import" | null>(null);
     const { showToast } = useToast();
     const [searchInput, setSearchInput] = useState(filters.search);
     const debouncedSearch = useDebounce(searchInput, 800);
     const [editingLead, setEditingLead] = useState<Lead | null>(null);
+
     const [confirmModal, setConfirmModal] = useState<{
         title: string;
         message: string;
@@ -33,107 +36,107 @@ export function useLeadsPage() {
         onConfirm: (note?: string) => void | Promise<void>;
     } | null>(null);
 
-    const [sendModal, setSendModal] = useState<Lead | null>(null)
+    const [sendModal, setSendModal] = useState<Lead | null>(null);
 
     const { user, loadingAuth } = useAuth();
 
+    // Alteração de status
     const handlePatchStatus = useCallback(async (
         id: string,
         status: LeadStatus
     ) => {
-        try {
-            if (status === LeadStatus.ENCERRADO) {
+        if (status === LeadStatus.ENCERRADO) {
+            setConfirmModal({
+                title: "Encerrar Lead",
+                message: "Informe o motivo do encerramento do lead.",
+                confirmLabel: "Encerrar",
+                requireNote: true,
 
-                setConfirmModal({
-                    title: "Encerrar Lead",
-                    message:
-                        "Informe o motivo do encerramento do lead.",
-                    confirmLabel: "Encerrar",
-                    requireNote: true,
-                    onConfirm: async (note?: string) => {
-                        if (!note?.trim()) {
-                            showToast(
-                                "A anotação é obrigatória",
-                                "error"
-                            );
-                            return;
-                        }
-                        showToast(
-                            "Encerrando lead...",
-                            "warning"
-                        );
+                onConfirm: async (note?: string) => {
+                    if (!note?.trim()) {
+                        showToast("A anotação é obrigatória", "error");
+                        return;
+                    }
+
+                    try {
+                        showToast("Encerrando lead...", "warning");
+
                         await createLeadNote({
                             leadId: id,
                             note: note.trim()
                         });
-                        await patchLeadStatus(
+
+                        const result = await patchLeadStatus(
                             id,
                             LeadStatus.ENCERRADO
                         );
-                        setConfirmModal(null);
-                        showToast(
-                            "Lead encerrado com sucesso",
-                            "success"
-                        );
-                    }
-                });
-                return;
-            }
-            showToast(
-                "Alterando status...",
-                "warning"
-            );
-            await patchLeadStatus(id, status);
-            showToast(
-                "Status alterado com sucesso",
-                "success"
-            );
-        } catch {
-            showToast(
-                "Erro ao alterar status",
-                "error"
-            );
-        }
-    }, [showToast, patchLeadStatus])
 
+                        if (!result) return;
+
+                        setConfirmModal(null);
+                        showToast("Lead encerrado com sucesso", "success");
+                    } catch (error) {
+                        // createLeadNote não é tratado pelo LeadProvider.
+                        console.error("Erro ao encerrar lead:", error);
+                        showToast("Erro ao encerrar lead", "error");
+                    }
+                }
+            });
+
+            return;
+        }
+
+        showToast("Alterando status...", "warning");
+
+        const result = await patchLeadStatus(id, status);
+
+        if (!result) return;
+
+        showToast("Status alterado com sucesso", "success");
+    }, [showToast, patchLeadStatus]);
+
+    // Edição completa
     const handleEditLead = useCallback(async (
         id: string,
         data: UpdateLeadDto
-    ) => {
-        await handleEdit(id, data);
-    }, [handleEdit, showToast])
+    ): Promise<boolean> => {
+        return handleEdit(id, data);
+    }, [handleEdit]);
 
+    // Filtro de status
     const handleStatusChanges = useCallback((newStatus: LeadStatus | null) => {
-        updateFilters(
-            {
-                status: newStatus,
-                page: 0
-            }
-        )
-    }, [updateFilters])
+        updateFilters({
+            status: newStatus,
+            page: 0
+        });
+    }, [updateFilters]);
 
-    const handleSearchChanges = useCallback((value: string | "") => {
+    // Busca
+    const handleSearchChanges = useCallback((value: string) => {
         setSearchInput(value);
-    }, [searchInput])
+    }, []);
 
-    const handleDelete = useCallback(async (id: string) => {
-        try {
-            setConfirmModal({
-                title: "Excluir lead",
-                message: "Tem certeza que deseja excluir este lead? Esta ação não poderá ser desfeita.",
-                confirmLabel: "Excluir",
-                onConfirm: async () => {
-                    showToast("Deletando lead", "warning")
-                    await deleteLead(id);
-                    setConfirmModal(null);
-                    showToast("Lead deletado com sucesso", "success")
-                }
-            })
-        } catch {
-            showToast("Erro ao deletar lead", "error")
-        }
+    // Exclusão
+    const handleDelete = useCallback((id: string) => {
+        setConfirmModal({
+            title: "Excluir lead",
+            message: "Tem certeza que deseja excluir este lead? Esta ação não poderá ser desfeita.",
+            confirmLabel: "Excluir",
+
+            onConfirm: async () => {
+                showToast("Deletando lead...", "warning");
+
+                const deleted = await deleteLead(id);
+
+                if (!deleted) return;
+
+                setConfirmModal(null);
+                showToast("Lead deletado com sucesso", "success");
+            }
+        });
     }, [showToast, deleteLead]);
 
+    // Limpar filtros
     const handleClearFilters = useCallback(() => {
         updateFilters({
             search: "",
@@ -141,49 +144,43 @@ export function useLeadsPage() {
             startDate: null,
             endDate: null,
             page: 0
-        })
-        setSearchInput("")
-    }, [updateFilters])
+        });
 
-    const handleSend = useCallback(async (leadId: string, userId: string) => {
-        try {
-            
-            await patchLeadCorretor(leadId, userId);
-            showToast("Sucesso em alterar o corretor do lead", "success")
-            setSendModal(null);
-        } catch {
-            showToast("Erro ao enviar o lead", "error")
-        }
-    }, [])
+        setSearchInput("");
+    }, [updateFilters]);
 
-    const openSendModal = (lead: Lead) => {
+    // Alterar corretor
+    const handleSend = useCallback(async (
+        leadId: string,
+        userId: string
+    ) => {
+        const result = await patchLeadCorretor(leadId, userId);
+
+        if (!result) return;
+
+        showToast("Corretor alterado com sucesso", "success");
+        setSendModal(null);
+    }, [patchLeadCorretor, showToast]);
+
+    const openSendModal = useCallback((lead: Lead) => {
         setSendModal(lead);
-    };
+    }, []);
 
-
-    const loadLeads = useCallback(() => {
-        if (!user?.id) return;
-        fetchFilteredLeads(filters);
-    }, [user?.id, filters, fetchFilteredLeads]);
-
+    // Buscar leads conforme usuário e filtros
     useEffect(() => {
-        if(loadingAuth) return;
+        if (loadingAuth || !user) return;
 
-        if (!user) {
-            return;
-        }
-    
         fetchFilteredLeads({
             ...filters,
             userId: user.role.name !== SYSTEM_ROLES.CORRETOR
                 ? null
                 : user.id,
         });
+    }, [filters, user, loadingAuth, fetchFilteredLeads]);
 
-    }, [filters, user, fetchFilteredLeads]);
-
+    // Debounce da busca
     useEffect(() => {
-        if(loadingAuth) return;
+        if (loadingAuth) return;
 
         if (debouncedSearch === filters.search) return;
 
@@ -191,12 +188,7 @@ export function useLeadsPage() {
             search: debouncedSearch,
             page: 0,
         });
-    }, [debouncedSearch, filters.search, updateFilters]);
-
-    useEffect(() => {
-        if(loadingAuth) return;
-        loadLeads();
-    }, [loadLeads]);
+    }, [debouncedSearch, filters.search, loadingAuth, updateFilters]);
 
     return {
         leads,

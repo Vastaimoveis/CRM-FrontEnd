@@ -3,9 +3,11 @@ import { LeadOrigem, type CreateLeadDTO, type Lead } from "@/shared/types/LeadTy
 import { createLeadRequest, EMPTY_LEADS_COUNT, getLeadsStatus } from "@/services/leads/leadsService";
 import type { countStatusResponse } from "@/services/leads/types/leads";
 import { normalizeLeadStatusResponse } from "@/services/leads/helper";
-import { useAuth } from "./AuthProvider";
+import { useAuth } from "../Auth/AuthProvider";
 import useRequestLock from "@/shared/utils/useRequestLock";
 import { useRequestPromise } from "@/shared/utils/useRequestPromise";
+import { useToast } from "../Toast/ToastProvider";
+import { getApiErrorMessage } from "@/shared/utils/getApiErrorResponse";
 
 interface FunnelContextType {
     countLeads: countStatusResponse;
@@ -26,33 +28,29 @@ export function FunnelProvider({ children }: { children: ReactNode }) {
     const runLockedCreateLead = useRequestLock()
     const runRequestFetchCount = useRequestPromise();
 
+    const { showToast } = useToast();
+
     const fetchCountLeads = useCallback(async () => {
         try {
             if (!requestUser) return;
-            return runRequestFetchCount(async () => {
+
+            await runRequestFetchCount(async () => {
                 const data = await getLeadsStatus(requestUser.id);
+
                 setCountLeads(normalizeLeadStatusResponse(data));
                 setTotalLeads(data.total);
             });
         } catch (error) {
-
-            console.error(
-                "Erro ao buscar contagem de leads",
-                error
-            );
+            showToast(getApiErrorMessage(error), "error");
+            console.error(error);
         }
-    }, [
-        getLeadsStatus,
-        requestUser,
-        setCountLeads,
-        setTotalLeads,
-    ])
-
+    }, [requestUser, runRequestFetchCount, showToast]);
+    
     const createLead = useCallback(async (
         data: CreateLeadDTO
     ) => {
         return runLockedCreateLead(async () => {
-            const response = await createLeadRequest({...data, origem: LeadOrigem.CRM});
+            const response = await createLeadRequest({ ...data, origem: LeadOrigem.CRM });
             await fetchCountLeads();
 
             return response;
@@ -61,10 +59,9 @@ export function FunnelProvider({ children }: { children: ReactNode }) {
         fetchCountLeads
     ])
 
-
     useEffect(() => {
         fetchCountLeads();
-    }, [requestUser]);
+    }, [fetchCountLeads]);
 
     const value = useMemo(() => ({
         totalLeads,
@@ -77,7 +74,6 @@ export function FunnelProvider({ children }: { children: ReactNode }) {
         createLead,
         countLeads,
         fetchCountLeads,
-
     ])
 
     return (

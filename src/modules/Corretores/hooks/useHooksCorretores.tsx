@@ -3,7 +3,7 @@ import { formatPhone } from "@/shared/utils/formatPhone";
 import type { CreateUserDTO } from "@/services/users/userService";
 import { RegioesEnum } from "@/shared/types/UserTypes";
 import { SYSTEM_ROLES } from "@/services/roles/roleTypes";
-import { useRole } from "@/app/providers/RoleProvider";
+import { useRole } from "@/app/providers/Role/RoleProvider";
 
 export function useHooksCorretores() {
     const { roles } = useRole();
