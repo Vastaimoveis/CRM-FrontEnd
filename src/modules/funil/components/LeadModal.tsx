@@ -124,11 +124,11 @@ export default function LeadModal({
 
       switch (apiError.errorCode) {
         case "LEAD_EMAIL_DUPLICATE":
-          showToast("Este e-mail já está cadastrado.", "error");
+          showToast(apiError.message, "error");
           break;
 
         case "LEAD_PHONE_DUPLICATE":
-          showToast("Este telefone já está cadastrado.", "error");
+          showToast(apiError.message, "error");
           break;
 
         case "LEAD_ASSIGN_FORBIDDEN":
