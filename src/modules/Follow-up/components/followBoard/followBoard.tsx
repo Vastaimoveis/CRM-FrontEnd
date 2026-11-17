@@ -68,6 +68,7 @@ export default function FollowBoard({
         CONCLUIDO: "bg-emerald-600 text-white",
         CANCELADO: "bg-black text-white"
     };
+    
 
     return (
         <section className="

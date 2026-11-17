@@ -18,7 +18,6 @@ import type {
 
 import {
     getMyCurrentFollowUps,
-    getMyCurrentFollowUpCountByStatus,
     getFollowUpsByLead,
     createFollowUp,
     completeFollowUp,
@@ -28,12 +27,11 @@ import {
     getMyFilteredFollowUps,
     getAllFilteredFollowUps,
     cancelFollowUp,
-    getAllCurrentFollowUpCountByStatus
+    getCurrentFollowUpSummary
 } from "@/services/followUp/FollowUpService";
 
 import type { PageResponse } from "@/shared/types/api";
 import type { FollowUpFilters } from "@/shared/types/filterTypes";
-import { SYSTEM_ROLES } from "@/services/roles/roleTypes";
 import { useAuth } from "../Auth/AuthProvider";
 
 interface FollowUpContextType {
@@ -81,8 +79,7 @@ interface FollowUpContextType {
         size?: number
     ) => Promise<void>;
 
-    fetchStatusCounts: () => Promise<void>;
-
+    fetchStatusCounts: (userId?: string) => Promise<void>;
     create: (
         leadId: string,
         data: CreateFollowUpRequest
@@ -143,9 +140,6 @@ export function FollowUpProvider({
     const [todayCount, setTodayCount] = useState<number>(0);
     const { user } = useAuth();
 
-    const canViewAll =
-        user?.role.name === SYSTEM_ROLES.ADMIN ||
-        user?.role.name === SYSTEM_ROLES.GERENTE;
     // Controle compartilhado por todas as buscas paginadas.
     const isPageRequestInProgress = useRef(false);
 
@@ -310,7 +304,8 @@ export function FollowUpProvider({
         [runPageRequest]
     );
 
-    const fetchStatusCounts = useCallback(async (): Promise<void> => {
+    const fetchStatusCounts = useCallback(
+    async (userId?: string): Promise<void> => {
 
         if (!user?.id) return;
 
@@ -318,9 +313,7 @@ export function FollowUpProvider({
 
         try {
 
-            const response = canViewAll
-                ? await getAllCurrentFollowUpCountByStatus()
-                : await getMyCurrentFollowUpCountByStatus();
+            const response = await getCurrentFollowUpSummary(userId);
 
             setStatusCounts(response.statusCounts ?? []);
             setTodayCount(response.todayCount ?? 0);
@@ -333,10 +326,13 @@ export function FollowUpProvider({
 
             setStatusCounts([]);
             setTodayCount(0);
+
+            setStatusCountsLoaded(true);
         }
 
-    }, [user?.id, canViewAll]);
-
+    },
+    [user?.id]
+);
 
     const create = useCallback(
         async (
@@ -436,6 +432,7 @@ export function FollowUpProvider({
         },
         []
     );
+
     const cancel = useCallback(async (id: string): Promise<FollowUp> => {
         setError(null);
 

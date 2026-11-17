@@ -338,3 +338,22 @@ export async function getAllCurrentFollowUpCountByStatus():
 
     return unwrapApiResponse(response.data);
 }
+
+
+export async function getCurrentFollowUpSummary(
+    userId?: string
+): Promise<FollowUpSummary> {
+
+    const response = await api.get<
+        ApiResponse<FollowUpSummary>
+    >(
+        "/follow-ups/current/count-by-status",
+        {
+            params: {
+                ...(userId && { userId })
+            }
+        }
+    );
+
+    return unwrapApiResponse(response.data);
+}

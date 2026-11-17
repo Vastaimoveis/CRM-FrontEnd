@@ -69,6 +69,7 @@ export default function FollowFilter({
                 : filters.status ?? "TODOS"
         );
 
+        
     function getStatusCount(status: FollowUpStatus): number {
         return tabs.find(
             tab => tab.status === status
@@ -171,10 +172,9 @@ export default function FollowFilter({
                                 px-3 py-3 text-sm transition
                                 sm:px-4
 
-                                ${
-                                    active
-                                        ? "border-red-600 bg-red-50 text-red-700"
-                                        : "border-transparent text-slate-600 hover:bg-slate-50"
+                                ${active
+                                    ? "border-red-600 bg-red-50 text-red-700"
+                                    : "border-transparent text-slate-600 hover:bg-slate-50"
                                 }
                             `}
                         >
@@ -252,12 +252,14 @@ export default function FollowFilter({
 
                             <select
                                 value={filters.userId ?? ""}
-                                onChange={e =>
-                                    updateFilter(
-                                        "userId",
-                                        e.target.value || null
-                                    )
-                                }
+                                onChange={e => {
+                                            {/*Bem aqui chatGPT */}
+                                                updateFilter(
+                                                    "userId",
+                                                    e.target.value || null
+                                                )
+                                             }
+                                        }
                                 className="
                                     w-full appearance-none
                                     rounded-lg border border-slate-200

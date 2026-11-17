@@ -194,15 +194,28 @@ export default function FollowMainPage() {
 
     // 6. ALTERAÇÃO DOS FILTROS
 
-    const handleFiltersChange = (
-        nextFilters: FollowUpFilters
-    ) => {
+    const handleFiltersChange = useCallback(
+        (nextFilters: FollowUpFilters) => {
 
-        setFilters(nextFilters);
+            // Verifica se o corretor realmente mudou.
+            const corretorChanged =
+                (nextFilters.userId ?? null) !==
+                (filters.userId ?? null);
 
-        // Toda alteração de filtro retorna para a primeira página.
-        setCurrentPage(0);
-    };
+            setFilters(nextFilters);
+
+            // Toda alteração retorna para a primeira página.
+            setCurrentPage(0);
+
+            // Atualiza os indicadores somente se o corretor mudou.
+            if (corretorChanged) {
+                void fetchStatusCounts(
+                    nextFilters.userId ?? undefined
+                );
+            }
+        },
+        [filters.userId, fetchStatusCounts]
+    );
 
     // 7. PAGINAÇÃO
 
@@ -214,14 +227,15 @@ export default function FollowMainPage() {
 
     const handleSuccess = useCallback(async () => {
 
-        await Promise.all([
-            refreshFollowUps(),
-            fetchStatusCounts()
-        ]);
+    await Promise.all([
+        refreshFollowUps(),
+        fetchStatusCounts(filters.userId ?? undefined)
+    ]);
 
     }, [
         refreshFollowUps,
-        fetchStatusCounts
+        fetchStatusCounts,
+        filters.userId
     ]);
 
     const {
