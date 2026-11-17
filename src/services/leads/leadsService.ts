@@ -149,8 +149,6 @@ export async function getFilteredLeads(
     if (filter.endDate) params.append("endDate", filter.endDate);
 
     params.append("page", String(filter.page));
-    console.log("Parâmetros da requisição:", params.toString());
-
 
     const response = await api.get<ApiResponse<PageResponse<Lead>>>(
         `/leads/filter?${params.toString()}`
