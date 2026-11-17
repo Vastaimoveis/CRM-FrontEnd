@@ -206,22 +206,6 @@ export async function getMyCurrentFollowUps(
     return unwrapApiResponse(response.data);
 }
 
-
-// ======================================================
-// CONTAGEM POR STATUS — USUÁRIO AUTENTICADO
-// ======================================================
-export async function getMyCurrentFollowUpCountByStatus():
-    Promise<FollowUpSummary> {
-
-    const response = await api.get<
-        ApiResponse<FollowUpSummary>
-    >(
-        "/follow-ups/current/me/count-by-status"
-    );
-
-    return unwrapApiResponse(response.data);
-}
-
 export async function getCurrentFollowUpsByUser(
     userId: string,
     page = 0,
@@ -325,16 +309,6 @@ export async function cancelFollowUp(
     const response = await api.post<ApiResponse<FollowUp>>(
         `/follow-ups/${id}/cancel`
     );
-
-    return unwrapApiResponse(response.data);
-}
-
-export async function getAllCurrentFollowUpCountByStatus():
-    Promise<FollowUpSummary> {
-
-    const response = await api.get<
-        ApiResponse<FollowUpSummary>
-    >("/follow-ups/current/count-by-status");
 
     return unwrapApiResponse(response.data);
 }
