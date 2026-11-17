@@ -2,7 +2,6 @@ import {
     createContext,
     useCallback,
     useContext,
-    useEffect,
     useMemo,
     useState,
     type ReactNode,
@@ -292,12 +291,6 @@ export function LeadProvider({ children }: { children: ReactNode }) {
         }
     }, [runHandleEdit, handleError]);
 
-    useEffect(() => {
-        updateFilters({ userId: requestUser?.id })
-    }, [
-        requestUser,
-        updateFilters
-    ])
 
     const value = useMemo(() => (
         {

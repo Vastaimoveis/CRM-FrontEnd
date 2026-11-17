@@ -142,13 +142,15 @@ export async function getFilteredLeads(
 ): Promise<PageResponse<Lead>> {
     const params = new URLSearchParams();
 
-    if (filter.userId) params.append("userid", filter.userId);
+    if (filter.userId) params.append("userId", filter.userId);
     if (filter.search) params.append("search", filter.search.toString());
     if (filter.status) params.append("status", filter.status);
     if (filter.startDate) params.append("startDate", filter.startDate);
     if (filter.endDate) params.append("endDate", filter.endDate);
 
     params.append("page", String(filter.page));
+    console.log("Parâmetros da requisição:", params.toString());
+
 
     const response = await api.get<ApiResponse<PageResponse<Lead>>>(
         `/leads/filter?${params.toString()}`

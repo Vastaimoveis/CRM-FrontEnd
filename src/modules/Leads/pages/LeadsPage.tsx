@@ -20,6 +20,7 @@ import { useRole } from "@/app/providers/Role/RoleProvider";
 import { Can } from "@/shared/components/Can";
 import { useLeads } from "@/app/providers/Lead/LeadProvider";
 import TableLoadingOverlay from "@/shared/components/TableLoadingOverlay/TableLoadingOverlay";
+import { useEffect } from "react";
 
 export default function Leads() {
     const {
@@ -56,7 +57,7 @@ export default function Leads() {
         selectedLead, setNewNote
     } = useLeadNotes();
 
-    const { users } = useUsers();
+    const { users, corretores, loadCorretores } = useUsers();
 
     const { dateReminder,
         openReminder,
@@ -74,6 +75,13 @@ export default function Leads() {
     const canDelete = hasPermission(PermissionName.LEAD_DELETE);
     const canAssign = hasPermission(PermissionName.LEAD_ASSIGN);
     const canViewNotes = hasPermission(PermissionName.NOTE_VIEW);
+    const canFilterByCorretor = hasPermission(PermissionName.LEAD_ASSIGN);
+    const handleUserChange = (userId: string | null) => {
+        updateFilters({
+            userId,
+            page: 0
+        });
+    };
 
     if (!hasPermission(PermissionName.LEAD_VIEW)) {
         return (
@@ -88,6 +96,12 @@ export default function Leads() {
         );
     }
 
+    useEffect(() => {
+        if (!canFilterByCorretor) return;
+
+        void loadCorretores();
+    }, [canFilterByCorretor, loadCorretores]);
+
     return (
         <div className="bg-white p-6 rounded-xl shadow-sm">
             <div className="flex flex-col gap-4 mb-6">
@@ -101,9 +115,13 @@ export default function Leads() {
                 <div className="flex justify-between">
                     <LeadsFilter
                         status={filters.status ?? ""}
-                        search={searchInput}
+                        search={searchInput ?? ""}
+                        userId={filters.userId ?? null}
+                        corretores={corretores}
+                        canFilterByCorretor={canFilterByCorretor}
                         onStatusChange={handleStatusChanges}
                         onSearchChange={handleSearchChanges}
+                        onUserChange={handleUserChange}
                     />
 
                     <LeadDatePicker

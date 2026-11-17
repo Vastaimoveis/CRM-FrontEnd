@@ -167,14 +167,16 @@ export function useLeadsPage() {
     }, []);
 
     // Buscar leads conforme usuário e filtros
+
     useEffect(() => {
         if (loadingAuth || !user) return;
 
+
         fetchFilteredLeads({
             ...filters,
-            userId: user.role.name !== SYSTEM_ROLES.CORRETOR
-                ? null
-                : user.id,
+            userId: user.role.name === SYSTEM_ROLES.CORRETOR
+                ? user.id
+                : filters.userId,
         });
     }, [filters, user, loadingAuth, fetchFilteredLeads]);
 
@@ -189,6 +191,8 @@ export function useLeadsPage() {
             page: 0,
         });
     }, [debouncedSearch, filters.search, loadingAuth, updateFilters]);
+
+
 
     return {
         leads,
